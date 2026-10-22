@@ -1,0 +1,436 @@
+{
+ "g_bPattern": "expression (opcode 0x1a not supported)",
+ "g_flSheenScale": [
+  0.667
+ ],
+ "g_nOutputMode": "expression (opcode 0x1a not supported)",
+ "g_vTextileAlbedoLevels": [
+  0.04500000178813934,
+  1.3219327509069885,
+  1.0
+ ],
+ "g_vMetallicTextileAlbedoLevels": [
+  0.07999999821186066,
+  1.3219327509069885,
+  0.9199999570846558
+ ],
+ "g_vGrungeTexCoordXform0": "expression (opcode 0x1d not supported)",
+ "g_vGrungeTexCoordXform1": "expression (opcode 0x1d not supported)",
+ "g_vGrungeTexRotationXform0": "expression (opcode 0x1d not supported)",
+ "g_vGrungeTexRotationXform1": "expression (opcode 0x1d not supported)",
+ "g_fWearProgress": "expression (opcode 0x1d not supported)",
+ "g_fDetailBlackPoint1": [
+  0.047
+ ],
+ "g_fDetailBlackPointCompensation1": "expression (opcode 0x1d not supported)",
+ "g_fDetailScale1": [
+  4.0
+ ],
+ "g_fDetailRoughnessContrast1": [
+  0.0
+ ],
+ "g_fDetailRoughnessBrightness1": [
+  1.0
+ ],
+ "g_fDetailMetalness1": [
+  0.0
+ ],
+ "g_fDetailCloth1": [
+  0.0
+ ],
+ "g_fDetailNormalContrast1": [
+  1.0
+ ],
+ "g_vDamageLevels1": [
+  0.0,
+  1.0
+ ],
+ "g_fDamageRoughnessContrast1": [
+  0.0
+ ],
+ "g_fDamageRoughnessBrightness1": [
+  1.0
+ ],
+ "g_fDamageSaturation1": [
+  0.0
+ ],
+ "g_fDamageBrightness1": [
+  0.0
+ ],
+ "g_fDamageMetalness1": [
+  0.0
+ ],
+ "g_fDamageCloth1": [
+  0.0
+ ],
+ "g_fDamageBleaching1": [
+  0.0
+ ],
+ "g_fCurvaturePower1": [
+  1.0
+ ],
+ "g_fCurvatureWearBoost1": [
+  0.0
+ ],
+ "g_fDamageNormalEdgeWidth1": [
+  1.0
+ ],
+ "g_fDamageEdgeRoughness1": [
+  0.8
+ ],
+ "g_fDamageEdgeMetalness1": [
+  0.0
+ ],
+ "g_fDetailGrunge1": [
+  0.0
+ ],
+ "g_fGrungeMax1": [
+  1.0
+ ],
+ "g_fGrungeRoughnessBrightness1": [
+  0.8
+ ],
+ "g_fWearBleaching1": [
+  0.25
+ ],
+ "g_fGrimeSaturation1": [
+  0.0
+ ],
+ "g_fGrimeBrightness1": [
+  0.0
+ ],
+ "g_fColorMaskBlur": [
+  2.0
+ ],
+ "g_fFlipFixup": "expression (opcode 0x1d not supported)",
+ "g_vPatternTexCoordXform0": "expression (opcode 0x1d not supported)",
+ "g_vPatternTexCoordXform1": "expression (opcode 0x1d not supported)",
+ "g_vPatternTexRotationXform0": "expression (opcode 0x1d not supported)",
+ "g_vPatternTexRotationXform1": "expression (opcode 0x1d not supported)",
+ "g_fPatternRoughnessBrightness": [
+  1.0
+ ],
+ "g_fPatternMetalness": [
+  0.0
+ ],
+ "g_fPaintThickness": [
+  1.0
+ ],
+ "g_fPaintDurability": [
+  0.5
+ ],
+ "g_fPaintShadowPower": "expression (opcode 0x1d not supported)",
+ "g_fPatternDetailInfluence": [
+  0.0
+ ],
+ "g_nPatternReplaceIndex": "expression (opcode 0x1d not supported)",
+ "g_nPatternMode": [
+  0
+ ],
+ "g_vColorTint1": [
+  0.15,
+  0.11,
+  0.08
+ ],
+ "g_vColorTint2": [
+  0.23,
+  0.16,
+  0.26
+ ],
+ "g_vColorTint3": [
+  0.16,
+  0.16,
+  0.28
+ ],
+ "g_vColorTint4": [
+  0.2,
+  0.3,
+  0.3
+ ],
+ "g_vColorTint5": [
+  0.09,
+  0.16,
+  0.1
+ ],
+ "g_vColorTint6": [
+  0.29,
+  0.26,
+  0.11
+ ],
+ "g_vColorTint7": [
+  0.32,
+  0.22,
+  0.12
+ ],
+ "g_vColorTint8": [
+  0.21,
+  0.12,
+  0.09
+ ],
+ "g_vPatternPaletteIndices": [
+  5,
+  6,
+  7,
+  8
+ ],
+ "g_fDetailBlackPoint2": [
+  0.047
+ ],
+ "g_fDetailBlackPointCompensation2": "expression (opcode 0x1d not supported)",
+ "g_fDetailScale2": [
+  4.0
+ ],
+ "g_fDetailRoughnessContrast2": [
+  0.0
+ ],
+ "g_fDetailRoughnessBrightness2": [
+  1.0
+ ],
+ "g_fDetailMetalness2": [
+  0.0
+ ],
+ "g_fDetailCloth2": [
+  0.0
+ ],
+ "g_fDetailNormalContrast2": [
+  1.0
+ ],
+ "g_vDamageLevels2": [
+  0.0,
+  1.0
+ ],
+ "g_fDamageRoughnessContrast2": [
+  0.0
+ ],
+ "g_fDamageRoughnessBrightness2": [
+  1.0
+ ],
+ "g_fDamageSaturation2": [
+  0.0
+ ],
+ "g_fDamageBrightness2": [
+  0.0
+ ],
+ "g_fDamageMetalness2": [
+  0.0
+ ],
+ "g_fDamageCloth2": [
+  0.0
+ ],
+ "g_fDamageBleaching2": [
+  0.0
+ ],
+ "g_fCurvaturePower2": [
+  1.0
+ ],
+ "g_fCurvatureWearBoost2": [
+  0.0
+ ],
+ "g_fDamageNormalEdgeWidth2": [
+  1.0
+ ],
+ "g_fDamageEdgeRoughness2": [
+  0.8
+ ],
+ "g_fDamageEdgeMetalness2": [
+  0.0
+ ],
+ "g_fDetailGrunge2": [
+  0.0
+ ],
+ "g_fGrungeMax2": [
+  1.0
+ ],
+ "g_fGrungeRoughnessBrightness2": [
+  0.8
+ ],
+ "g_fWearBleaching2": [
+  0.25
+ ],
+ "g_fGrimeSaturation2": [
+  0.0
+ ],
+ "g_fGrimeBrightness2": [
+  0.0
+ ],
+ "g_fDetailBlackPoint3": [
+  0.047
+ ],
+ "g_fDetailBlackPointCompensation3": "expression (opcode 0x1d not supported)",
+ "g_fDetailScale3": [
+  4.0
+ ],
+ "g_fDetailRoughnessContrast3": [
+  0.0
+ ],
+ "g_fDetailRoughnessBrightness3": [
+  1.0
+ ],
+ "g_fDetailMetalness3": [
+  0.0
+ ],
+ "g_fDetailCloth3": [
+  0.0
+ ],
+ "g_fDetailNormalContrast3": [
+  1.0
+ ],
+ "g_vDamageLevels3": [
+  0.0,
+  1.0
+ ],
+ "g_fDamageRoughnessContrast3": [
+  0.0
+ ],
+ "g_fDamageRoughnessBrightness3": [
+  1.0
+ ],
+ "g_fDamageSaturation3": [
+  0.0
+ ],
+ "g_fDamageBrightness3": [
+  0.0
+ ],
+ "g_fDamageMetalness3": [
+  0.0
+ ],
+ "g_fDamageCloth3": [
+  0.0
+ ],
+ "g_fDamageBleaching3": [
+  0.0
+ ],
+ "g_fCurvaturePower3": [
+  1.0
+ ],
+ "g_fCurvatureWearBoost3": [
+  0.0
+ ],
+ "g_fDamageNormalEdgeWidth3": [
+  1.0
+ ],
+ "g_fDamageEdgeRoughness3": [
+  0.8
+ ],
+ "g_fDamageEdgeMetalness3": [
+  0.0
+ ],
+ "g_fDetailGrunge3": [
+  0.0
+ ],
+ "g_fGrungeMax3": [
+  1.0
+ ],
+ "g_fGrungeRoughnessBrightness3": [
+  0.8
+ ],
+ "g_fWearBleaching3": [
+  0.25
+ ],
+ "g_fGrimeSaturation3": [
+  0.0
+ ],
+ "g_fGrimeBrightness3": [
+  0.0
+ ],
+ "g_fDetailBlackPoint4": [
+  0.047
+ ],
+ "g_fDetailBlackPointCompensation4": "expression (opcode 0x1d not supported)",
+ "g_fDetailScale4": [
+  4.0
+ ],
+ "g_fDetailRoughnessContrast4": [
+  0.0
+ ],
+ "g_fDetailRoughnessBrightness4": [
+  1.0
+ ],
+ "g_fDetailMetalness4": [
+  0.0
+ ],
+ "g_fDetailCloth4": [
+  0.0
+ ],
+ "g_fDetailNormalContrast4": [
+  1.0
+ ],
+ "g_vDamageLevels4": [
+  0.0,
+  1.0
+ ],
+ "g_fDamageRoughnessContrast4": [
+  0.0
+ ],
+ "g_fDamageRoughnessBrightness4": [
+  1.0
+ ],
+ "g_fDamageSaturation4": [
+  0.0
+ ],
+ "g_fDamageBrightness4": [
+  0.0
+ ],
+ "g_fDamageMetalness4": [
+  0.0
+ ],
+ "g_fDamageCloth4": [
+  0.0
+ ],
+ "g_fDamageBleaching4": [
+  0.0
+ ],
+ "g_fCurvaturePower4": [
+  1.0
+ ],
+ "g_fCurvatureWearBoost4": [
+  0.0
+ ],
+ "g_fDamageNormalEdgeWidth4": [
+  1.0
+ ],
+ "g_fDamageEdgeRoughness4": [
+  0.8
+ ],
+ "g_fDamageEdgeMetalness4": [
+  0.0
+ ],
+ "g_fDetailGrunge4": [
+  0.0
+ ],
+ "g_fGrungeMax4": [
+  1.0
+ ],
+ "g_fGrungeRoughnessBrightness4": [
+  0.8
+ ],
+ "g_fWearBleaching4": [
+  0.25
+ ],
+ "g_fGrimeSaturation4": [
+  0.0
+ ],
+ "g_fGrimeBrightness4": [
+  0.0
+ ],
+ "g_fGrungeTexCoordOffset": [
+  0.0,
+  0.0
+ ],
+ "g_fGrungeTexCoordRotation": [
+  0.0
+ ],
+ "g_fGrungeTexCoordScale": [
+  2.5
+ ],
+ "g_fPatternTexCoordOffset": [
+  0.0,
+  0.0
+ ],
+ "g_fPatternTexCoordRotation": [
+  0.0
+ ],
+ "g_fPatternTexCoordScale": [
+  2.5
+ ]
+}
