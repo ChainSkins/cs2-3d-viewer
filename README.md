@@ -39,6 +39,7 @@ npm run preview    # http://localhost:5321, serves dist/
   - [Details that matter](#details-that-matter)
 - [Assets](#assets)
 - [Public API (embed)](#public-api-embed)
+  - [Quick start: loading items with `postMessage`](#quick-start-loading-items-with-postmessage)
   - [URL parameters](#url-parameters)
   - [Messages to the embed](#messages-to-the-embed)
   - [Messages from the embed](#messages-from-the-embed)
@@ -196,6 +197,49 @@ The game assets (~33,000 files) **are not in git**. They live in `public/assets/
 <iframe src="https://3d.chainskins.net/embed?def=7&paint=180&float=0.05&seed=1&map=de_mirage" allow="fullscreen"></iframe>
 ```
 
+### Quick start: loading items with `postMessage`
+
+Put the iframe, wait for `cs3d:ready`, then send `cs3d:load`. Check the origin both ways.
+
+```js
+const frame = document.getElementById('viewer') // <iframe id="viewer" src="https://3d.chainskins.net/embed" allow="fullscreen">
+const ORIGIN = 'https://3d.chainskins.net'
+const send = (message) => frame.contentWindow.postMessage(message, ORIGIN)
+
+let ready = false
+window.addEventListener('message', (e) => {
+  if (e.origin !== ORIGIN || e.source !== frame.contentWindow) return
+  if (e.data?.type === 'cs3d:ready') ready = true // the embed listens from now on
+  if (e.data?.type === 'cs3d:loaded') console.log('shown:', e.data.item)
+  if (e.data?.type === 'cs3d:error') console.warn(e.data.message)
+})
+```
+
+Once `ready` is true:
+
+```js
+// Load a collectible pin
+send({ type: 'cs3d:load', target: { pin: '6132' } })
+
+// Load an agent patch on its own, on the game's inspect card
+send({ type: 'cs3d:load', target: { patch: '4553' } })
+
+// Load an agent wearing patches: up to 3 slots, `id~size`, an empty entry leaves the slot empty
+send({
+  type: 'cs3d:load',
+  target: { character: 'customplayer_tm_professional_varf' },
+  options: { agent_patches: '4588~1.15,,4584~0.99' },
+})
+
+// Change the patches of the agent on screen, without reloading it
+send({ type: 'cs3d:set', options: { agent_patches: '4588~1.15,4572,4584~0.99' } })
+
+// Load an agent from its inspect link: it brings its own patches
+send({ type: 'cs3d:load', target: { inspect: 'steam://run/730//+csgo_econ_action_preview%20<hex>' } })
+```
+
+Each load answers `cs3d:loading`, then `cs3d:loaded` (`item.kind` is `pin`, `patch` or `agent`; an agent also reports `agentPatches`) or `cs3d:error` (unknown id, bad link…).
+
 The embed carries a small **chainskins.net** watermark in its top-left corner, linking to the full viewer, and burnt into its screenshots. It is always shown: `ui=0` does not hide it. Nothing the embed does is kept in the visitor's browser: the full viewer's lighting, viewmodel and loadout stay untouched.
 
 Only `/embed` may be framed: `public/_headers` sends `Content-Security-Policy: frame-ancestors *` there (it overrides the zone's `X-Frame-Options: SAMEORIGIN`).
@@ -270,7 +314,7 @@ They arrive as `message` events on the page's `window`. `ready`, `loading`, `loa
 | --- | --- |
 | `{ type: 'cs3d:ready', version }` | The embed listens for messages (protocol `version` 1) |
 | `{ type: 'cs3d:loading' }` | An item starts loading |
-| `{ type: 'cs3d:loaded', item }` | It is shown. `item`: `{ kind, id, floatMin, floatMax, canInspect, canInspectGloves }`, plus `stickerWear` (a sticker) or `charmPattern` (a charm). It fires again when a change redraws the model (an agent's gloves or weapon, first person) |
+| `{ type: 'cs3d:loaded', item }` | It is shown. `item`: `{ kind, id, floatMin, floatMax, canInspect, canInspectGloves }`, plus `stickerWear` (a sticker), `charmPattern` (a charm) or `agentPatches` (an agent: its patches, as the `agent_patches` option). It fires again when a change redraws the model (an agent's gloves or weapon, first person) |
 | `{ type: 'cs3d:error', message }` | It can't be shown (unknown item, bad link, missing asset…) |
 | `{ type: 'cs3d:screenshot', id, dataUrl }` | Reply to `cs3d:screenshot` |
 | `{ type: 'cs3d:share', id, url }` | Reply to `cs3d:share`: the item with its float, pattern, stickers, charm, first person and loadout |
