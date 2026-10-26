@@ -35,7 +35,7 @@ export function useEmbedTarget({ initialTarget, initialStickers, pendingOptions,
     const o = pendingOptions.current
     pendingOptions.current = {}
     state.patch({
-      st: firstStickers.current, charm: null, cseed: null, cx: null, cz: null, cpx: null, cpy: null, cpz: null, cst: null, swear: null,
+      st: firstStickers.current, charm: null, cseed: null, cx: null, cz: null, cpx: null, cpy: null, cpz: null, cst: null, swear: null, ap: null,
       ...resolved.params,
       float: (o.float ?? resolved.float)?.toFixed(4) ?? null,
       seed: o.seed ?? resolved.seed ?? null,

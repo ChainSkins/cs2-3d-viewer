@@ -7,7 +7,7 @@ import type { CatalogIndex } from '@/lib/data/catalog'
 import type { InspectItem } from '@/lib/data/inspect'
 import { resolveInspect } from '@/lib/inspect-resolve'
 import { selectionPath } from '@/lib/selection'
-import { stickersToParam } from '@/lib/url-state'
+import { agentPatchesFromParam, agentPatchesToParam, PATCH_SLOTS, stickersToParam } from '@/lib/url-state'
 
 /**
  * Loads a decoded inspect link: resolves it against the catalog and goes to what it names — a sticker (with its
@@ -31,7 +31,10 @@ export function useInspectLink(catalog: CatalogIndex | null, attachments: Attach
       return null
     }
     if (resolved.kind === 'agent') {
-      navigate(selectionPath({ kind: 'agent', id: resolved.id }))
+      const worn = agentPatchesFromParam(null)
+      for (const s of link.stickers) if (s.slot >= 0 && s.slot < PATCH_SLOTS) worn[s.slot] = { id: String(s.id), scale: s.scale && s.scale > 0 ? s.scale : 1 }
+      const ap = agentPatchesToParam(worn)
+      navigate(selectionPath({ kind: 'agent', id: resolved.id }) + (ap ? '?ap=' + ap : ''))
       return null
     }
     if (resolved.kind === 'charm') {

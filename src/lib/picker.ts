@@ -356,5 +356,7 @@ export type PickerTarget =
   | { kind: 'charm' }
   | { kind: 'gloves' }
   | { kind: 'agent' }
+  /** A patch for one of the agent's slots. */
+  | { kind: 'patch'; slot: number }
   /** The weapon skin an agent holds (the shared loadout). */
   | { kind: 'weapon' }

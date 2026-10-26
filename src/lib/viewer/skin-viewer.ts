@@ -8,6 +8,7 @@ import { TextureSource } from '@/lib/viewer/textures'
 import type { WeaponItem } from '@/lib/materials/weapon'
 import { loadAttachments } from '@/lib/data/attachments'
 import { GAME_ROOT, VIEWER_DATA } from '@/lib/data/catalog'
+import { PatchLayer, type AgentPatch } from '@/lib/viewer/agent-patches'
 import { loadPatches } from '@/lib/data/patches'
 import { loadPins } from '@/lib/data/pins'
 import { DEFAULT_AGENT } from '@/lib/data/agents'
@@ -115,6 +116,8 @@ export class SkinViewer {
   private gloveGameLight = false
   /** An agent is shown (posed or not). */
   private agentShown = false
+  private patchLayers: PatchLayer[] = []
+  private agentPatches: (AgentPatch | null)[] = []
   /** The weapon skin the shown agent holds (for its pattern and wear). */
   private agentWeaponItem: WeaponItem | null = null
   /** The skin gloves the shown agent wears. */
@@ -757,6 +760,7 @@ export class SkinViewer {
     this.fpGlove = null
     this.fpRig = null
     this.agentRig = null
+    this.patchLayers = []
     this.agentShown = false
     this.agentWeaponItem = null
     this.agentGlove = null
@@ -814,11 +818,33 @@ export class SkinViewer {
     this.agentWeaponItem = agent.weapon
     if (agent.weapon) this.setAgentWeapon(agent.weapon.seed, this.weaponFloat)
     this.agentGlove = agent.glove
+    this.patchLayers = agent.patches
+    await this.setAgentPatches(this.agentPatches)
     if (agent.glove) setAgentGloves(this.loaded.finishes, agent.glove, this.viewmodel)
     this.agentRig = agent.rig
     this.agentShown = true
     if (agent.rig) poseAgent(agent.rig, 0)
     this.frame(agent.root, false)
+  }
+
+  /** The patches the agent wears (kept across loads): one per slot, null = empty. */
+  async setAgentPatches(worn: (AgentPatch | null)[]): Promise<void> {
+    this.agentPatches = worn
+    if (!this.patchLayers.length) return
+    const index = await loadPatches(this.opts.assetBase)
+    const textures = await Promise.all(worn.map(async (p) => {
+      const entry = p && index.patch.get(p.id)
+      if (!entry) return null
+      const [patch, backing] = await Promise.all([
+        this.loader.textures.load(GAME_ROOT + entry.texture, true).catch(() => null),
+        entry.backing ? this.loader.textures.load(GAME_ROOT + entry.backing, true).catch(() => null) : null,
+      ])
+      /** The game samples patches with a clamping sampler (no tiling where a backing scale shrinks the patch). */
+      for (const t of [patch, backing]) if (t) t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping
+      return patch ? { patch, backing } : null
+    }))
+    if (worn !== this.agentPatches) return
+    for (const layer of this.patchLayers) layer.set(worn, textures)
   }
 
   /** The pattern and wear of the weapon the agent holds, without making it the viewer's item. */

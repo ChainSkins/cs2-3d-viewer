@@ -1,6 +1,7 @@
 import { LayoutGrid, PanelLeftClose, PanelLeftOpen, Search } from 'lucide-react'
 import { BrandMark } from '@/components/common/brand-mark'
 import { AttachmentsSection } from '@/components/sidebar/attachments-section'
+import { AgentPatchesSection } from '@/components/sidebar/agent-patches-section'
 import { CharmPatternSection } from '@/components/sidebar/charm-pattern-section'
 import { CurrentPick } from '@/components/sidebar/current-pick'
 import { FloatSection } from '@/components/sidebar/float-section'
@@ -13,6 +14,7 @@ import { LoadoutSection } from '@/components/sidebar/loadout-section'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import type { AttachmentIndex } from '@/lib/data/attachments'
+import type { PatchIndex } from '@/lib/data/patches'
 import type { Item } from '@/lib/data/items'
 import type { Heading } from '@/lib/heading'
 import { isSlabCharm, markupFor } from '@/lib/markup'
@@ -35,6 +37,7 @@ interface SidebarProps {
   heading: Heading
   item: Item | null
   attachments: AttachmentIndex | null
+  patches: PatchIndex | null
   state: ViewerStateApi
   glovesName: string | null
   agentName: string | null
@@ -50,7 +53,7 @@ interface SidebarProps {
 }
 
 /** The control panel, floating over the page: the selection, then the sections that apply to it. On wide screens it folds into a slim rail. */
-export function Sidebar({ lighting, lightingPreset, onLighting, viewmodel, onViewmodel, collapsed, onToggleCollapsed, selection, heading, item, attachments, state, glovesName, agentName, loadoutWeapon, loadoutWeaponName, onLoadoutFirstPerson, activeSticker, onActiveSticker, onOpenPicker, onOpenInspect, loading }: SidebarProps) {
+export function Sidebar({ lighting, lightingPreset, onLighting, viewmodel, onViewmodel, collapsed, onToggleCollapsed, selection, heading, item, attachments, patches, state, glovesName, agentName, loadoutWeapon, loadoutWeaponName, onLoadoutFirstPerson, activeSticker, onActiveSticker, onOpenPicker, onOpenInspect, loading }: SidebarProps) {
   const isSkin = selection.kind === 'skin'
   const stickerName = (id: string | null) => (id ? attachments?.sticker.get(id)?.name ?? id : '')
   const charmId = selection.kind === 'charm' ? selection.id : state.charm.id
@@ -149,6 +152,10 @@ export function Sidebar({ lighting, lightingPreset, onLighting, viewmodel, onVie
             onViewmodel={onViewmodel}
             onFirstPerson={onLoadoutFirstPerson}
           />
+        )}
+
+        {selection.kind === 'agent' && (
+          <AgentPatchesSection worn={state.agentPatches} patches={patches} onChoose={(slot) => onOpenPicker({ kind: 'patch', slot })} onChange={state.setAgentPatch} />
         )}
 
         <LightingSection lighting={lighting} presetId={lightingPreset} onChange={onLighting} />

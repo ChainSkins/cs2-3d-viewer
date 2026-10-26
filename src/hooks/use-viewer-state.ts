@@ -2,7 +2,8 @@ import { useCallback, useMemo } from 'react'
 import { useLiveSearchParams, type Patch } from '@/hooks/use-live-search-params'
 import { useLoadout, type Loadout } from '@/hooks/use-loadout'
 import { SEED_MAX } from '@/lib/config'
-import { numberParam, stickersFromParam, stickersToParam } from '@/lib/url-state'
+import { agentPatchesFromParam, agentPatchesToParam, numberParam, stickersFromParam, stickersToParam } from '@/lib/url-state'
+import type { AgentPatch } from '@/lib/viewer/agent-patches'
 import type { CharmOptions, StickerOptions } from '@/lib/viewer/skin-viewer'
 
 export type { Loadout }
@@ -25,6 +26,8 @@ export interface ViewerState {
   stickers: StickerOptions[]
   charm: CharmState
   stickerWear: number
+  /** On an agent's page: the patch worn in each of its slots. */
+  agentPatches: (AgentPatch | null)[]
 }
 
 export interface ViewerStateApi extends ViewerState {
@@ -40,6 +43,8 @@ export interface ViewerStateApi extends ViewerState {
   setStickers: (list: StickerOptions[]) => void
   setCharm: (changes: Partial<CharmState>) => void
   setStickerWear: (value: number) => void
+  /** Wears `patch` in `slot` (null: takes it off). */
+  setAgentPatch: (slot: number, patch: AgentPatch | null) => void
   charmOptions: CharmOptions | null
   /** The shared loadout (agent, gloves, the weapon an agent holds), kept in storage. */
   loadout: Loadout
@@ -70,6 +75,7 @@ export function useViewerState(persistLoadout = true): ViewerStateApi {
       sticker: params.get('cst'),
     },
     stickerWear: numberParam(params, 'swear', 0),
+    agentPatches: agentPatchesFromParam(params.get('ap')),
   }), [params, floatParam, loadout.gloves, loadout.agent])
 
   const { id, seed: charmSeed, offset, position, sticker } = state.charm
@@ -112,6 +118,11 @@ export function useViewerState(persistLoadout = true): ViewerStateApi {
     setStickers: (list) => patch({ st: list.length ? stickersToParam(list) : null }),
     setCharm,
     setStickerWear: (value) => patch({ swear: value || null }),
+    setAgentPatch: (slot, worn) => {
+      const list = agentPatchesFromParam(params.get('ap'))
+      list[slot] = worn
+      patch({ ap: agentPatchesToParam(list) || null })
+    },
     charmOptions,
   }
 }

@@ -1,5 +1,6 @@
 import type { ViewerStateApi } from '@/hooks/use-viewer-state'
 import type { ViewOptions } from '@/hooks/use-viewer-sync'
+import { agentPatchesToParam } from '@/lib/url-state'
 import type { Lighting, Viewmodel } from '@/lib/viewer/viewer-options'
 import type { EmbedItemInfo, EmbedState } from './types'
 
@@ -29,6 +30,7 @@ export function buildEmbedState({ item, shareUrl, state, lighting, viewmodel, vi
     loadout_weapon: state.loadout.weapon ?? '',
     loadout_weapon_float: state.loadout.weaponFloat ?? undefined,
     loadout_weapon_seed: state.loadout.weaponSeed,
+    agent_patches: agentPatchesToParam(state.agentPatches),
     viewmodel_sway: viewmodel.sway,
     viewmodel_left_hand: viewmodel.leftHanded,
     auto_rotate: view.spin,

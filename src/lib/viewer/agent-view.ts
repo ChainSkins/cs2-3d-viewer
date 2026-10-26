@@ -5,6 +5,7 @@ import type { GloveItem } from '@/lib/data/items'
 import type { WeaponFinish, WeaponItem } from '@/lib/materials/weapon'
 import { addPose, adoptAncestors, poseRig, samplePose, SkinnedGeometry, type InspectClip, type RigPart, type WeaponBind } from '@/lib/viewer/firstperson'
 import { isGlove, setGloveSeed, setWeaponSeed, type Finish, type ModelLoader } from '@/lib/viewer/model-loader'
+import { loadPatchSlots, PatchLayer } from '@/lib/viewer/agent-patches'
 import type { Viewmodel } from '@/lib/viewer/viewer-options'
 
 /** The agent's UI idle clip (looping), its skinned body (and skin gloves), the weapon it holds and its bind. */
@@ -24,6 +25,8 @@ export interface LoadedAgent {
   rig: AgentRig | null
   weapon: WeaponItem | null
   glove: GloveItem | null
+  /** The body materials that can wear patches. */
+  patches: PatchLayer[]
 }
 
 const json = <T>(url: string): Promise<T> => fetch(url).then((r) => r.json() as Promise<T>)
@@ -41,7 +44,7 @@ export async function loadAgent(loader: ModelLoader, assetBase: string, id: stri
   const base = assetBase + VIEWER_DATA
   const weaponName = weaponItem?.id.split('|')[0] ?? 'weapon_ak47'
   const team = /(^|_)ctm_/.test(id) ? 'ct' : 't'
-  const [gltf, clip, binds, arms, layer] = await Promise.all([
+  const [gltf, clip, binds, arms, layer, patchSlots] = await Promise.all([
     loader.gltf.loadAsync(loader.textures.url(GAME_ROOT + model.body)),
     json<Record<string, Record<string, string>>>(base + 'agentposes/index.json')
       .then((idx) => (idx[team]?.[weaponName] ? json<InspectClip>(base + 'agentposes/' + idx[team][weaponName]) : null))
@@ -49,12 +52,14 @@ export async function loadAgent(loader: ModelLoader, assetBase: string, id: stri
     json<Record<string, WeaponBind>>(base + 'firstperson/weapon_binds.json').catch(() => ({} as Record<string, WeaponBind>)),
     glove ? loader.armsSkeleton(glove).catch(() => null) : Promise.resolve(null),
     json<InspectClip>(base + 'agentposes/idle_layer.json').catch(() => null),
+    loadPatchSlots(assetBase, VIEWER_DATA),
   ])
   if (stale()) return null
   const scene = gltf.scene
   const root = new THREE.Group()
   scene.updateMatrixWorld(true)
   const geometries: SkinnedGeometry[] = []
+  const patches: PatchLayer[] = []
   /** Skin gloves (their third-person "worldmodel" meshes) take the default gloves' place; they need the pose to sit right. */
   const skinGloves = !!(glove && clip && arms)
   for (const [group, calls] of Object.entries(model.drawCalls)) {
@@ -67,7 +72,10 @@ export async function loadAgent(loader: ModelLoader, assetBase: string, id: stri
       const call = calls[i] ?? calls[0]
       const g = o.geometry.clone().applyMatrix4(o.matrixWorld)
       if (clip && g.getAttribute('skinIndex')) geometries.push(new SkinnedGeometry(g))
-      root.add(new THREE.Mesh(g, call ? loader.plainMaterial(call) : new THREE.MeshStandardMaterial()))
+      const material = call ? loader.plainMaterial(call) : new THREE.MeshStandardMaterial()
+      const slots = call && patchSlots[call.material]
+      if (slots) patches.push(new PatchLayer(material, slots))
+      root.add(new THREE.Mesh(g, material))
     })
   }
   let held: THREE.Object3D | null = null
@@ -91,6 +99,7 @@ export async function loadAgent(loader: ModelLoader, assetBase: string, id: stri
     rig: clip ? { clip, layer, parts, weapon: held, bind: binds[weaponName], start: performance.now() } : null,
     weapon: held ? weaponItem : null,
     glove: skinGloves ? glove : null,
+    patches,
   }
 }
 

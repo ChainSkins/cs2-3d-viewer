@@ -3,6 +3,7 @@ import { ASSET_BASE, DEFAULT_FLOAT } from '@/lib/config'
 import { catalogItem, loadItemData, loadKitData } from '@/lib/data/catalog'
 import type { GloveItem, Item } from '@/lib/data/items'
 import { parseSkinKey, type Selection } from '@/lib/selection'
+import { agentPatchesToParam } from '@/lib/url-state'
 import { clampFloat } from '@/lib/wear'
 import type { SkinViewer } from '@/lib/viewer/skin-viewer'
 import type { ViewerStateApi } from '@/hooks/use-viewer-state'
@@ -36,6 +37,7 @@ export function useSkinLoader(viewer: SkinViewer | null, selection: Selection, s
   const gloves = firstPerson || selection.kind === 'agent' ? state.gloves : null
   const agent = firstPerson ? state.agent : null
   const loadoutWeapon = selection.kind === 'agent' ? state.loadout.weapon : null
+  const patchParam = selection.kind === 'agent' ? agentPatchesToParam(state.agentPatches) : ''
 
   useEffect(() => {
     if (!viewer) return
@@ -94,6 +96,11 @@ export function useSkinLoader(viewer: SkinViewer | null, selection: Selection, s
       })
     return () => { cancelled = true }
   }, [viewer, key, firstPerson, gloves, agent, selection, loadoutWeapon])
+
+  // The patches an agent wears change in place: no reload of the model.
+  useEffect(() => {
+    if (viewer && selection.kind === 'agent') void viewer.setAgentPatches(latest.current.agentPatches)
+  }, [viewer, selection.kind, patchParam])
 
   return load
 }

@@ -10,6 +10,8 @@ export type EmbedTarget =
   | { sticker: string }
   | { charm: string }
   | { character: string }
+  | { pin: string }
+  | { patch: string }
 
 export interface EmbedOptions {
   float?: number
@@ -30,6 +32,8 @@ export interface EmbedOptions {
   loadout_weapon?: string
   loadout_weapon_float?: number
   loadout_weapon_seed?: number
+  /** An agent's patches: `id~size`, comma-separated, one entry per slot (empty = none). */
+  agent_patches?: string
 }
 
 export type EmbedCommand =

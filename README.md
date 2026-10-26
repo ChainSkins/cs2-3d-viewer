@@ -13,7 +13,7 @@
 A browser 3D viewer for CS2 skins, built on **the game's own shaders** ported to WebGL. It covers:
 
 - float and pattern (seed);
-- stickers, charms, gloves and agents;
+- stickers, charms, collectible pins, agent patches, gloves and agents;
 - first person, with the game's inspect animation;
 - the game's inspect maps as backgrounds.
 
@@ -52,9 +52,11 @@ npm run preview    # http://localhost:5321, serves dist/
 | `/skin/:item/:kit` | A weapon or a pair of gloves with its skin |
 | `/sticker/:id` | A sticker on its own |
 | `/charm/:id` | A charm on its own |
-| `/agent/:id` | An agent holding the loadout's weapon, wearing its gloves |
+| `/agent/:id` | An agent holding the loadout's weapon, wearing its gloves and its patches (`ap`) |
+| `/pin/:id` | A collectible pin on its own (`id` = its item definition index, db.json's `pins` key) |
+| `/patch/:id` | An agent patch on its own, on the game's inspect card (`id` = its patch kit id, db.json's `patches` key) |
 | `/share/:code` | A shared link |
-| `/inspect/*` | An inspect link opened by URL: `/inspect/steam://rungame/730/…+csgo_econ_action_preview%20<hex>`, `/inspect/steam://run/730//+csgo_econ_action_preview%20<hex>`, `/inspect/<hex>`, or `/inspect/<hex>` of the raw protobuf (no key byte, no checksum). Decodes it and redirects to the skin, sticker, charm or agent it names |
+| `/inspect/*` | An inspect link opened by URL: `/inspect/steam://rungame/730/…+csgo_econ_action_preview%20<hex>`, `/inspect/steam://run/730//+csgo_econ_action_preview%20<hex>`, `/inspect/<hex>`, or `/inspect/<hex>` of the raw protobuf (no key byte, no checksum). Decodes it and redirects to the skin, sticker, charm or agent it names (an agent's patches go in `ap`) |
 | `/embed` | The viewer alone, to put in an iframe (see [Public API](#public-api-embed)) |
 | `/api` | The embed API's docs, with a live playground: [3d.chainskins.net/api](https://3d.chainskins.net/api) |
 
@@ -70,6 +72,7 @@ All the state lives in the URL, so every view is a shareable link. The search pa
 | `charm`, `cseed`, `cx`, `cz`, `cpx`, `cpy`, `cpz` | The charm, its pattern and its placement |
 | `cst` | The sticker on the charm's slab |
 | `swear` | A standalone sticker's wear |
+| `ap` | An agent's patches, one entry per slot (3), comma-separated: `id~size`, an empty entry is an empty slot (`ap=4588~1.15,,4584~0.99`) |
 
 The **loadout** is kept in `localStorage` (`loadout-v1`). It holds the gloves, the agent, and the weapon an agent holds (with its seed and float). First person and the agent page share it. A link's own `fpg` / `fpa` win over it.
 
@@ -86,7 +89,7 @@ src/
   components/   sidebar/, stage/, picker/, inspect/, embed/, home/, common/, ui/ (shadcn)
   context/      db-context.tsx (db.json: market names, images, rarities)
   lib/
-    data/       catalog, items, stickers / charms, agents, inspect links, Source RNG
+    data/       catalog, items, stickers / charms, agents, pins, patches, inspect links, Source RNG
     embed/      the embed's protocol: types, URL params, target resolving, messaging, state reply
     materials/  the ported shaders (see below)
     viewer/     the three.js viewer
@@ -94,7 +97,7 @@ src/
 
 ### The viewer (`src/lib/viewer/`)
 
-`SkinViewer` (`skin-viewer.ts`) is the facade React talks to. Its methods include `load`, `loadFirstPerson`, `showAgent`, `showSticker`, `showCharm`, `setFloat`, `setSeed`, `setStickers`, `setCharm`, `setLighting`, `setViewmodel`, `inspect`, `inspectGloves`, `lookAtGloves` and `screenshot`. It is built from these modules:
+`SkinViewer` (`skin-viewer.ts`) is the facade React talks to. Its methods include `load`, `loadFirstPerson`, `showAgent`, `showSticker`, `showCharm`, `showPin`, `showPatch`, `setAgentPatches`, `setFloat`, `setSeed`, `setStickers`, `setCharm`, `setLighting`, `setViewmodel`, `inspect`, `inspectGloves`, `lookAtGloves` and `screenshot`. It is built from these modules:
 
 | Module | Does |
 | --- | --- |
@@ -103,6 +106,7 @@ src/
 | `map-stage.ts` | The studio or an inspect map: HDR panorama (reflections), the pre-rendered background video, the map's lights, post. A map without its video doesn't load (the previous one stays); the map's geometry and lightmaps are never downloaded |
 | `fixed-inspect.ts` | The game's fixed inspect camera over the video, and the ambient light from the light probes |
 | `agent-view.ts` | An agent in third person, in its main-menu idle |
+| `agent-patches.ts` | The patches on an agent's body material: the game's `csgo_character` F_PATCHES placement (decompiled pixel shader) injected into the material |
 | `firstperson.ts` | Skeletons, CPU skinning, animation clips, forearm twist constraints |
 | `inspect-scene.ts`, `post.ts`, `map-veil.ts` | The map's lights and camera (the viewer loads it `lightsOnly`; the full geometry loader is still there but unused), the map's post (tone curve, bloom, LUT), the transition between maps |
 | `textures.ts`, `geometry.ts` | Texture loading (WebP), geometry helpers |
@@ -118,7 +122,7 @@ The shaders are not approximations: each one comes from a decompiled shader of t
 | --- | --- |
 | Skin compositing, gloves, generic composite and composite inputs (`csgo_customweapon`, `csgo_customglove`, `csgo_composite_generic`, `csgo_composite_inputs`) | `game/csgo_core/shaders_vulkan_dir.vpk` |
 | Weapon, sticker, character and other materials (`csgo_weapon`, `csgo_weapon_sticker`, `csgo_character`, `csgo_complex`…) | `game/csgo/shaders_vulkan_dir.vpk` |
-| Paint kits, stickers, charms, agents (`scripts/items/items_game.txt`), skin materials (`.vmat`, `.vcompmat`), weapon and glove models, textures, the inspect camera table (`panorama/scripts/inspect.vts`), animation graphs and clips | `game/csgo/pak01_dir.vpk` |
+| Paint kits, stickers, charms, agents, pins and patches (`scripts/items/items_game.txt`), skin materials (`.vmat`, `.vcompmat`), weapon and glove models, textures, the inspect camera table (`panorama/scripts/inspect.vts`), animation graphs and clips | `game/csgo/pak01_dir.vpk` |
 | Inspect map backgrounds (scene, lightmaps, light probes, cubemaps) | `game/csgo/maps/<map>_vanity.vpk` |
 
 Each shader file (`.vcs`) holds thousands of variants (static combos), stored as compressed SPIR-V. The variants used here are decompiled and turned into WebGL2. That generated code is derived from Valve's, so it stays out of git.
@@ -207,7 +211,9 @@ What to show (one of these; if several are given, the first in this order wins):
 | `skin` | A skin by catalog key, `item\|kit` (e.g. `weapon_ak47\|cu_fireserpent_ak47_bravo`) |
 | `sticker` | A sticker on its own, by id |
 | `charm` | A charm on its own, by id |
-| `character` | An agent, by id (`customplayer_…`) |
+| `character` | An agent, by id (`customplayer_…`). An inspect link of an agent brings its patches |
+| `pin` | A collectible pin on its own, by its item definition index (`pin=6101` is the Dust II pin; the keys of db.json's `pins`) |
+| `patch` | An agent patch on its own, on the game's inspect card, by its patch kit id (`patch=4553`; the keys of db.json's `patches`) |
 
 How to show it. The `loadout_*` params are what the player wears: they apply in first person (`view=fpv`) and on an agent (third person), not to the item shown.
 
@@ -222,6 +228,7 @@ How to show it. The `loadout_*` params are what the player wears: they apply in 
 | `loadout_gloves_seed` | the loadout gloves' pattern | the gloves' own |
 | `sticker_wear` | a sticker shown on its own: its wear, 0 (pristine) – 1 | the link's, or 0 |
 | `charm_pattern` | a charm shown on its own: its pattern | the link's, or 0 |
+| `agent_patches` | the patches an agent wears: `id~size`, comma-separated, one entry per slot (3), an empty entry leaves the slot empty (`4588~1.15,,4584`); `size` 0.5–1.5 | none, or the link's |
 | `loadout_weapon` | the weapon skin an agent holds (`item\|kit`, empty for none) | none |
 | `loadout_weapon_float` | that weapon's float | 0.1 |
 | `loadout_weapon_seed` | that weapon's pattern, 1–1000 | 1 |
@@ -244,8 +251,8 @@ Send them with `iframe.contentWindow.postMessage(message, '*')`. Any page may dr
 
 | Message | Does |
 | --- | --- |
-| `{ type: 'cs3d:load', target, options? }` | Shows another item. `target` is one of `{ inspect }`, `{ def, paint }`, `{ skin }`, `{ sticker }`, `{ charm }`, `{ character }`; `options` as for `cs3d:set` |
-| `{ type: 'cs3d:set', options }` | Changes any of `float`, `seed`, `view`, `map`, `loadout_gloves`, `loadout_gloves_float`, `loadout_gloves_seed`, `loadout_agent`, `loadout_weapon`, `loadout_weapon_float`, `loadout_weapon_seed`, `sticker_wear`, `charm_pattern`, `viewmodel_sway`, `viewmodel_left_hand`, `side`, `knife_pose`, `auto_rotate`, without reloading the page |
+| `{ type: 'cs3d:load', target, options? }` | Shows another item. `target` is one of `{ inspect }`, `{ def, paint }`, `{ skin }`, `{ sticker }`, `{ charm }`, `{ character }`, `{ pin }`, `{ patch }`; `options` as for `cs3d:set` |
+| `{ type: 'cs3d:set', options }` | Changes any of `float`, `seed`, `view`, `map`, `loadout_gloves`, `loadout_gloves_float`, `loadout_gloves_seed`, `loadout_agent`, `loadout_weapon`, `loadout_weapon_float`, `loadout_weapon_seed`, `sticker_wear`, `charm_pattern`, `agent_patches`, `viewmodel_sway`, `viewmodel_left_hand`, `side`, `knife_pose`, `auto_rotate`, without reloading the page |
 | `{ type: 'cs3d:setMap', map }` | Changes the map (an inspect map id, or `studio`) |
 | `{ type: 'cs3d:inspect' }` | Plays the weapon's inspect animation (first person) |
 | `{ type: 'cs3d:inspectGloves' }` | Looks at the gloves: in first person with skin gloves, or on a gloves skin |
@@ -268,7 +275,7 @@ They arrive as `message` events on the page's `window`. `ready`, `loading`, `loa
 | `{ type: 'cs3d:screenshot', id, dataUrl }` | Reply to `cs3d:screenshot` |
 | `{ type: 'cs3d:share', id, url }` | Reply to `cs3d:share`: the item with its float, pattern, stickers, charm, first person and loadout |
 | `{ type: 'cs3d:key', key: 'Escape' }` | Escape was pressed inside the embed (an iframe with the focus keeps the keys): close it if you show it in a dialog. F (inspect, first person) and G (look at the gloves) work inside the embed itself |
-| `{ type: 'cs3d:state', id, state }` | Reply to `cs3d:getState`: `{ item, share_url, float, seed, view, map, loadout_gloves, loadout_gloves_float, loadout_gloves_seed, loadout_agent, loadout_weapon, loadout_weapon_float, loadout_weapon_seed, sticker_wear, charm_pattern, viewmodel_sway, viewmodel_left_hand, side, knife_pose, auto_rotate }` |
+| `{ type: 'cs3d:state', id, state }` | Reply to `cs3d:getState`: `{ item, share_url, float, seed, view, map, loadout_gloves, loadout_gloves_float, loadout_gloves_seed, loadout_agent, loadout_weapon, loadout_weapon_float, loadout_weapon_seed, sticker_wear, charm_pattern, agent_patches, viewmodel_sway, viewmodel_left_hand, side, knife_pose, auto_rotate }` |
 
 ```js
 const frame = document.querySelector('iframe')

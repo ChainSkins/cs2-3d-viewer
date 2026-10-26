@@ -4,6 +4,7 @@ import type { ViewOptions } from '@/hooks/use-viewer-sync'
 import { SEED_MAX } from '@/lib/config'
 import { CHARM_PATTERN_MAX } from '@/lib/data/attachments'
 import type { EmbedOptions } from '@/lib/embed'
+import { agentPatchesFromParam, agentPatchesToParam } from '@/lib/url-state'
 import type { Lighting, Viewmodel } from '@/lib/viewer/viewer-options'
 
 interface Setters {
@@ -20,6 +21,7 @@ export function useEmbedOptions(state: ViewerStateApi, { setLighting, setViewmod
     if (o.view !== undefined) patch.fp = o.view === 'fpv' ? 1 : null
     if (o.loadout_gloves !== undefined) patch.fpg = o.loadout_gloves || null
     if (o.loadout_agent !== undefined) patch.fpa = o.loadout_agent || null
+    if (o.agent_patches !== undefined) patch.ap = agentPatchesToParam(agentPatchesFromParam(o.agent_patches)) || null
     if (Object.keys(patch).length) state.patch(patch)
     if (o.map !== undefined) setLighting((l) => ({ ...l, map: o.map && o.map !== 'studio' ? o.map : null }))
     const gloveFloat = o.loadout_gloves_float, gloveSeed = o.loadout_gloves_seed

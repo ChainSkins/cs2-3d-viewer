@@ -112,6 +112,7 @@ export function ViewerPage({ selection }: ViewerPageProps) {
           heading={heading}
           item={item}
           attachments={attachments}
+          patches={patches}
           state={state}
           glovesName={glovesName}
           agentName={state.agent ? agents?.agent.get(state.agent)?.name ?? state.agent : null}

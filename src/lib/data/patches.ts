@@ -7,6 +7,8 @@ export interface PatchEntry {
   name: string
   rarity: number | null
   texture: string
+  /** The cloth behind the patch (shown where the agent's slot has a backing scale). */
+  backing: string | null
   scale: number
   offset: [number, number]
   rotation: number

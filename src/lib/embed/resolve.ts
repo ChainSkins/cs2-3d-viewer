@@ -4,7 +4,7 @@ import type { CatalogIndex } from '@/lib/data/catalog'
 import { decodeInspectLink, type InspectItem } from '@/lib/data/inspect'
 import { resolveInspect } from '@/lib/inspect-resolve'
 import type { Selection } from '@/lib/selection'
-import { stickersToParam } from '@/lib/url-state'
+import { agentPatchesFromParam, agentPatchesToParam, PATCH_SLOTS, stickersToParam } from '@/lib/url-state'
 import type { EmbedTarget } from './types'
 
 export interface ResolvedTarget {
@@ -22,6 +22,8 @@ export function resolveTarget(target: EmbedTarget, catalog: CatalogIndex, attach
   if ('sticker' in target) return { selection: { kind: 'sticker', id: target.sticker }, params: {} }
   if ('charm' in target) return { selection: { kind: 'charm', id: target.charm }, params: {} }
   if ('character' in target) return { selection: { kind: 'agent', id: target.character }, params: {} }
+  if ('pin' in target) return { selection: { kind: 'pin', id: target.pin }, params: {} }
+  if ('patch' in target) return { selection: { kind: 'patch', id: target.patch }, params: {} }
   let link: InspectItem
   if ('inspect' in target) {
     try { link = decodeInspectLink(target.inspect) } catch (e) { return (e as Error).message }
@@ -30,7 +32,12 @@ export function resolveTarget(target: EmbedTarget, catalog: CatalogIndex, attach
   }
   const r = resolveInspect(link, catalog, attachments, agents)
   if (typeof r === 'string') return r
-  if (r.kind === 'agent') return { selection: { kind: 'agent', id: r.id }, params: {} }
+  if (r.kind === 'agent') {
+    /** The link's patches, one per slot. */
+    const worn = agentPatchesFromParam(null)
+    for (const s of link.stickers) if (s.slot >= 0 && s.slot < PATCH_SLOTS) worn[s.slot] = { id: String(s.id), scale: s.scale && s.scale > 0 ? s.scale : 1 }
+    return { selection: { kind: 'agent', id: r.id }, params: { ap: agentPatchesToParam(worn) || null } }
+  }
   if (r.kind === 'sticker') return { selection: { kind: 'sticker', id: r.id }, params: { swear: r.wear ? String(+r.wear.toFixed(3)) : null } }
   if (r.kind === 'charm') return { selection: { kind: 'charm', id: r.id }, seed: r.seed, params: { cseed: r.seed ? String(r.seed) : null, cst: r.sticker } }
   const fromLink = 'inspect' in target

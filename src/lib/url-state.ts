@@ -1,4 +1,5 @@
 import { STICKER_MAX } from '@/lib/config'
+import type { AgentPatch } from '@/lib/viewer/agent-patches'
 import type { StickerOptions } from '@/lib/viewer/skin-viewer'
 
 /**
@@ -38,4 +39,29 @@ export function stickersFromParam(value: string | null): StickerOptions[] {
       const [id, slot, wear, x, y, rotation, scale] = entry.split('~')
       return { id, slot: Number(slot) || 0, wear: Number(wear) || 0, offset: [Number(x) || 0, Number(y) || 0], rotation: Number(rotation) || 0, scale: Number(scale) || 1 }
     })
+}
+
+/** An agent has this many patch slots. */
+export const PATCH_SLOTS = 3
+
+/**
+ * An agent's patches as `id~scale,…`, one entry per slot (an empty entry is an empty slot).
+ * @param list the patch in each slot
+ */
+export function agentPatchesToParam(list: (AgentPatch | null)[]): string {
+  const entries = Array.from({ length: PATCH_SLOTS }, (_, i) => (list[i] ? `${list[i]!.id}~${+list[i]!.scale.toFixed(3)}` : ''))
+  while (entries.length && !entries[entries.length - 1]) entries.pop()
+  return entries.join(',')
+}
+
+/**
+ * Parses the `ap` search param.
+ * @param value the param's value, if any
+ */
+export function agentPatchesFromParam(value: string | null): (AgentPatch | null)[] {
+  const entries = (value ?? '').split(',')
+  return Array.from({ length: PATCH_SLOTS }, (_, i) => {
+    const [id, scale] = (entries[i] ?? '').split('~')
+    return id ? { id, scale: Number(scale) > 0 ? Number(scale) : 1 } : null
+  })
 }
