@@ -22,6 +22,14 @@
     <button id="loadInspect">Load inspect link</button>
     <label>def / paint <input id="defpaint" value="7/180"></label>
     <button id="loadDef">Load def / paint</button>
+    <label>Pin (item id) <input id="pin" value="6132"></label>
+    <button id="loadPin">Load pin</button>
+    <label>Patch (kit id) <input id="patch" value="4553"></label>
+    <button id="loadPatch">Load patch</button>
+    <label>Agent <input id="agent" value="customplayer_tm_professional_varf"></label>
+    <label>Agent patches (id~size, one per slot) <input id="agentPatches" value="4588~1.15,4572,4584~0.99"></label>
+    <button id="loadAgent">Load agent with patches</button>
+    <button id="setPatches">Change the agent’s patches</button>
     <label>Float <input id="float" type="range" min="0" max="1" step="0.001" value="0.05"></label>
     <label>Seed <input id="seed" type="number" min="1" max="1000" value="1"></label>
     <label>View <select id="view"><option>orbit</option><option>fpv</option></select></label>
@@ -52,6 +60,11 @@
       const [def, paint] = $('defpaint').value.split('/').map(Number)
       send({ type: 'cs3d:load', target: { def, paint }, options: { float: +$('float').value, seed: +$('seed').value } })
     }
+    $('loadPin').onclick = () => send({ type: 'cs3d:load', target: { pin: $('pin').value } })
+    $('loadPatch').onclick = () => send({ type: 'cs3d:load', target: { patch: $('patch').value } })
+    
+    $('loadAgent').onclick = () => send({ type: 'cs3d:load', target: { character: $('agent').value }, options: { agent_patches: $('agentPatches').value } })
+    $('setPatches').onclick = () => set({ agent_patches: $('agentPatches').value })
     $('float').oninput = () => set({ float: +$('float').value })
     $('seed').onchange = () => set({ seed: +$('seed').value })
     $('view').onchange = () => set({ view: $('view').value, loadout_gloves: $('gloves').value })
@@ -62,7 +75,6 @@
     $('shot').onclick = () => send({ type: 'cs3d:screenshot' })
     $('share').onclick = () => send({ type: 'cs3d:openShare' })
     $('state').onclick = () => send({ type: 'cs3d:getState', id: 'q1' })
-    
   </script>
 </body>
 </html>

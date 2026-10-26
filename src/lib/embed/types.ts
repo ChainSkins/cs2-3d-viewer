@@ -69,6 +69,8 @@ export interface EmbedItemInfo {
   canInspectGloves: boolean
   stickerWear?: number
   charmPattern?: number
+  /** An agent's patches, as the `agent_patches` option. */
+  agentPatches?: string
 }
 
 export interface EmbedState extends EmbedOptions {

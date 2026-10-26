@@ -4,7 +4,7 @@ import type { CatalogIndex } from '@/lib/data/catalog'
 import type { ViewerState } from '@/hooks/use-viewer-state'
 import { STICKER_MAX } from '@/lib/config'
 import { selectionPath, skinKey, parseSkinKey, type Selection } from '@/lib/selection'
-import { stickersToParam } from '@/lib/url-state'
+import { agentPatchesFromParam, agentPatchesToParam, PATCH_SLOTS, stickersToParam } from '@/lib/url-state'
 import type { StickerOptions } from '@/lib/viewer/skin-viewer'
 
 /**
@@ -30,7 +30,7 @@ export interface ShareLink {
 }
 
 /** What a share link holds: the selection and the view's state. */
-export type ShareState = Pick<ViewerState, 'float' | 'seed' | 'firstPerson' | 'gloves' | 'agent' | 'stickers' | 'charm' | 'stickerWear'>
+export type ShareState = Pick<ViewerState, 'float' | 'seed' | 'firstPerson' | 'gloves' | 'agent' | 'stickers' | 'charm' | 'stickerWear' | 'agentPatches'>
 
 const VERSION = 1
 const KINDS = ['skin', 'sticker', 'charm', 'agent', 'pin', 'patch'] as const
@@ -72,6 +72,10 @@ class Reader {
   int(): number {
     const v = this.uint()
     return v % 2 ? -(v + 1) / 2 : v / 2
+  }
+  /** Whether bytes are left (agent codes made before patches end after the agent). */
+  more(): boolean {
+    return this.i < this.bytes.length
   }
 }
 
@@ -130,6 +134,13 @@ export function encodeShare(selection: Selection, state: ShareState, idx: ShareI
     const index = agentIndex(selection.id)
     if (index === undefined) return null
     w.uint(index)
+    /** Its patches: a mask of the worn slots, then each one's kit id and size (thousandths). Left out when none. */
+    const worn = state.agentPatches.map((p) => (p && Number.isInteger(Number(p.id)) ? p : null))
+    const mask = worn.reduce((m, p, i) => m | (p ? 1 << i : 0), 0)
+    if (mask) {
+      w.uint(mask)
+      for (const p of worn) if (p) w.uint(Number(p.id)).uint(p.scale * 1e3)
+    }
   } else {
     const skin = skinNumbers(selection, idx.catalog)
     const gloves = state.gloves ? parseSkinKey(state.gloves) : null
@@ -207,7 +218,17 @@ export function decodeShare(code: string, idx: ShareIndexes): string {
     if (slab) params.set('cst', sticker(slab - 1))
     return link({ kind, id })
   }
-  if (kind === 'agent') return link({ kind, id: agent(r.uint()) })
+  if (kind === 'agent') {
+    const id = agent(r.uint())
+    if (r.more()) {
+      const mask = r.uint()
+      const worn = agentPatchesFromParam(null)
+      for (let i = 0; i < PATCH_SLOTS; i++) if (mask & (1 << i)) worn[i] = { id: String(r.uint()), scale: r.uint() / 1e3 || 1 }
+      const ap = agentPatchesToParam(worn)
+      if (ap) params.set('ap', ap)
+    }
+    return link({ kind, id })
+  }
   if (kind === 'pin' || kind === 'patch') return link({ kind, id: String(r.uint()) })
 
   const skin = skinFromNumbers(r.uint(), r.uint(), idx.catalog)

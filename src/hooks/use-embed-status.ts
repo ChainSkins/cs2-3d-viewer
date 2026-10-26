@@ -3,6 +3,7 @@ import type { ViewerStateApi } from '@/hooks/use-viewer-state'
 import type { Item } from '@/lib/data/items'
 import { emit, type EmbedItemInfo } from '@/lib/embed'
 import type { Selection } from '@/lib/selection'
+import { agentPatchesToParam } from '@/lib/url-state'
 import type { SkinViewer } from '@/lib/viewer/skin-viewer'
 
 export function useEmbedInfo(selection: Selection | null, item: Item | null, viewer: SkinViewer | null, state: ViewerStateApi): () => EmbedItemInfo | null {
@@ -17,6 +18,7 @@ export function useEmbedInfo(selection: Selection | null, item: Item | null, vie
     canInspectGloves: !!viewer?.canInspectGloves || item?.style === 'glove',
     ...(selection.kind === 'sticker' && { stickerWear: stateRef.current.stickerWear }),
     ...(selection.kind === 'charm' && { charmPattern: stateRef.current.charm.seed }),
+    ...(selection.kind === 'agent' && { agentPatches: agentPatchesToParam(stateRef.current.agentPatches) }),
   }, [selection, item, viewer])
 }
 

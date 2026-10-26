@@ -71,7 +71,7 @@ export const OPTION_PARAMS: DocRow[] = [
 ]
 
 export const COMMANDS: DocRow[] = [
-  { name: "{ type: 'cs3d:load', target, options? }", description: 'Shows another item. target is one of { inspect }, { def, paint }, { skin }, { sticker }, { charm }, { character }, { pin }, { patch }; options as for cs3d:set.' },
+  { name: "{ type: 'cs3d:load', target, options? }", description: 'Shows another item. target is one of { inspect }, { def, paint }, { skin }, { sticker }, { charm }, { character }, { pin }, { patch }; options as for cs3d:set (an agent with patches: target { character } and options { agent_patches }).' },
   { name: "{ type: 'cs3d:set', options }", description: 'Changes float, seed, view, map, the loadout_* options, sticker_wear, charm_pattern, agent_patches, viewmodel_sway, viewmodel_left_hand, side, knife_pose or auto_rotate without reloading the page (an agent’s gloves or weapon, and view, redraw the model behind the last frame).' },
   { name: "{ type: 'cs3d:setMap', map }", description: 'Changes the map (an inspect map id, or studio).' },
   { name: "{ type: 'cs3d:inspect' }", description: 'Plays the weapon’s inspect animation (first person).' },
@@ -87,7 +87,7 @@ export const COMMANDS: DocRow[] = [
 export const EVENTS: DocRow[] = [
   { name: "{ type: 'cs3d:ready', version }", description: 'The embed listens for messages (protocol version 1).' },
   { name: "{ type: 'cs3d:loading' }", description: 'An item starts loading.' },
-  { name: "{ type: 'cs3d:loaded', item }", description: 'It is shown. item: { kind, id, floatMin, floatMax, canInspect, canInspectGloves }, plus stickerWear (a sticker) or charmPattern (a charm). It fires again when a change redraws the model (an agent’s gloves or weapon, first person).' },
+  { name: "{ type: 'cs3d:loaded', item }", description: 'It is shown. item: { kind, id, floatMin, floatMax, canInspect, canInspectGloves }, plus stickerWear (a sticker), charmPattern (a charm) or agentPatches (an agent: its patches, as the agent_patches option). It fires again when a change redraws the model (an agent’s gloves or weapon, first person).' },
   { name: "{ type: 'cs3d:error', message }", description: 'It can’t be shown (unknown item, bad link, missing asset…).' },
   { name: "{ type: 'cs3d:screenshot', id, dataUrl }", description: 'Reply to cs3d:screenshot.' },
   { name: "{ type: 'cs3d:screenshots', id, front, back }", description: 'Reply to cs3d:screenshots: two PNG Blobs.' },
