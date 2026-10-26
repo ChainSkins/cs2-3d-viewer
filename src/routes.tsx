@@ -33,6 +33,12 @@ function PinRoute() {
   return <ViewerPage selection={selection} />
 }
 
+function PatchRoute() {
+  const { id = '' } = useParams()
+  const selection = useMemo(() => ({ kind: 'patch' as const, id }), [id])
+  return <ViewerPage selection={selection} />
+}
+
 function AgentRoute() {
   const { id = '' } = useParams()
   const selection = useMemo(() => ({ kind: 'agent' as const, id }), [id])
@@ -48,6 +54,7 @@ export function AppRoutes() {
       <Route path="/charm/:id" element={<CharmRoute />} />
       <Route path="/agent/:id" element={<AgentRoute />} />
       <Route path="/pin/:id" element={<PinRoute />} />
+      <Route path="/patch/:id" element={<PatchRoute />} />
       <Route path="/inspect/*" element={<InspectPage />} />
       <Route path="/share/:code" element={<SharePage />} />
       <Route path="/embed" element={<EmbedPage />} />

@@ -13,7 +13,7 @@ interface DbData {
   keychains?: Record<string, { image?: string; rarity?: number }>
   agents?: Record<string, { market_hash_name?: string; image?: string; rarity?: number }>
   pins?: Record<string, { market_hash_name?: string; image?: string; rarity?: number }>
-  patches?: Record<string, { market_hash_name?: string; image?: string }>
+  patches?: Record<string, { market_hash_name?: string; image?: string; rarity?: number }>
 }
 
 export interface DbImages {
@@ -33,12 +33,13 @@ export interface DbImages {
   /** A patch (an agent's "sticker", by its id): market name and image. */
   patchName: (id: number) => string | undefined
   patch: (id: number) => string | undefined
+  patchRarity: (id: number) => number | undefined
 }
 
 const none = () => undefined
 const EMPTY: DbImages = {
   skin: none, sticker: none, charm: none, skinRarity: none, stickerRarity: none, charmRarity: none,
-  agent: none, agentRarity: none, agentName: none, pin: none, pinRarity: none, patchName: none, patch: none,
+  agent: none, agentRarity: none, agentName: none, pin: none, pinRarity: none, patchName: none, patch: none, patchRarity: none,
 }
 
 /** A usable rarity (1 Consumer … 7 Contraband), or undefined. */
@@ -72,6 +73,7 @@ export function DbProvider({ children }: { children: ReactNode }) {
     pinRarity: (index) => rarityNumber(db.pins?.[index]?.rarity),
     patchName: (id) => db.patches?.[id]?.market_hash_name,
     patch: (id) => sized(db.patches?.[id]?.image),
+    patchRarity: (id) => rarityNumber(db.patches?.[id]?.rarity),
   } : EMPTY, [db])
   return <DbContext.Provider value={images}>{children}</DbContext.Provider>
 }

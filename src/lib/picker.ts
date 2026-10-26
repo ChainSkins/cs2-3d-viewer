@@ -1,12 +1,13 @@
 import type { DbImages } from '@/context/db-context'
 import type { AgentIndex } from '@/lib/data/agents'
+import type { PatchIndex } from '@/lib/data/patches'
 import type { PinIndex } from '@/lib/data/pins'
 import type { AttachmentIndex } from '@/lib/data/attachments'
 import { isPorted, styleName, type CatalogIndex, type CatalogSkin } from '@/lib/data/catalog'
 import { rarityColor, rarityOf } from '@/lib/rarity'
 import { skinKey, type Selection } from '@/lib/selection'
 
-export type CategoryIcon = 'grid' | 'rifle' | 'target' | 'pistol' | 'knife' | 'glove' | 'cube' | 'sticker' | 'charm' | 'agent' | 'pin'
+export type CategoryIcon = 'grid' | 'rifle' | 'target' | 'pistol' | 'knife' | 'glove' | 'cube' | 'sticker' | 'charm' | 'agent' | 'pin' | 'patch'
 
 export interface PickerCategory {
   label: string
@@ -28,6 +29,7 @@ export const CATEGORIES: PickerCategory[] = [
   { label: 'Zeus x27', types: ['Equipment'], icon: 'cube', image: 'weapon_31' },
   { label: 'Stickers', icon: 'sticker', image: 'sticker_crown_foil' },
   { label: 'Charms', icon: 'charm', image: 'collection_missing_link_charm_collection' },
+  { label: 'Patches', icon: 'patch', image: 'https://community.fastly.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXT4BhcJo8h5hhcX0nYS-WhztecQ1xgJgxovrakJx547PvNcC9W_5LnltbZlvKiZOnVkjoH65Ili-qTodSh3gDnqEVoNmqmIoKcJFNoZwvR5BHglpDx_aDO/256fx192f' },
   { label: 'Pins', icon: 'pin', image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXQ9Q1LO5kNoBhSQl-fROuh28rQR1R2KQFoprOrFA9vxP-GcjxH7YS1kdLSwa6na77Vk2oDsJEk2r6Vo97w3gXg-kQ_NmCmd9OSIBh-Pw8cFMO2NA' },
   { label: 'Agents', icon: 'agent', image: 'https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXA6Q1NL4kmrAlOA0_FVPCi2t_fUkRxNztUoreaLQVp7OXJYzRD4si02tHSlKatNe-GxzoB68cgiezCrYnwjFbs-hE6amjwIYKSdlM2YV6E_1WggbC4kdowLd4/256fx192f' },
 ]
@@ -78,7 +80,7 @@ export interface GroupFilters {
   query: string
   portedOnly: boolean
   /** Choosing a sticker, a charm or the first-person agent: only that kind is searched. */
-  scope?: 'Stickers' | 'Charms' | 'Agents' | 'Pins'
+  scope?: 'Stickers' | 'Charms' | 'Agents' | 'Pins' | 'Patches'
 }
 
 /** Cards of each kind a search shows at most (a category lists them all up to the sticker cap). */
@@ -138,7 +140,7 @@ export function skinDisplayName(catalog: CatalogIndex | null | undefined, key: s
  * @param attachments the sticker and charm index
  * @param portedOnly count only the finishes the viewer renders
  */
-export function categoryCounts(catalog: CatalogIndex | null, attachments: AttachmentIndex | null, portedOnly: boolean, agents: AgentIndex | null = null, pins: PinIndex | null = null): Record<string, number> {
+export function categoryCounts(catalog: CatalogIndex | null, attachments: AttachmentIndex | null, portedOnly: boolean, agents: AgentIndex | null = null, pins: PinIndex | null = null, patches: PatchIndex | null = null): Record<string, number> {
   const out: Record<string, number> = {}
   for (const skin of catalog?.skins ?? []) {
     if (portedOnly && !isPorted(skin)) continue
@@ -151,6 +153,7 @@ export function categoryCounts(catalog: CatalogIndex | null, attachments: Attach
   out.Charms = attachments?.charms.length ?? 0
   out.Agents = agents?.agents.length ?? 0
   out.Pins = pins?.pins.length ?? 0
+  out.Patches = patches?.patches.length ?? 0
   return out
 }
 
@@ -191,6 +194,19 @@ const pinCards = (pins: PinIndex | null, score: Score, images: DbImages): { card
         key: 'pin:' + p.id, selection: { kind: 'pin', id: p.id }, title: p.name.replace(/ Pin$/, ''), subtitle: 'Pin',
         color: rarityColor(images.pinRarity(p.index), null, '#b0c3d9'), ported: true, meta: 'Collectible', icon: images.pin(p.index),
         rarity: rarityOf(images.pinRarity(p.index), null) ?? null,
+      },
+    }))
+
+const patchCards = (patches: PatchIndex | null, score: Score, images: DbImages): { card: PickerCard; score: number }[] =>
+  (patches?.patches ?? [])
+    .map((p) => ({ p, score: score(p.name, `${p.id} patch agent`) }))
+    .filter((x) => x.score)
+    .map(({ p, score }) => ({
+      score,
+      card: {
+        key: 'patch:' + p.id, selection: { kind: 'patch', id: p.id }, title: p.name, subtitle: 'Patch',
+        color: rarityColor(images.patchRarity(p.index) ?? p.rarity ?? undefined, null, '#b0c3d9'), ported: true, meta: 'Agent patch', icon: images.patch(p.index),
+        rarity: rarityOf(images.patchRarity(p.index), null) ?? p.rarity ?? null,
       },
     }))
 
@@ -253,12 +269,12 @@ const skinGroups = (catalog: CatalogIndex | null, filters: GroupFilters, score: 
  * @param images the db's images
  * @param agents the agents index
  */
-export function pickerGroups(catalog: CatalogIndex | null, attachments: AttachmentIndex | null, filters: GroupFilters, images: DbImages, agents: AgentIndex | null = null, pins: PinIndex | null = null): PickerGroup[] {
-  const strict = build(catalog, attachments, filters, images, true, agents, pins)
-  return strict.length || !filters.query.trim() ? strict : build(catalog, attachments, filters, images, false, agents, pins)
+export function pickerGroups(catalog: CatalogIndex | null, attachments: AttachmentIndex | null, filters: GroupFilters, images: DbImages, agents: AgentIndex | null = null, pins: PinIndex | null = null, patches: PatchIndex | null = null): PickerGroup[] {
+  const strict = build(catalog, attachments, filters, images, true, agents, pins, patches)
+  return strict.length || !filters.query.trim() ? strict : build(catalog, attachments, filters, images, false, agents, pins, patches)
 }
 
-function build(catalog: CatalogIndex | null, attachments: AttachmentIndex | null, filters: GroupFilters, images: DbImages, strict: boolean, agents: AgentIndex | null, pins: PinIndex | null): PickerGroup[] {
+function build(catalog: CatalogIndex | null, attachments: AttachmentIndex | null, filters: GroupFilters, images: DbImages, strict: boolean, agents: AgentIndex | null, pins: PinIndex | null, patches: PatchIndex | null): PickerGroup[] {
   const searching = filters.query.trim().length > 0
   const score = matcher(filters.query, strict)
   const limit = <T,>(list: T[], n: number) => list.slice(0, n)
@@ -280,6 +296,12 @@ function build(catalog: CatalogIndex | null, attachments: AttachmentIndex | null
     return all.length ? { group: { title: 'Pins', cards: all.map((x) => x.card) }, best: all[0].score } : null
   }
 
+  const patchesGroup = (): { group: PickerGroup; best: number } | null => {
+    const all = patchCards(patches, score, images).sort((a, b) => b.score - a.score)
+    return all.length ? { group: { title: 'Patches', cards: all.map((x) => x.card) }, best: all[0].score } : null
+  }
+
+  if (filters.scope === 'Patches' || (!searching && filters.category === 'Patches')) return [patchesGroup()?.group].filter((g): g is PickerGroup => !!g)
   if (filters.scope === 'Pins' || (!searching && filters.category === 'Pins')) return [pinsGroup()?.group].filter((g): g is PickerGroup => !!g)
   if (filters.scope === 'Agents' || (!searching && filters.category === 'Agents')) return agentGroups(agents, score, images).map((x) => x.group)
   if (!searching) return skinGroups(catalog, filters, score, false, images).sort((a, b) => a.group.title.localeCompare(b.group.title)).map((x) => x.group)
@@ -287,7 +309,7 @@ function build(catalog: CatalogIndex | null, attachments: AttachmentIndex | null
   const found = [
     ...skinGroups(catalog, filters, score, true, images),
     ...agentGroups(agents, score, images),
-    ...[pinsGroup(), charmsGroup(), stickersGroup(SEARCH_CAP)].filter((g): g is { group: PickerGroup; best: number } => !!g),
+    ...[pinsGroup(), patchesGroup(), charmsGroup(), stickersGroup(SEARCH_CAP)].filter((g): g is { group: PickerGroup; best: number } => !!g),
   ]
   return found.sort((a, b) => b.best - a.best).map((x) => x.group)
 }

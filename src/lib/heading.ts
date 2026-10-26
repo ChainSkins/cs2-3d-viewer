@@ -1,4 +1,5 @@
 import type { AgentIndex } from '@/lib/data/agents'
+import type { PatchIndex } from '@/lib/data/patches'
 import type { PinIndex } from '@/lib/data/pins'
 import type { AttachmentIndex } from '@/lib/data/attachments'
 import type { CatalogSkin } from '@/lib/data/catalog'
@@ -27,8 +28,9 @@ export interface Heading {
  * @param images the db, for the in-game rarity
  * @param agents the agents index (agent selections)
  * @param pins the pins index (pin selections)
+ * @param patches the patches index (patch selections)
  */
-export function headingFor(selection: Selection, item: Item | null, skin: CatalogSkin | undefined, attachments: AttachmentIndex | null, catalog: CatalogIndex | null, images: DbImages, agents: AgentIndex | null = null, pins: PinIndex | null = null): Heading {
+export function headingFor(selection: Selection, item: Item | null, skin: CatalogSkin | undefined, attachments: AttachmentIndex | null, catalog: CatalogIndex | null, images: DbImages, agents: AgentIndex | null = null, pins: PinIndex | null = null, patches: PatchIndex | null = null): Heading {
   if (selection.kind === 'sticker') {
     const sticker = attachments?.sticker.get(selection.id)
     const color = sticker ? rarityColor(images.stickerRarity(sticker.index), sticker.rarity, '#e4ae39') : '#e4ae39'
@@ -38,6 +40,11 @@ export function headingFor(selection: Selection, item: Item | null, skin: Catalo
     const charm = attachments?.charm.get(selection.id)
     const color = charm ? rarityColor(images.charmRarity(charm.index), charm.rarity, '#8847ff') : '#8847ff'
     return { over: 'Charm', title: charm?.name ?? selection.id, chips: ['Keychain', 'Pattern 0–100000'], color }
+  }
+  if (selection.kind === 'patch') {
+    const patch = patches?.patch.get(selection.id)
+    const color = rarityColor(images.patchRarity(patch?.index ?? 0) ?? patch?.rarity ?? undefined, undefined, '#b0c3d9')
+    return { over: 'Agent patch', title: patch?.name ?? selection.id, chips: ['Patch'], color }
   }
   if (selection.kind === 'pin') {
     const pin = pins?.pin.get(selection.id)

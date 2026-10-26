@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { ASSET_BASE } from '@/lib/config'
 import { loadAgents, type AgentIndex } from '@/lib/data/agents'
 import { loadAttachments, type AttachmentIndex } from '@/lib/data/attachments'
+import { loadPatches, type PatchIndex } from '@/lib/data/patches'
 import { loadPins, type PinIndex } from '@/lib/data/pins'
 import { loadIndex, type CatalogIndex } from '@/lib/data/catalog'
 
@@ -10,15 +11,17 @@ export interface CatalogState {
   attachments: AttachmentIndex | null
   agents: AgentIndex | null
   pins: PinIndex | null
+  patches: PatchIndex | null
   error: string
 }
 
-/** Loads the skin catalog, the sticker / charm index, the agents and the pins once. */
+/** Loads the skin catalog, the sticker / charm index, the agents, pins and patches once. */
 export function useCatalog(): CatalogState {
   const [catalog, setCatalog] = useState<CatalogIndex | null>(null)
   const [attachments, setAttachments] = useState<AttachmentIndex | null>(null)
   const [agents, setAgents] = useState<AgentIndex | null>(null)
   const [pins, setPins] = useState<PinIndex | null>(null)
+  const [patches, setPatches] = useState<PatchIndex | null>(null)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -26,7 +29,8 @@ export function useCatalog(): CatalogState {
     loadAttachments(ASSET_BASE).then(setAttachments).catch((e: Error) => setError('Stickers / charms: ' + e.message))
     loadAgents(ASSET_BASE).then(setAgents).catch((e: Error) => setError('Agents: ' + e.message))
     loadPins(ASSET_BASE).then(setPins).catch((e: Error) => setError('Pins: ' + e.message))
+    loadPatches(ASSET_BASE).then(setPatches).catch((e: Error) => setError('Patches: ' + e.message))
   }, [])
 
-  return { catalog, attachments, agents, pins, error }
+  return { catalog, attachments, agents, pins, patches, error }
 }

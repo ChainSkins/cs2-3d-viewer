@@ -61,6 +61,10 @@ export function useSkinLoader(viewer: SkinViewer | null, selection: Selection, s
         held = weapon
         return null
       }
+      if (selection.kind === 'patch') {
+        await viewer.showPatch(selection.id)
+        return null
+      }
       if (selection.kind === 'pin') {
         await viewer.showPin(selection.id)
         return null

@@ -8,6 +8,7 @@ import { TextureSource } from '@/lib/viewer/textures'
 import type { WeaponItem } from '@/lib/materials/weapon'
 import { loadAttachments } from '@/lib/data/attachments'
 import { GAME_ROOT, VIEWER_DATA } from '@/lib/data/catalog'
+import { loadPatches } from '@/lib/data/patches'
 import { loadPins } from '@/lib/data/pins'
 import { DEFAULT_AGENT } from '@/lib/data/agents'
 import { handIK, poseRig, samplePose, type InspectClip, type RigPart, type ViewmodelPose, type WeaponBind } from '@/lib/viewer/firstperson'
@@ -863,6 +864,45 @@ export class SkinViewer {
       root.add(new THREE.Mesh(g, material))
     })
     this.frame(root, false)
+  }
+
+  /**
+   * An agent patch on its own, on the game's inspect card (the plastic package, with its hang tab): the embroidered
+   * texture is drawn over the card's, scaled and offset as the patch's material says, into one canvas texture.
+   */
+  async showPatch(id: string): Promise<void> {
+    this.clear()
+    const token = this.loadToken
+    const patches = await loadPatches(this.opts.assetBase)
+    const entry = patches.patch.get(id)
+    if (!entry) throw new Error('No patch ' + id)
+    const t = this.loader.textures
+    const [card, normal, patch] = await Promise.all([
+      t.load(GAME_ROOT + patches.card.color, true), t.load(GAME_ROOT + patches.card.normal, false), t.load(GAME_ROOT + entry.texture, true),
+    ])
+    if (token !== this.loadToken) return
+    const size = 1024
+    const canvas = document.createElement('canvas')
+    canvas.width = canvas.height = size
+    const ctx = canvas.getContext('2d')!
+    ctx.drawImage(card.image as CanvasImageSource, 0, 0, size, size)
+    const side = size * 0.5 * entry.scale
+    ctx.translate(size / 2 + entry.offset[0] * size, size / 2 - entry.offset[1] * size)
+    ctx.rotate(THREE.MathUtils.degToRad(entry.rotation))
+    ctx.scale(1, entry.squash)
+    ctx.drawImage(patch.image as CanvasImageSource, -side / 2, -side / 2, side, side)
+    const map = new THREE.CanvasTexture(canvas)
+    map.flipY = false
+    map.colorSpace = THREE.SRGBColorSpace
+    map.anisotropy = card.anisotropy
+    const geometry = new THREE.PlaneGeometry(1, 1)
+    const uv = geometry.getAttribute('uv')
+    for (let i = 0; i < uv.count; i++) uv.setY(i, 1 - uv.getY(i))
+    const material = new THREE.MeshStandardMaterial({ map, normalMap: normal, roughness: 0.8, metalness: 0, side: THREE.DoubleSide, transparent: true })
+    this.loaded.disposables.push(() => { material.dispose(); map.dispose() })
+    const mesh = new THREE.Mesh(geometry, material)
+    this.standalone = {}
+    this.frame(mesh, false)
   }
 
   /** A charm on its own; pattern 0–100000. */
