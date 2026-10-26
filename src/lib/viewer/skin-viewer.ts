@@ -7,7 +7,8 @@ import type { GloveItem, Item } from '@/lib/data/items'
 import { TextureSource } from '@/lib/viewer/textures'
 import type { WeaponItem } from '@/lib/materials/weapon'
 import { loadAttachments } from '@/lib/data/attachments'
-import { VIEWER_DATA } from '@/lib/data/catalog'
+import { GAME_ROOT, VIEWER_DATA } from '@/lib/data/catalog'
+import { loadPins } from '@/lib/data/pins'
 import { DEFAULT_AGENT } from '@/lib/data/agents'
 import { handIK, poseRig, samplePose, type InspectClip, type RigPart, type ViewmodelPose, type WeaponBind } from '@/lib/viewer/firstperson'
 import type { CharmPart } from '@/lib/materials/charm'
@@ -822,6 +823,46 @@ export class SkinViewer {
   /** The pattern and wear of the weapon the agent holds, without making it the viewer's item. */
   setAgentWeapon(seed: number, float: number): void {
     if (this.agentWeaponItem) setAgentWeapon(this.loaded.finishes, this.agentWeaponItem, seed, float)
+  }
+
+  /** A collectible pin on its own: its model with the game's material (glitter overlays blended on top). */
+  async showPin(id: string): Promise<void> {
+    this.clear()
+    const token = this.loadToken
+    const pins = await loadPins(this.opts.assetBase)
+    const entry = pins.pin.get(id)
+    const model = entry && pins.models[entry.model]
+    if (!model) throw new Error('No pin ' + id)
+    const gltf = await this.loader.gltf.loadAsync(this.loader.textures.url(GAME_ROOT + model.glb))
+    if (token !== this.loadToken) return
+    const root = new THREE.Group()
+    gltf.scene.updateMatrixWorld(true)
+    let i = 0
+    gltf.scene.traverse((o) => {
+      if (!(o instanceof THREE.Mesh)) return
+      const call = model.drawCalls[i++] ?? model.drawCalls[0]
+      const g = o.geometry.clone().applyMatrix4(o.matrixWorld)
+      const material = this.loader.plainMaterial(call)
+      /**
+       * A pin's metal map has the metalness in G and nothing in R (plainMaterial reads R as roughness: a mirror that
+       * reflects the dark stage). Enamel is glossy, the metal polished but not a mirror.
+       */
+      const compile = material.onBeforeCompile
+      material.onBeforeCompile = (shader, renderer) => {
+        compile.call(material, shader, renderer)
+        shader.fragmentShader = shader.fragmentShader.replace('roughnessFactor = texture2D(roughnessMap, vRoughnessMapUv).r;',
+          'roughnessFactor = mix(0.5, 0.3, texture2D(roughnessMap, vRoughnessMapUv).g);')
+      }
+      material.customProgramCacheKey = () => 'pin'
+      /** The sparkle layers (a glitter texture, tinted) shine over the pin instead of covering it. */
+      if (call.color?.includes('glitter')) {
+        material.transparent = true
+        material.blending = THREE.AdditiveBlending
+        material.depthWrite = false
+      }
+      root.add(new THREE.Mesh(g, material))
+    })
+    this.frame(root, false)
   }
 
   /** A charm on its own; pattern 0–100000. */

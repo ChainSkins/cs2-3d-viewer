@@ -11,6 +11,7 @@ import { useInfiniteList } from '@/hooks/use-infinite-list'
 import { useInspectHistory } from '@/hooks/use-inspect-history'
 import { useLocalStorage } from '@/hooks/use-local-storage'
 import { focusFirstGridItem, GRID_ITEM, moveGridFocus } from '@/lib/grid-focus'
+import type { PinIndex } from '@/lib/data/pins'
 import type { AgentIndex } from '@/lib/data/agents'
 import type { AttachmentIndex } from '@/lib/data/attachments'
 import type { CatalogIndex } from '@/lib/data/catalog'
@@ -23,8 +24,9 @@ interface SkinPickerProps {
   catalog: CatalogIndex | null
   attachments: AttachmentIndex | null
   current: Selection | null
-  only?: 'Stickers' | 'Charms' | 'Agents'
+  only?: 'Stickers' | 'Charms' | 'Agents' | 'Pins'
   agents?: AgentIndex | null
+  pins?: PinIndex | null
   startIn?: string
   onPick: (selection: Selection) => void
   /** Loads an inspect link from the history (an error message when it can't); no history without it. */
@@ -42,8 +44,8 @@ const isCurrent = (card: Card, current: Selection | null) => {
  * A modal to choose a skin, a sticker or a charm: categories on the left, a search over everything, cards with their
  * icon grouped by weapon — or the inspect links loaded before (History, in the top bar).
  */
-export function SkinPicker({ open, catalog, attachments, agents = null, current, only, startIn, onPick, onLoadInspect, onClose }: SkinPickerProps) {
-  const initial = only ?? startIn ?? (current?.kind === 'sticker' ? 'Stickers' : current?.kind === 'charm' ? 'Charms' : current?.kind === 'agent' ? 'Agents'
+export function SkinPicker({ open, catalog, attachments, agents = null, pins = null, current, only, startIn, onPick, onLoadInspect, onClose }: SkinPickerProps) {
+  const initial = only ?? startIn ?? (current?.kind === 'sticker' ? 'Stickers' : current?.kind === 'charm' ? 'Charms' : current?.kind === 'agent' ? 'Agents' : current?.kind === 'pin' ? 'Pins'
     : CATEGORIES.find((c) => current?.kind === 'skin' && c.types?.includes(catalog?.items[current.item]?.type ?? ''))?.label ?? 'All')
   const [category, setCategory] = useState(initial)
   const [stickerKind, setStickerKind] = useState<string | null>(null)
@@ -70,15 +72,15 @@ export function SkinPicker({ open, catalog, attachments, agents = null, current,
   // (rarity scales differ between skins, stickers and agents)
   useEffect(() => { setRarities([]) }, [category, only])
 
-  const counts = useMemo(() => categoryCounts(catalog, attachments, portedOnly, agents), [catalog, attachments, portedOnly, agents])
+  const counts = useMemo(() => categoryCounts(catalog, attachments, portedOnly, agents, pins), [catalog, attachments, portedOnly, agents, pins])
   const found = useMemo(
-    () => pickerGroups(catalog, attachments, { category, stickerKind, query, portedOnly, scope: only }, images, agents),
-    [catalog, attachments, images, agents, category, stickerKind, query, portedOnly, only],
+    () => pickerGroups(catalog, attachments, { category, stickerKind, query, portedOnly, scope: only }, images, agents, pins),
+    [catalog, attachments, images, agents, pins, category, stickerKind, query, portedOnly, only],
   )
   const available = useMemo(() => raritiesIn(found), [found])
   const groups = useMemo(() => arrangeGroups(found, sort, rarities), [found, sort, rarities])
   const scope = only ?? (searching ? 'All' : category)
-  const naming = scope === 'Agents' ? 'agent' : scope === 'Stickers' || scope === 'Charms' ? 'other' : 'skin'
+  const naming = scope === 'Agents' ? 'agent' : scope === 'Stickers' || scope === 'Charms' || scope === 'Pins' ? 'other' : 'skin'
   const total = groups.reduce((n, g) => n + g.cards.length, 0)
   // Cards come in pages as you scroll (a category can hold thousands of stickers).
   const list = useInfiniteList(total, `${open}|${category}|${stickerKind}|${query}|${portedOnly}|${only}|${sort}|${rarities.join()}`, body)
@@ -89,7 +91,7 @@ export function SkinPicker({ open, catalog, attachments, agents = null, current,
     budget -= cards.length
     return [{ ...group, cards }]
   })
-  const loading = only === 'Agents' ? !agents : only ? !attachments : !catalog
+  const loading = only === 'Agents' ? !agents : only === 'Pins' ? !pins : only ? !attachments : !catalog
   const placeholder = only ? `Search ${only.toLowerCase()}` : 'Search skins, charms and stickers: "die", "m4 howl"…'
 
   return (

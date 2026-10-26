@@ -12,6 +12,7 @@ interface DbData {
   stickers?: Record<string, { image?: string; image_akamaihd?: string; rarity?: number }>
   keychains?: Record<string, { image?: string; rarity?: number }>
   agents?: Record<string, { market_hash_name?: string; image?: string; rarity?: number }>
+  pins?: Record<string, { market_hash_name?: string; image?: string; rarity?: number }>
   patches?: Record<string, { market_hash_name?: string; image?: string }>
 }
 
@@ -27,6 +28,8 @@ export interface DbImages {
   agentRarity: (index: number) => number | undefined
   /** An agent's market name ("Name | Faction"), by its item definition index; whether the db knows it. */
   agentName: (index: number) => string | undefined
+  pin: (index: number) => string | undefined
+  pinRarity: (index: number) => number | undefined
   /** A patch (an agent's "sticker", by its id): market name and image. */
   patchName: (id: number) => string | undefined
   patch: (id: number) => string | undefined
@@ -35,7 +38,7 @@ export interface DbImages {
 const none = () => undefined
 const EMPTY: DbImages = {
   skin: none, sticker: none, charm: none, skinRarity: none, stickerRarity: none, charmRarity: none,
-  agent: none, agentRarity: none, agentName: none, patchName: none, patch: none,
+  agent: none, agentRarity: none, agentName: none, pin: none, pinRarity: none, patchName: none, patch: none,
 }
 
 /** A usable rarity (1 Consumer … 7 Contraband), or undefined. */
@@ -64,6 +67,9 @@ export function DbProvider({ children }: { children: ReactNode }) {
     agent: (index) => sized(db.agents?.[index]?.image),
     agentRarity: (index) => rarityNumber(db.agents?.[index]?.rarity),
     agentName: (index) => db.agents?.[index]?.market_hash_name,
+    /** Pin images 404 with a size suffix: used as the db has them. */
+    pin: (index) => db.pins?.[index]?.image,
+    pinRarity: (index) => rarityNumber(db.pins?.[index]?.rarity),
     patchName: (id) => db.patches?.[id]?.market_hash_name,
     patch: (id) => sized(db.patches?.[id]?.image),
   } : EMPTY, [db])

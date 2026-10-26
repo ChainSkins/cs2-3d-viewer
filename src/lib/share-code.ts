@@ -33,7 +33,7 @@ export interface ShareLink {
 export type ShareState = Pick<ViewerState, 'float' | 'seed' | 'firstPerson' | 'gloves' | 'agent' | 'stickers' | 'charm' | 'stickerWear'>
 
 const VERSION = 1
-const KINDS = ['skin', 'sticker', 'charm', 'agent'] as const
+const KINDS = ['skin', 'sticker', 'charm', 'agent', 'pin'] as const
 
 // Skin flags: which optional parts follow.
 const F_FLOAT = 1, F_SEED = 2, F_FIRST_PERSON = 4, F_GLOVES = 8, F_AGENT = 16, F_STICKERS = 32, F_CHARM = 64
@@ -123,6 +123,9 @@ export function encodeShare(selection: Selection, state: ShareState, idx: ShareI
     const sticker = state.charm.sticker ? stickerIndex(state.charm.sticker) : -1
     if (index === undefined || sticker === undefined) return null
     w.uint(index).uint(state.charm.seed).uint(sticker + 1)
+  } else if (selection.kind === 'pin') {
+    /** A pin's id is its item definition index. */
+    w.uint(Number(selection.id))
   } else if (selection.kind === 'agent') {
     const index = agentIndex(selection.id)
     if (index === undefined) return null
@@ -205,6 +208,7 @@ export function decodeShare(code: string, idx: ShareIndexes): string {
     return link({ kind, id })
   }
   if (kind === 'agent') return link({ kind, id: agent(r.uint()) })
+  if (kind === 'pin') return link({ kind, id: String(r.uint()) })
 
   const skin = skinFromNumbers(r.uint(), r.uint(), idx.catalog)
   const flags = r.uint()

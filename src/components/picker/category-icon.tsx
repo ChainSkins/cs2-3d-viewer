@@ -1,10 +1,10 @@
-import { Box, Crosshair, Hand, LayoutGrid, Sticker, Swords, Target, UserRound, type LucideIcon } from 'lucide-react'
+import { Box, Crosshair, Hand, LayoutGrid, MapPin, Sticker, Swords, Target, UserRound, type LucideIcon } from 'lucide-react'
 import { useState } from 'react'
 import { categoryImageUrl, type PickerCategory } from '@/lib/picker'
 import { cn } from '@/lib/utils'
 
 const ICONS: Record<PickerCategory['icon'], LucideIcon> = {
-  grid: LayoutGrid, rifle: Crosshair, target: Target, pistol: Crosshair, knife: Swords, glove: Hand, cube: Box, sticker: Sticker, charm: Sticker, agent: UserRound,
+  grid: LayoutGrid, rifle: Crosshair, target: Target, pistol: Crosshair, knife: Swords, glove: Hand, cube: Box, sticker: Sticker, charm: Sticker, agent: UserRound, pin: MapPin,
 }
 
 /** A category's picture: its item image, or its generic icon when it has none or the image fails to load. */

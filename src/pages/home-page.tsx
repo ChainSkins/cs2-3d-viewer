@@ -28,7 +28,7 @@ function BlockTitle({ title, sub }: { title: string; sub: string }) {
 
 export function HomePage() {
   const navigate = useNavigate()
-  const { catalog, attachments, agents } = useCatalog()
+  const { catalog, attachments, agents, pins } = useCatalog()
   const history = useInspectHistory()
   const [picker, setPicker] = useState(false)
   const [inspect, setInspect] = useState(false)
@@ -78,6 +78,7 @@ export function HomePage() {
         catalog={catalog}
         attachments={attachments}
         agents={agents}
+        pins={pins}
         current={null}
         onPick={(selection: Selection) => navigate(selectionPath(selection))}
         onLoadInspect={loadInspect}

@@ -28,6 +28,7 @@ export function ViewerStats({ selection, item, state, agents }: ViewerStatsProps
     )
   }
   if (selection.kind === 'sticker') return <Stat label="Sticker wear" value={(state.stickerWear * 100).toFixed(0) + '%'} />
+  if (selection.kind === 'pin') return null
   if (selection.kind === 'agent') return <Stat label="Team" value={agents?.agent.get(selection.id)?.team === 't' ? 'T' : 'CT'} />
   return <Stat label="Pattern" value={'#' + state.charm.seed} />
 }

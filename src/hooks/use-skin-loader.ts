@@ -19,7 +19,7 @@ export interface SkinLoad {
 
 /**
  * Loads what the selection names into the viewer: a skin (optionally in first person, with the chosen agent's arms),
- * a sticker or charm on its own, or a whole agent.
+ * a sticker, charm or pin on its own, or a whole agent.
  * @param viewer the 3D viewer
  * @param selection what to show
  * @param state the URL state, read once per load for the wear and pattern
@@ -59,6 +59,10 @@ export function useSkinLoader(viewer: SkinViewer | null, selection: Selection, s
         /** The agent seen is first person's agent too. */
         if (now.loadout.agent !== selection.id) now.updateLoadout({ agent: selection.id })
         held = weapon
+        return null
+      }
+      if (selection.kind === 'pin') {
+        await viewer.showPin(selection.id)
         return null
       }
       if (selection.kind === 'charm') {
