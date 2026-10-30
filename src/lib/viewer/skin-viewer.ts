@@ -9,6 +9,7 @@ import type { WeaponItem } from '@/lib/materials/weapon'
 import { loadAttachments } from '@/lib/data/attachments'
 import { GAME_ROOT, VIEWER_DATA } from '@/lib/data/catalog'
 import { PatchLayer, type AgentPatch } from '@/lib/viewer/agent-patches'
+import { attackLabel, AUTO_CYCLE, primaryAttacks, secondaryAttack, sortAttacks, type AttackEntry, type AttackInfo } from '@/lib/data/attacks'
 import { loadPatches } from '@/lib/data/patches'
 import { loadPins } from '@/lib/data/pins'
 import { DEFAULT_AGENT } from '@/lib/data/agents'
@@ -47,6 +48,8 @@ interface FirstPersonRig {
   /** The idle when it moves (a knife's idle1: a breathing loop), played over and over instead of the still pose. */
   idleLoop?: InspectClip | null
   inspect: InspectClip | null
+  /** The weapon's attack animations (shots, slashes…), the clips fetched when first played. */
+  attacks: AttackEntry[]
   /** With skin gloves: the arms raising them to look at them (deploy, then the look), the weapon put away. */
   gloveInspect: InspectClip[] | null
   /** Each skeleton (the agent's, the gloves') with the geometries bound to it. */
@@ -183,6 +186,18 @@ export class SkinViewer {
       this.pointer.set(((e.clientX - r.left) / r.width) * 2 - 1, -(((e.clientY - r.top) / r.height) * 2 - 1))
     })
     canvas.addEventListener('pointerleave', () => this.pointer.set(0, 0))
+    /** First person: left click fires (a gun's shot, a knife's slash), right click is the secondary attack (a stab, the revolver's alt fire). */
+    canvas.addEventListener('pointerdown', (e) => {
+      if (!this.firstPerson || !this.fpRig?.attacks.length) return
+      if (e.button === 0) this.startFire()
+      else if (e.button === 2) void this.attack(secondaryAttack(this.fpRig.attacks)?.name)
+    })
+    window.addEventListener('pointerup', () => this.stopFire())
+    window.addEventListener('pointercancel', () => this.stopFire())
+    window.addEventListener('blur', () => this.stopFire())
+    canvas.addEventListener('contextmenu', (e) => {
+      if (this.firstPerson && this.fpRig?.attacks.length) e.preventDefault()
+    })
   }
 
   /** One frame: the viewmodel, the playing animations, the lights, then the draw. */
@@ -234,7 +249,7 @@ export class SkinViewer {
     const index = await json<Record<string, string>>(base + 'index.json')
     const file = index[name]
     if (!file) throw new Error('No first-person pose for ' + name)
-    const [pose, binds, inspect, gloveInspect, idleLoop] = await Promise.all([
+    const [pose, binds, inspect, gloveInspect, idleLoop, attacks] = await Promise.all([
       json<ViewmodelPose>(base + file),
       json<Record<string, WeaponBind>>(base + 'weapon_binds.json').catch(() => ({} as Record<string, WeaponBind>)),
       json<Record<string, string>>(base + 'inspect_index.json')
@@ -244,8 +259,9 @@ export class SkinViewer {
       json<Record<string, string>>(base + 'idle_index.json')
         .then((idx) => idx[file] ? json<InspectClip>(base + 'idle/' + idx[file]) : null)
         .catch(() => null),
+      json<Record<string, AttackEntry[]>>(base + 'attack_index.json').then((idx) => sortAttacks(idx[name] ?? [])).catch(() => [] as AttackEntry[]),
     ])
-    const rig: FirstPersonRig = { idle: pose, idleLoop, inspect, gloveInspect, parts: [], weapon: null, bind: binds[name] }
+    const rig: FirstPersonRig = { idle: pose, idleLoop, inspect, attacks, gloveInspect, parts: [], weapon: null, bind: binds[name] }
     const patchLayers: PatchLayer[] = []
     const armsRoot = await this.loader.firstPersonArms(agentId, glove, rig.parts, patchLayers)
     const weapon = await this.loader.weapon(item)
@@ -275,7 +291,7 @@ export class SkinViewer {
     this.clear()
     const token = this.loadToken
     const clips = await this.loader.gloveInspectClips()
-    const rig: FirstPersonRig = { idle: samplePose(clips[0], 0), inspect: null, gloveInspect: clips, parts: [], weapon: null }
+    const rig: FirstPersonRig = { idle: samplePose(clips[0], 0), inspect: null, attacks: [], gloveInspect: clips, parts: [], weapon: null }
     const armsRoot = await this.loader.firstPersonArms(agentId, glove as GloveItem, rig.parts)
     if (token !== this.loadToken) return
     for (const finish of this.loaded.finishes) {
@@ -306,6 +322,60 @@ export class SkinViewer {
     this.fit = null
     this.resize()
     this.updateFixedInspect()
+  }
+
+  /** The attack animations the first-person weapon has (a gun's shots, a knife's slashes and stabs). */
+  get attacks(): AttackInfo[] {
+    return (this.fpRig?.attacks ?? []).map((a) => ({ name: a.name, label: attackLabel(a.name) }))
+  }
+
+  private attackNext = 0
+  private readonly attackClips = new Map<string, Promise<InspectClip>>()
+
+  /**
+   * Plays one of the weapon's attacks (from the start, over whatever plays): the named clip, or — with no name — the plain
+   * fire: a gun's shot, a knife's slashes one after the other.
+   * @param name a clip name from `attacks`
+   */
+  async attack(name?: string): Promise<void> {
+    const rig = this.fpRig
+    if (!rig?.attacks.length) return
+    let entry = name ? rig.attacks.find((a) => a.name === name) : undefined
+    if (!entry) {
+      const primary = primaryAttacks(rig.attacks)
+      entry = primary[this.attackNext++ % primary.length]
+    }
+    let clip = this.attackClips.get(entry.file)
+    if (!clip) this.attackClips.set(entry.file, (clip = json<InspectClip>(this.loader.firstPersonBase + 'attack/' + entry.file)))
+    const loaded = await clip.catch(() => null)
+    if (!loaded || this.fpRig !== rig) return
+    this.inspectClips = [loaded]
+    if (rig.weapon) rig.weapon.visible = true
+    this.inspectStart = performance.now()
+  }
+
+  private firing = false
+  private fireTimer: ReturnType<typeof setTimeout> | undefined
+
+  /**
+   * Starts firing: one shot, and — on an automatic weapon — a shot every cycle time (the animation restarts each time, so it stays
+   * in the kick) until `stopFire`. Semi-automatic weapons and knives play one attack per press.
+   */
+  startFire(): void {
+    if (this.firing || !this.fpRig?.attacks.length) return
+    this.firing = true
+    const cycle = AUTO_CYCLE[this.item?.id.split('|')[0] ?? '']
+    const shoot = (): void => {
+      void this.attack()
+      if (cycle && this.firing) this.fireTimer = setTimeout(shoot, cycle * 1000)
+    }
+    shoot()
+  }
+
+  /** Stops the held fire. */
+  stopFire(): void {
+    this.firing = false
+    clearTimeout(this.fireTimer)
   }
 
   /** Whether the loaded first-person weapon has an inspect animation. */

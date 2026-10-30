@@ -14,7 +14,7 @@ A browser 3D viewer for CS2 skins, built on **the game's own shaders** ported to
 
 - float and pattern (seed);
 - stickers, charms, collectible pins, agent patches, gloves and agents;
-- first person, with the game's inspect animation;
+- first person, with the game's inspect animation and its attack animations (shots, a knife's slashes, stabs and backstabs);
 - the game's inspect maps as backgrounds.
 
 > Not affiliated with or endorsed by Valve Corporation. Counter-Strike and CS2 are trademarks of Valve Corporation. The game's models, textures, maps and the shaders this viewer ports belong to Valve; the game assets are not in this repository. Only the viewer's own code is under the repository's license.

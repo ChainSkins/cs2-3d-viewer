@@ -10,6 +10,11 @@ export function useKeyShortcut(key: string, enabled: boolean, action: () => void
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null
       if (e.key.toLowerCase() !== key || e.ctrlKey || e.metaKey || e.altKey || target?.closest('input, textarea, [contenteditable]')) return
+      /** Space: no page scroll, and not on top of a focused button's own click. */
+      if (key === ' ') {
+        if (target?.closest('button, a, select, [role=button]')) return
+        e.preventDefault()
+      }
       action()
     }
     window.addEventListener('keydown', onKey)

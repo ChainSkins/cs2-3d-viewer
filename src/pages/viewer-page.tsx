@@ -155,6 +155,8 @@ export function ViewerPage({ selection }: ViewerPageProps) {
           onInspect={actions.inspect}
           canInspectGloves={actions.canInspectGloves}
           onInspectGloves={actions.inspectGloves}
+          attacks={actions.attacks}
+          onAttack={actions.attack}
           stats={<ViewerStats selection={selection} item={item} state={state} agents={agents} />}
           onToggleSpin={() => setView((prev) => ({ ...prev, spin: !prev.spin }))}
           showingBack={view.back}
