@@ -37,7 +37,7 @@ export function useSkinLoader(viewer: SkinViewer | null, selection: Selection, s
   const gloves = firstPerson || selection.kind === 'agent' ? state.gloves : null
   const agent = firstPerson ? state.agent : null
   const loadoutWeapon = selection.kind === 'agent' ? state.loadout.weapon : null
-  const patchParam = selection.kind === 'agent' ? agentPatchesToParam(state.agentPatches) : ''
+  const patchParam = selection.kind === 'agent' || firstPerson ? agentPatchesToParam(state.agentPatches) : ''
 
   useEffect(() => {
     if (!viewer) return
@@ -99,8 +99,8 @@ export function useSkinLoader(viewer: SkinViewer | null, selection: Selection, s
 
   // The patches an agent wears change in place: no reload of the model.
   useEffect(() => {
-    if (viewer && selection.kind === 'agent') void viewer.setAgentPatches(latest.current.agentPatches)
-  }, [viewer, selection.kind, patchParam])
+    if (viewer && (selection.kind === 'agent' || firstPerson)) void viewer.setAgentPatches(latest.current.agentPatches)
+  }, [viewer, selection.kind, firstPerson, patchParam])
 
   return load
 }

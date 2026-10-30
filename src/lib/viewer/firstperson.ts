@@ -119,8 +119,6 @@ export function adoptAncestors(part: ArmsSkeleton, full: ArmsSkeleton): ArmsSkel
 }
 
 /** The arm model's bones that the viewmodel skeleton names differently. */
-const VM_NAME: Record<string, string> = { arm_upper_L: 'armUpperShoulder_L', arm_upper_R: 'armUpperShoulder_R' }
-
 /**
  * The agents' CTiltTwistConstraint target offsets (m_qOffset, xyzw): the rest the game measures the target's roll from.
  * Every agent shares them (prefab); they match the bind pose except on the upper arm (~30° off; arm_upper_R_TWIST1 has
@@ -171,9 +169,8 @@ export function skinMatrices(arms: ArmsSkeleton, vm: ViewmodelPose): THREE.Matri
     const known = posed[i]
     if (known) return known
     const name = arms.bones[i]
-    /** The viewmodel's own name when it has it; third-person clips (the agent's skeleton) keep the model's arm_upper. */
-    const mapped = VM_NAME[name] ? vm.viewmodel.bones.indexOf(VM_NAME[name]) : -1
-    const j = mapped >= 0 ? mapped : vm.viewmodel.bones.indexOf(name)
+    /** The viewmodel's bone of the same name (the game bone-merges by name); a bone it lacks (twist, scapula…) follows its parent. */
+    const j = vm.viewmodel.bones.indexOf(name)
     const parent = arms.parents[i]
     let m: THREE.Matrix4
     if (j >= 0) m = vmWorld[j].clone()

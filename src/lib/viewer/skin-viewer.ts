@@ -246,7 +246,8 @@ export class SkinViewer {
         .catch(() => null),
     ])
     const rig: FirstPersonRig = { idle: pose, idleLoop, inspect, gloveInspect, parts: [], weapon: null, bind: binds[name] }
-    const armsRoot = await this.loader.firstPersonArms(agentId, glove, rig.parts)
+    const patchLayers: PatchLayer[] = []
+    const armsRoot = await this.loader.firstPersonArms(agentId, glove, rig.parts, patchLayers)
     const weapon = await this.loader.weapon(item)
     await this.loader.rigWeapon(item, weapon)
     if (token !== this.loadToken) return
@@ -256,8 +257,10 @@ export class SkinViewer {
     poseRig(rig.parts, handIK(pose), rig.weapon, rig.bind)
     this.weaponRoot = weapon
     this.fpGlove = glove
+    this.patchLayers = patchLayers
     this.enterFirstPerson(armsRoot, weapon)
     await this.attachments.apply()
+    await this.setAgentPatches(this.agentPatches)
     this.setSeed(item.seed)
   }
 
@@ -964,8 +967,12 @@ export class SkinViewer {
   private resize(): void {
     const w = this.container.clientWidth || 1, h = this.container.clientHeight || 1
     this.camera.aspect = w / h
-    /** viewmodel_fov is horizontal at 4:3; the vertical angle follows from it, whatever the canvas' shape. */
-    this.camera.fov = this.firstPerson ? THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(this.viewmodel.fov / 2)) * 3 / 4)) : 35
+    /**
+     * viewmodel_fov is the viewmodel's vertical angle, as skincraft.gg (which matches the game) draws it: at 16:9 a 68 puts
+     * the AWP's scope 1.35x smaller than treating 68 as the horizontal angle at 4:3 (53.4 vertical) did. The canvas' shape
+     * only crops the sides.
+     */
+    this.camera.fov = this.firstPerson ? this.viewmodel.fov : 35
     this.camera.updateProjectionMatrix()
     if (!this.firstPerson) this.fixed.fitFov()
     this.renderer.setSize(w, h)

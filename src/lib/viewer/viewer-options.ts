@@ -90,7 +90,7 @@ export const DEFAULT_LIGHTING: Lighting = {
 
 /** First person's viewmodel settings (like CS2's viewmodel_fov / viewmodel_offset_* / cl_righthand). */
 export interface Viewmodel {
-  /** Horizontal field of view at 4:3, as viewmodel_fov (54–68). */
+  /** Vertical field of view in degrees, as viewmodel_fov (54–68). */
   fov: number
   /** viewmodel_offset_x / _y / _z (inches from the eye): right, forward, up. CS2's defaults are 2.5, 0, −1.5. */
   offsetX: number

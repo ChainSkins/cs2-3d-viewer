@@ -8,6 +8,7 @@ import { WeaponComposite } from '@/lib/materials/composite'
 import { GloveFinish, LAYER_SETS, packLayers, type Vmat } from '@/lib/materials/glove'
 import { GloveV2Finish } from '@/lib/materials/glove2'
 import { WeaponFinish, type WeaponItem } from '@/lib/materials/weapon'
+import { loadPatchSlots, PatchLayer } from '@/lib/viewer/agent-patches'
 import { adoptAncestors, anchorTorsoToArms, SkinnedGeometry, type ArmsSkeleton, type InspectClip, type RigPart, type WeaponRig } from '@/lib/viewer/firstperson'
 import { hiddenPart, LOOSE_PIECES, nameDrawCalls, removeDetachedIslands, trianglesOnSide } from '@/lib/viewer/geometry'
 import type { TextureSource } from '@/lib/viewer/textures'
@@ -87,13 +88,13 @@ export class ModelLoader {
    * An agent's first-person arms: its sleeves, plus its arms with its default gloves — or, wearing skin `glove`s,
    * that glove model (its arm in the agent's skin). Their skeletons and geometries join `parts`, to be posed.
    */
-  async firstPersonArms(agentId: string, glove: GloveItem | null, parts: RigPart[]): Promise<THREE.Object3D> {
+  async firstPersonArms(agentId: string, glove: GloveItem | null, parts: RigPart[], patchLayers: PatchLayer[] = []): Promise<THREE.Object3D> {
     const [arms, agents] = await Promise.all([glove ? this.armsSkeleton(glove) : null, loadAgents(this.opts.assetBase)])
     const entry = agents.agent.get(agentId) ?? agents.agent.get(DEFAULT_AGENT)!
     const agent = agents.models[entry.model]
     if (!agent.glb) throw new Error('No first-person arms for ' + entry.name)
     const root = new THREE.Group()
-    root.add(await this.agentArms(agent, parts, !glove))
+    root.add(await this.agentArms(agent, parts, !glove, patchLayers))
     if (glove) {
       /** The arm's skin: the bare_arm call (its order next to the default glove's varies by agent). */
       const armCalls = agent.drawCalls.firstperson_default_gloves_arms ?? []
@@ -110,7 +111,8 @@ export class ModelLoader {
    * An agent's first-person arms on the viewmodel: its sleeves, plus (with `defaultGloves`) its arms wearing its default
    * gloves. The meshes are bound to the agent model's own skeleton, whose bones bone-merge by name.
    */
-  private async agentArms(agent: AgentModel, parts: RigPart[], defaultGloves: boolean): Promise<THREE.Object3D> {
+  private async agentArms(agent: AgentModel, parts: RigPart[], defaultGloves: boolean, patchLayers: PatchLayer[]): Promise<THREE.Object3D> {
+    const patchSlots = await loadPatchSlots(this.opts.assetBase, VIEWER_DATA)
     const geometries: SkinnedGeometry[] = []
     parts.push({ skeleton: agent.skeleton, geometries })
     const scene = (await this.gltf.loadAsync(this.textures.url(GAME_ROOT + agent.glb!))).scene
@@ -127,7 +129,11 @@ export class ModelLoader {
         const g = o.geometry.toNonIndexed().applyMatrix4(o.matrixWorld)
         anchorTorsoToArms(g, agent.skeleton)
         geometries.push(new SkinnedGeometry(g))
-        root.add(new THREE.Mesh(g, call ? this.plainMaterial(call) : new THREE.MeshStandardMaterial()))
+        const material = call ? this.plainMaterial(call) : new THREE.MeshStandardMaterial()
+        /** A few agents' sleeves share the body's material: they wear its patches too. */
+        const slots = call && patchSlots[call.material]
+        if (slots) patchLayers.push(new PatchLayer(material, slots))
+        root.add(new THREE.Mesh(g, material))
       })
     }
     return root
