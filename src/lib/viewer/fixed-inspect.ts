@@ -188,10 +188,10 @@ export class FixedInspect {
    * Puts the camera where the game's inspect camera for `weapon` is relative to the item (scene: the item at the
    * anchor, turned by its yaw; here: the item at the origin), with its vertical FOV and the item's lights.
    * @param fit an item framed by its size instead (a charm, sticker or agent; its bounding radius): the camera moved along
-   * its line until the item fills the view, and with `face` the item turned so its front (+Z) faces it; `sunOnly`: lit by the sun only, as the game's keychain and sticker inspect
+   * its line until the item fills the view, and with `face` the item turned so its front (+Z) faces it (`turn` degrees more); `sunOnly`: lit by the sun only, as the game's keychain and sticker inspect
    * (skincraft's rig: every light_item spot off)
    */
-  enter(scene3d: InspectScene, weapon: string, fit?: { radius: number; sunOnly?: boolean; face?: boolean; studio?: { distance: number; fov: number } }): void {
+  enter(scene3d: InspectScene, weapon: string, fit?: { radius: number; sunOnly?: boolean; face?: boolean; turn?: number; studio?: { distance: number; fov: number } }): void {
     if (!this.drag) {
       this.drag = { yaw: 0, pitch: 0, dragging: false, last: [0, 0] }
       this.dolly = 1
@@ -216,7 +216,7 @@ export class FixedInspect {
     const unturn = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -THREE.MathUtils.degToRad(view.anchor.yaw))
     const position = new THREE.Vector3(...cam.position).sub(new THREE.Vector3(...view.anchor.position)).applyQuaternion(unturn)
     const forward = new THREE.Vector3(...cam.forward).applyQuaternion(unturn)
-    this.faceYaw = fit?.face ? THREE.MathUtils.radToDeg(Math.atan2(position.x, position.z)) : 0
+    this.faceYaw = fit?.face ? THREE.MathUtils.radToDeg(Math.atan2(position.x, position.z)) + (fit.turn ?? 0) : 0
     if (fit?.studio) {
       /** The studio's framing kept: its distance scaled so the item fills the game camera's (fitted) FOV as it did the studio's. */
       const half = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2)) * Math.min(1, (16 / 9) / this.camera.aspect)
