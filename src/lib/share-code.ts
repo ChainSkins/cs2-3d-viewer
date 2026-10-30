@@ -30,7 +30,7 @@ export interface ShareLink {
 }
 
 /** What a share link holds: the selection and the view's state. */
-export type ShareState = Pick<ViewerState, 'float' | 'seed' | 'firstPerson' | 'gloves' | 'agent' | 'stickers' | 'charm' | 'stickerWear' | 'agentPatches' | 'petVariant'>
+export type ShareState = Pick<ViewerState, 'float' | 'seed' | 'firstPerson' | 'gloves' | 'agent' | 'stickers' | 'charm' | 'stickerWear' | 'agentPatches' | 'petVariant' | 'stickerCard'>
 
 const VERSION = 1
 const KINDS = ['skin', 'sticker', 'charm', 'agent', 'pin', 'patch', 'pet'] as const
@@ -122,6 +122,8 @@ export function encodeShare(selection: Selection, state: ShareState, idx: ShareI
     const index = stickerIndex(selection.id)
     if (index === undefined) return null
     w.uint(index).uint(state.stickerWear * 1e3)
+    /** On its card: a flag after the wear (left out when off; older codes end there). */
+    if (state.stickerCard) w.uint(1)
   } else if (selection.kind === 'charm') {
     const index = charmIndex(selection.id)
     const sticker = state.charm.sticker ? stickerIndex(state.charm.sticker) : -1
@@ -212,6 +214,7 @@ export function decodeShare(code: string, idx: ShareIndexes): string {
     const id = sticker(r.uint())
     const wear = r.uint() / 1e3
     if (wear) params.set('swear', String(wear))
+    if (r.more() && r.uint()) params.set('card', '1')
     return link({ kind, id })
   }
   if (kind === 'charm') {

@@ -51,7 +51,7 @@ npm run preview    # http://localhost:5321, serves dist/
 | Route | Shows |
 | --- | --- |
 | `/skin/:item/:kit` | A weapon or a pair of gloves with its skin |
-| `/sticker/:id` | A sticker on its own |
+| `/sticker/:id` | A sticker on its own. `?swear=<0-1>` sets its wear and `?card=1` puts it on the game's inspect card (the grey card with the CS2 mark) |
 | `/charm/:id` | A charm on its own |
 | `/agent/:id` | An agent holding the loadout's weapon, wearing its gloves and its patches (`ap`) |
 | `/pin/:id` | A collectible pin on its own (`id` = its item definition index, db.json's `pins` key) |
@@ -91,7 +91,7 @@ src/
   components/   sidebar/, stage/, picker/, inspect/, embed/, home/, common/, ui/ (shadcn)
   context/      db-context.tsx (db.json: market names, images, rarities)
   lib/
-    data/       catalog, items, stickers / charms, agents, pins, patches, inspect links, Source RNG
+    data/       catalog, items, stickers / charms, agents, pins, patches, pets, inspect links, Source RNG
     embed/      the embed's protocol: types, URL params, target resolving, messaging, state reply
     materials/  the ported shaders (see below)
     viewer/     the three.js viewer
@@ -280,6 +280,7 @@ How to show it. The `loadout_*` params are what the player wears: they apply in 
 | `loadout_gloves_float` | the loadout gloves' float | 0.15 |
 | `loadout_gloves_seed` | the loadout gloves' pattern | the gloves' own |
 | `sticker_wear` | a sticker shown on its own: its wear, 0 (pristine) – 1 | the link's, or 0 |
+| `sticker_card` | `1`: a sticker shown on its own sits on the game's inspect card (the grey card with the CS2 mark) | off |
 | `charm_pattern` | a charm shown on its own: its pattern | the link's, or 0 |
 | `agent_patches` | the patches an agent wears: `id~size`, comma-separated, one entry per slot (3), an empty entry leaves the slot empty (`4588~1.15,,4584`); `size` 0.5–1.5 | none, or the link's |
 | `loadout_weapon` | the weapon skin an agent holds (`item\|kit`, empty for none) | none |
@@ -307,7 +308,7 @@ Send them with `iframe.contentWindow.postMessage(message, '*')`. Any page may dr
 | Message | Does |
 | --- | --- |
 | `{ type: 'cs3d:load', target, options? }` | Shows another item. `target` is one of `{ inspect }`, `{ def, paint }`, `{ skin }`, `{ sticker }`, `{ charm }`, `{ character }`, `{ pin }`, `{ patch }`, `{ pet }`; `options` as for `cs3d:set` |
-| `{ type: 'cs3d:set', options }` | Changes any of `float`, `seed`, `view`, `map`, `loadout_gloves`, `loadout_gloves_float`, `loadout_gloves_seed`, `loadout_agent`, `loadout_weapon`, `loadout_weapon_float`, `loadout_weapon_seed`, `sticker_wear`, `charm_pattern`, `agent_patches`, `pet_color`, `pet_animation`, `viewmodel_sway`, `viewmodel_left_hand`, `side`, `knife_pose`, `auto_rotate`, without reloading the page |
+| `{ type: 'cs3d:set', options }` | Changes any of `float`, `seed`, `view`, `map`, `loadout_gloves`, `loadout_gloves_float`, `loadout_gloves_seed`, `loadout_agent`, `loadout_weapon`, `loadout_weapon_float`, `loadout_weapon_seed`, `sticker_wear`, `sticker_card`, `charm_pattern`, `agent_patches`, `pet_color`, `pet_animation`, `viewmodel_sway`, `viewmodel_left_hand`, `side`, `knife_pose`, `auto_rotate`, without reloading the page |
 | `{ type: 'cs3d:setMap', map }` | Changes the map (an inspect map id, or `studio`) |
 | `{ type: 'cs3d:inspect' }` | Plays the weapon's inspect animation (first person) |
 | `{ type: 'cs3d:inspectGloves' }` | Looks at the gloves: in first person with skin gloves, or on a gloves skin |
@@ -330,7 +331,7 @@ They arrive as `message` events on the page's `window`. `ready`, `loading`, `loa
 | `{ type: 'cs3d:screenshot', id, dataUrl }` | Reply to `cs3d:screenshot` |
 | `{ type: 'cs3d:share', id, url }` | Reply to `cs3d:share`: the item with its float, pattern, stickers, charm, first person and loadout |
 | `{ type: 'cs3d:key', key: 'Escape' }` | Escape was pressed inside the embed (an iframe with the focus keeps the keys): close it if you show it in a dialog. F (inspect, first person) and G (look at the gloves) work inside the embed itself |
-| `{ type: 'cs3d:state', id, state }` | Reply to `cs3d:getState`: `{ item, share_url, float, seed, view, map, loadout_gloves, loadout_gloves_float, loadout_gloves_seed, loadout_agent, loadout_weapon, loadout_weapon_float, loadout_weapon_seed, sticker_wear, charm_pattern, agent_patches, viewmodel_sway, viewmodel_left_hand, side, knife_pose, auto_rotate }` |
+| `{ type: 'cs3d:state', id, state }` | Reply to `cs3d:getState`: `{ item, share_url, float, seed, view, map, loadout_gloves, loadout_gloves_float, loadout_gloves_seed, loadout_agent, loadout_weapon, loadout_weapon_float, loadout_weapon_seed, sticker_wear, sticker_card, charm_pattern, agent_patches, viewmodel_sway, viewmodel_left_hand, side, knife_pose, auto_rotate }` |
 
 ```js
 const frame = document.querySelector('iframe')

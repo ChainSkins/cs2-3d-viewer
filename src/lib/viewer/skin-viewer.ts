@@ -29,6 +29,14 @@ import { AttachmentEditor, type EditorEvents } from '@/lib/viewer/attachment-edi
 export { DEFAULT_LIGHTING, DEFAULT_MAP_LIGHTING, DEFAULT_RENDER_QUALITY, DEFAULT_VIEWMODEL, type CharmOptions, type LightSource, type Lighting, type MapLighting, type RenderQuality, type SkinViewerOptions, type StickerOptions, type Viewmodel }
 
 /**
+ * The game's sticker card: a grey rounded card with a triangle pattern and a faint CS2 mark (materials/default/stickers/sticker_default_backing).
+ * models/inventory_items/sticker_inspect/sticker_backing is the same card with a darker mark; skincraft.gg, which follows the game, shows this fainter one.
+ */
+const STICKER_CARD = 'materials/default/stickers/sticker_default_backing_psd_a8e114d8.png'
+/** The card's side in sticker sides: the card is the sticker's own size, as skincraft.gg (which follows the game) draws it: measured against it, 1.02 matched. */
+const STICKER_CARD_SIDE = 1.02
+
+/**
  * A pet shown over a map is turned this far from facing the camera (degrees): its side and a bit of its front. The chick's
  * model faces the other way than the hens'; the egg is round, so it takes more room around it.
  */
@@ -154,7 +162,7 @@ export class SkinViewer {
   private weaponRoot: THREE.Object3D | null = null
   /** A sticker or charm shown on its own (instead of an item). */
   /** The charm or sticker shown on its own. */
-  private standalone: { setWear?: (w: number) => void; parts?: CharmPart[]} | null = null
+  private standalone: { setWear?: (w: number) => void; setCard?: (on: boolean) => void; parts?: CharmPart[]} | null = null
   /** Bumped by clear(): a load (item, sticker or charm view) that finished late is dropped. */
   private loadToken = 0
   /** The framed model's size and the side it's viewed from, to re-fit the view when the panel resizes. */
@@ -895,8 +903,29 @@ export class SkinViewer {
     const card = stickerCard(def, textures)
     card.setWear(wear)
     this.loaded.disposables.push(() => { (card.mesh.material as THREE.Material).dispose(); textures.dispose() })
-    this.standalone = { setWear: card.setWear }
-    this.frame(card.mesh, false)
+    const root = new THREE.Group()
+    root.add(card.mesh)
+    /** The card behind the sticker (alpha-tested: its corners are round), hidden until asked for. */
+    const backing = new THREE.Mesh(new THREE.PlaneGeometry(STICKER_CARD_SIDE, STICKER_CARD_SIDE), new THREE.MeshStandardMaterial({ roughness: 0.47, metalness: 0, alphaTest: 0.5, side: THREE.DoubleSide }))
+    const uv = backing.geometry.getAttribute('uv')
+    for (let i = 0; i < uv.count; i++) uv.setY(i, 1 - uv.getY(i))
+    backing.position.z = -0.004
+    backing.visible = false
+    root.add(backing)
+    void this.loader.textures.load(GAME_ROOT + STICKER_CARD, true).then((map) => {
+      if (token !== this.loadToken) return
+      const m = backing.material as THREE.MeshStandardMaterial
+      m.map = map
+      m.needsUpdate = true
+    }).catch(() => {})
+    this.loaded.disposables.push(() => { backing.geometry.dispose(); (backing.material as THREE.Material).dispose() })
+    /** With the card on, everything shrinks so the card takes the room the sticker had (the framing stays the sticker's). */
+    const setCard = (on: boolean) => {
+      backing.visible = on
+      root.scale.setScalar(on ? 1 / STICKER_CARD_SIDE : 1)
+    }
+    this.standalone = { setWear: card.setWear, setCard }
+    this.frame(root, false)
   }
 
   /** A whole agent holding `weapon` (else the last weapon skin loaded), wearing skin `glove`s or its default ones. */
@@ -1118,6 +1147,11 @@ export class SkinViewer {
   /** The sticker slab's sticker when the charm is shown on its own. */
   async setStandaloneCharmSticker(id: string | null): Promise<void> {
     if (this.standalone?.parts) await this.attachments.charmSticker(this.standalone.parts, id)
+  }
+
+  /** Shows the sticker on its inspect card (or not). */
+  setStandaloneCard(on: boolean): void {
+    this.standalone?.setCard?.(on)
   }
 
   /** The wear of the sticker shown on its own. */

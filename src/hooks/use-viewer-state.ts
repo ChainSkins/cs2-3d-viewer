@@ -26,6 +26,8 @@ export interface ViewerState {
   stickers: StickerOptions[]
   charm: CharmState
   stickerWear: number
+  /** A sticker shown on its own: on the game's inspect card (the grey backing it sits on). */
+  stickerCard: boolean
   /** On an agent's page: the patch worn in each of its slots. */
   agentPatches: (AgentPatch | null)[]
   /** On a pet's page: its colour (an index into the model's variants) and the animation clip it plays (null: the default idle). */
@@ -46,6 +48,7 @@ export interface ViewerStateApi extends ViewerState {
   setStickers: (list: StickerOptions[]) => void
   setCharm: (changes: Partial<CharmState>) => void
   setStickerWear: (value: number) => void
+  setStickerCard: (on: boolean) => void
   /** Wears `patch` in `slot` (null: takes it off). */
   setAgentPatch: (slot: number, patch: AgentPatch | null) => void
   setPetVariant: (index: number) => void
@@ -80,6 +83,7 @@ export function useViewerState(persistLoadout = true): ViewerStateApi {
       sticker: params.get('cst'),
     },
     stickerWear: numberParam(params, 'swear', 0),
+    stickerCard: params.get('card') === '1',
     agentPatches: agentPatchesFromParam(params.get('ap')),
     petVariant: Math.max(0, Math.round(numberParam(params, 'pv', 0)) || 0),
     petClip: params.get('pc'),
@@ -125,6 +129,7 @@ export function useViewerState(persistLoadout = true): ViewerStateApi {
     setStickers: (list) => patch({ st: list.length ? stickersToParam(list) : null }),
     setCharm,
     setStickerWear: (value) => patch({ swear: value || null }),
+    setStickerCard: (on) => patch({ card: on ? 1 : null }),
     setAgentPatch: (slot, worn) => {
       const list = agentPatchesFromParam(params.get('ap'))
       list[slot] = worn

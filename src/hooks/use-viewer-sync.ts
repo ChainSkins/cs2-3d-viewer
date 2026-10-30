@@ -75,6 +75,10 @@ export function useViewerSync(viewer: SkinViewer | null, selection: Selection, i
   }, [viewer, selection.kind, ready, state.stickerWear])
 
   useEffect(() => {
+    if (viewer && selection.kind === 'sticker' && ready) viewer.setStandaloneCard(state.stickerCard)
+  }, [viewer, selection.kind, ready, state.stickerCard])
+
+  useEffect(() => {
     if (viewer && selection.kind === 'charm' && ready) void viewer.setStandaloneCharmSticker(state.charm.sticker)
   }, [viewer, selection.kind, ready, state.charm.sticker])
 }

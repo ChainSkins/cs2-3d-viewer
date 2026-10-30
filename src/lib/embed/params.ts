@@ -42,6 +42,7 @@ export function parseEmbedParams(params: URLSearchParams): EmbedParams {
       side: side === 'front' || side === 'back' ? side : undefined,
       auto_rotate: flag(params, 'auto_rotate'),
       sticker_wear: num(params.get('sticker_wear')),
+      sticker_card: flag(params, 'sticker_card'),
       charm_pattern: num(params.get('charm_pattern')),
       loadout_weapon: params.get('loadout_weapon') ?? undefined,
       loadout_weapon_float: num(params.get('loadout_weapon_float')),

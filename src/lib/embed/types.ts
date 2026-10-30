@@ -29,6 +29,8 @@ export interface EmbedOptions {
   side?: 'front' | 'back'
   auto_rotate?: boolean
   sticker_wear?: number
+  /** A sticker shown on its own: on its inspect card. */
+  sticker_card?: boolean
   charm_pattern?: number
   loadout_weapon?: string
   loadout_weapon_float?: number

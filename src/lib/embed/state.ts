@@ -26,6 +26,7 @@ export function buildEmbedState({ item, shareUrl, state, lighting, viewmodel, vi
     loadout_gloves_seed: viewmodel.gloveSeed ?? undefined,
     loadout_agent: state.agent ?? '',
     sticker_wear: state.stickerWear,
+    sticker_card: state.stickerCard,
     charm_pattern: state.charm.seed,
     loadout_weapon: state.loadout.weapon ?? '',
     loadout_weapon_float: state.loadout.weaponFloat ?? undefined,

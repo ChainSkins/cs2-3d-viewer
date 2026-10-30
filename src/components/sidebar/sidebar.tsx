@@ -114,7 +114,7 @@ export function Sidebar({ lighting, lightingPreset, onLighting, viewmodel, onVie
           <PetSection pet={pets?.pet.get(selection.id)} pets={pets} variant={state.petVariant} clip={state.petClip} onVariant={state.setPetVariant} onClip={state.setPetClip} />
         )}
 
-        {selection.kind === 'sticker' && <StickerWearSection wear={state.stickerWear} onChange={state.setStickerWear} />}
+        {selection.kind === 'sticker' && <StickerWearSection wear={state.stickerWear} onChange={state.setStickerWear} card={state.stickerCard} onCard={state.setStickerCard} />}
 
         {selection.kind === 'charm' && (
           <CharmPatternSection

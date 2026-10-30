@@ -54,6 +54,7 @@ export const OPTION_PARAMS: DocRow[] = [
   { name: 'loadout_gloves_float', values: '0–1', description: 'Those gloves’ float.', fallback: '0.15' },
   { name: 'loadout_gloves_seed', values: '1–1000', description: 'Those gloves’ pattern.', fallback: 'the gloves’ own' },
   { name: 'sticker_wear', values: '0–1', description: 'A sticker shown on its own: its wear (0 pristine, 1 scratched).', fallback: 'the link’s, or 0' },
+  { name: 'sticker_card', values: '1', description: 'A sticker shown on its own: on the game’s inspect card (the grey card with the CS2 mark it sits on in the inspect).', fallback: 'off' },
   { name: 'charm_pattern', values: '0–99999', description: 'A charm shown on its own: its pattern.', fallback: 'the link’s, or 0' },
   { name: 'loadout_weapon', values: 'item|kit', description: 'The weapon skin an agent holds (catalog key; empty for none).', fallback: 'none' },
   { name: 'loadout_weapon_float', values: '0–1', description: 'That weapon’s float.', fallback: '0.1' },
@@ -75,7 +76,7 @@ export const OPTION_PARAMS: DocRow[] = [
 
 export const COMMANDS: DocRow[] = [
   { name: "{ type: 'cs3d:load', target, options? }", description: 'Shows another item. target is one of { inspect }, { def, paint }, { skin }, { sticker }, { charm }, { character }, { pin }, { patch }, { pet }; options as for cs3d:set (an agent with patches: target { character } and options { agent_patches }; a pet: target { pet } and options { pet_color, pet_animation }).' },
-  { name: "{ type: 'cs3d:set', options }", description: 'Changes float, seed, view, map, the loadout_* options, sticker_wear, charm_pattern, agent_patches, pet_color, pet_animation, viewmodel_sway, viewmodel_left_hand, side, knife_pose or auto_rotate without reloading the page (an agent’s gloves or weapon, and view, redraw the model behind the last frame).' },
+  { name: "{ type: 'cs3d:set', options }", description: 'Changes float, seed, view, map, the loadout_* options, sticker_wear, sticker_card, charm_pattern, agent_patches, pet_color, pet_animation, viewmodel_sway, viewmodel_left_hand, side, knife_pose or auto_rotate without reloading the page (an agent’s gloves or weapon, and view, redraw the model behind the last frame).' },
   { name: "{ type: 'cs3d:setMap', map }", description: 'Changes the map (an inspect map id, or studio).' },
   { name: "{ type: 'cs3d:inspect' }", description: 'Plays the weapon’s inspect animation (first person).' },
   { name: "{ type: 'cs3d:inspectGloves' }", description: 'Looks at the gloves: in first person with skin gloves, or on a gloves skin.' },
@@ -95,7 +96,7 @@ export const EVENTS: DocRow[] = [
   { name: "{ type: 'cs3d:screenshot', id, dataUrl }", description: 'Reply to cs3d:screenshot.' },
   { name: "{ type: 'cs3d:screenshots', id, front, back }", description: 'Reply to cs3d:screenshots: two PNG Blobs.' },
   { name: "{ type: 'cs3d:share', id, url }", description: 'Reply to cs3d:share: the item with its float, pattern, stickers, charm, first person and loadout.' },
-  { name: "{ type: 'cs3d:state', id, state }", description: 'Reply to cs3d:getState: { item, share_url, float, seed, view, map, loadout_*, sticker_wear, charm_pattern, agent_patches, pet_color, pet_animation, viewmodel_sway, viewmodel_left_hand, side, knife_pose, auto_rotate }.' },
+  { name: "{ type: 'cs3d:state', id, state }", description: 'Reply to cs3d:getState: { item, share_url, float, seed, view, map, loadout_*, sticker_wear, sticker_card, charm_pattern, agent_patches, pet_color, pet_animation, viewmodel_sway, viewmodel_left_hand, side, knife_pose, auto_rotate }.' },
   { name: "{ type: 'cs3d:key', key: 'Escape' }", description: 'Escape was pressed inside the embed (an iframe with the focus keeps the keys): close it if you show it in a dialog. F (inspect, first person) and G (look at the gloves) work inside the embed itself.' },
 ]
 
