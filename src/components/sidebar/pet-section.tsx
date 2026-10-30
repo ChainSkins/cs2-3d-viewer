@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { Section } from '@/components/common/section'
 import { cn } from '@/lib/utils'
+import { petClipLabel } from '@/lib/data/pet-labels'
 import { defaultPetClip, petClips, type PetEntry, type PetIndex } from '@/lib/data/pets'
 
 interface PetSectionProps {
@@ -13,12 +14,9 @@ interface PetSectionProps {
   onClip: (name: string | null) => void
 }
 
-const GROUP_TITLE: Record<string, string> = { world: 'In the world', ui: 'Menu', snapshot: 'Snapshots', egg: 'Egg' }
+const GROUP_TITLE: Record<string, string> = { world: 'In the world', ui: 'Menu', snapshot: 'Photo poses', egg: 'Egg' }
 
 const GROUP_ORDER = ['world', 'egg', 'ui', 'snapshot']
-
-/** `chick_trick03` → `Trick 03`: a clip's name without its breed prefix. */
-const clipLabel = (name: string) => name.replace(/^chick_(egg_)?/, '').replace(/_/g, ' ').replace(/(\D)(\d+)/g, '$1 $2').replace(/^./, (c) => c.toUpperCase())
 
 const chip = (on: boolean) => cn('rounded-lg px-2.5 py-1 text-[12px] font-medium', on ? 'bevel-primary text-white' : 'bevel text-foreground/80')
 
@@ -52,7 +50,7 @@ export function PetSection({ pet, pets, variant, clip, onVariant, onClip }: PetS
                 <div className="mb-1.5 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{GROUP_TITLE[group] ?? group}</div>
                 <div className="flex flex-wrap gap-1.5">
                   {list.map((c) => (
-                    <button key={c.file} type="button" aria-pressed={c.name === playing} className={chip(c.name === playing)} onClick={() => onClip(c.name)}>{clipLabel(c.name)}</button>
+                    <button key={c.file} type="button" aria-pressed={c.name === playing} className={chip(c.name === playing)} onClick={() => onClip(c.name)}>{petClipLabel(c.name)}</button>
                   ))}
                 </div>
               </div>
