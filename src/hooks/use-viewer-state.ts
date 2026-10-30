@@ -28,6 +28,9 @@ export interface ViewerState {
   stickerWear: number
   /** On an agent's page: the patch worn in each of its slots. */
   agentPatches: (AgentPatch | null)[]
+  /** On a pet's page: its colour (an index into the model's variants) and the animation clip it plays (null: the default idle). */
+  petVariant: number
+  petClip: string | null
 }
 
 export interface ViewerStateApi extends ViewerState {
@@ -45,6 +48,8 @@ export interface ViewerStateApi extends ViewerState {
   setStickerWear: (value: number) => void
   /** Wears `patch` in `slot` (null: takes it off). */
   setAgentPatch: (slot: number, patch: AgentPatch | null) => void
+  setPetVariant: (index: number) => void
+  setPetClip: (name: string | null) => void
   charmOptions: CharmOptions | null
   /** The shared loadout (agent, gloves, the weapon an agent holds), kept in storage. */
   loadout: Loadout
@@ -76,6 +81,8 @@ export function useViewerState(persistLoadout = true): ViewerStateApi {
     },
     stickerWear: numberParam(params, 'swear', 0),
     agentPatches: agentPatchesFromParam(params.get('ap')),
+    petVariant: Math.max(0, Math.round(numberParam(params, 'pv', 0)) || 0),
+    petClip: params.get('pc'),
   }), [params, floatParam, loadout.gloves, loadout.agent])
 
   const { id, seed: charmSeed, offset, position, sticker } = state.charm
@@ -123,6 +130,8 @@ export function useViewerState(persistLoadout = true): ViewerStateApi {
       list[slot] = worn
       patch({ ap: agentPatchesToParam(list) || null })
     },
+    setPetVariant: (index) => patch({ pv: index || null }),
+    setPetClip: (name) => patch({ pc: name }),
     charmOptions,
   }
 }

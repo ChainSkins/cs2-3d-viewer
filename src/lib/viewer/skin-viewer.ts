@@ -11,9 +11,10 @@ import { GAME_ROOT, VIEWER_DATA } from '@/lib/data/catalog'
 import { PatchLayer, type AgentPatch } from '@/lib/viewer/agent-patches'
 import { attackLabel, AUTO_CYCLE, primaryAttacks, secondaryAttack, sortAttacks, type AttackEntry, type AttackInfo } from '@/lib/data/attacks'
 import { loadPatches } from '@/lib/data/patches'
+import { defaultPetClip, loadPetClip, loadPets, petClips, type PetIndex, type PetModel } from '@/lib/data/pets'
 import { loadPins } from '@/lib/data/pins'
 import { DEFAULT_AGENT } from '@/lib/data/agents'
-import { handIK, poseRig, samplePose, type InspectClip, type RigPart, type ViewmodelPose, type WeaponBind } from '@/lib/viewer/firstperson'
+import { handIK, poseRig, samplePose, SkinnedGeometry, type InspectClip, type RigPart, type ViewmodelPose, type WeaponBind } from '@/lib/viewer/firstperson'
 import type { CharmPart } from '@/lib/materials/charm'
 import { packStickers, stickerCard } from '@/lib/materials/sticker'
 import { FixedInspect } from '@/lib/viewer/fixed-inspect'
@@ -120,6 +121,8 @@ export class SkinViewer {
   /** An agent is shown (posed or not). */
   private agentShown = false
   private patchLayers: PatchLayer[] = []
+  /** The pet on the stage: its meshes (their material swaps with the colour), skinned parts and the clip playing. */
+  private petRig: { index: PetIndex; model: PetModel; meshes: THREE.Mesh[]; parts: RigPart[]; clip: InspectClip | null; start: number } | null = null
   private agentPatches: (AgentPatch | null)[] = []
   /** The weapon skin the shown agent holds (for its pattern and wear). */
   private agentWeaponItem: WeaponItem | null = null
@@ -208,6 +211,7 @@ export class SkinViewer {
     else if (this.fpRig?.idleLoop) this.stepIdle(time)
     else if (!this.firstPerson) this.fixed.step(this.autoRotate)
     if (this.agentRig) poseAgent(this.agentRig, (time - this.agentRig.start) / 1000)
+    if (this.petRig) this.stepPet(time)
     else if (this.autoRotate) this.holder.rotation.y += 0.004
     if (this.lighting.orbit) this.lightSpin = (this.lightSpin + ORBIT_SPEED) % 360
     this.placeLights()
@@ -833,6 +837,7 @@ export class SkinViewer {
     this.fpGlove = null
     this.fpRig = null
     this.agentRig = null
+    this.petRig = null
     this.patchLayers = []
     this.agentShown = false
     this.agentWeaponItem = null
@@ -923,6 +928,82 @@ export class SkinViewer {
   /** The pattern and wear of the weapon the agent holds, without making it the viewer's item. */
   setAgentWeapon(seed: number, float: number): void {
     if (this.agentWeaponItem) setAgentWeapon(this.loaded.finishes, this.agentWeaponItem, seed, float)
+  }
+
+  /**
+   * A pet on its own (a chicken, the chick, the egg): its model in one of its colours, playing a clip of its skeleton
+   * (the named one, else the first idle) in a loop. The roasted chicken has no skeleton animations.
+   */
+  async showPet(id: string, variant = 0, clipName: string | null = null): Promise<void> {
+    this.clear()
+    const token = this.loadToken
+    const index = await loadPets(this.opts.assetBase)
+    const entry = index.pet.get(id)
+    const model = entry && index.models[entry.model]
+    if (!entry || !model) throw new Error('No pet ' + id)
+    const clips = petClips(index, entry)
+    const wanted = clips.find((c) => c.name === clipName) ?? defaultPetClip(clips)
+    const [gltf, clip] = await Promise.all([
+      this.loader.gltf.loadAsync(this.loader.textures.url(GAME_ROOT + model.glb)),
+      wanted ? loadPetClip(this.opts.assetBase, index, wanted).catch(() => null) : null,
+    ])
+    if (token !== this.loadToken) return
+    const root = new THREE.Group()
+    gltf.scene.updateMatrixWorld(true)
+    const meshes: THREE.Mesh[] = [], skinned: SkinnedGeometry[] = []
+    gltf.scene.traverse((o) => {
+      if (!(o instanceof THREE.Mesh)) return
+      const g = o.geometry.clone().applyMatrix4(o.matrixWorld)
+      if (g.getAttribute('skinIndex')) skinned.push(new SkinnedGeometry(g))
+      const mesh = new THREE.Mesh(g, new THREE.MeshStandardMaterial())
+      meshes.push(mesh)
+      root.add(mesh)
+    })
+    this.petRig = { index, model, meshes, parts: [{ skeleton: model.skeleton, geometries: skinned }], clip, start: performance.now() }
+    this.setPetVariant(variant)
+    this.stepPet(performance.now())
+    /** Posing moved the vertices: the box the framing reads must follow (the glb's, kept by the clone, is the bind pose's). */
+    for (const mesh of meshes) mesh.geometry.computeBoundingBox()
+    this.frame(root, false)
+  }
+
+  /** Paints the pet in colour `index` of its model (the materials of that variant, in mesh order). */
+  setPetVariant(index: number): void {
+    const rig = this.petRig
+    if (!rig) return
+    const calls = rig.model.variants[Math.min(Math.max(0, index), rig.model.variants.length - 1)]?.drawCalls ?? []
+    rig.meshes.forEach((mesh, i) => {
+      const call = calls[i] ?? calls[0]
+      const old = mesh.material as THREE.Material
+      const material = call ? this.loader.plainMaterial(call) : new THREE.MeshStandardMaterial()
+      /** plainMaterial's defaults (fully metal, fully rough) are for models with a metalness map: without one it is a matte surface. */
+      if (call && !call.rough && material instanceof THREE.MeshStandardMaterial) { material.metalness = 0; material.roughness = 0.7 }
+      mesh.material = material
+      old.dispose()
+    })
+  }
+
+  /** Plays the named clip of the pet from the start (null: its default idle). */
+  async playPetClip(name: string | null): Promise<void> {
+    const rig = this.petRig
+    if (!rig) return
+    const token = this.loadToken
+    const entry = [...rig.index.pet.values()].find((p) => rig.index.models[p.model] === rig.model)
+    const clips = entry ? petClips(rig.index, entry) : []
+    const wanted = clips.find((c) => c.name === name) ?? defaultPetClip(clips)
+    if (!wanted) return
+    const clip = await loadPetClip(this.opts.assetBase, rig.index, wanted).catch(() => null)
+    if (!clip || token !== this.loadToken || this.petRig !== rig) return
+    rig.clip = clip
+    rig.start = performance.now()
+  }
+
+  /** Poses the pet at `now` (ms) of its clip, looping. */
+  private stepPet(now: number): void {
+    const rig = this.petRig
+    if (!rig?.clip) return
+    const t = ((now - rig.start) / 1000) % rig.clip.duration
+    poseRig(rig.parts, samplePose(rig.clip, t))
   }
 
   /** A collectible pin on its own: its model with the game's material (glitter overlays blended on top). */

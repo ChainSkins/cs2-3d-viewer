@@ -35,7 +35,7 @@ interface ViewerPageProps {
 
 export function ViewerPage({ selection }: ViewerPageProps) {
   const viewportRef = useRef<HTMLDivElement>(null)
-  const { catalog, attachments, agents, pins, patches, error: catalogError } = useCatalog()
+  const { catalog, attachments, agents, pins, patches, pets, error: catalogError } = useCatalog()
   const state = useViewerState()
   const { quality, setQuality } = useRenderQuality()
   const viewer = useViewer(viewportRef, quality.antialias)
@@ -65,7 +65,7 @@ export function ViewerPage({ selection }: ViewerPageProps) {
     [catalog, selection],
   )
   const images = useDbImages()
-  const heading = headingFor(selection, item, skin, attachments, catalog, images, agents, pins, patches)
+  const heading = headingFor(selection, item, skin, attachments, catalog, images, agents, pins, patches, pets)
   const glovesName = useMemo(() => skinDisplayName(catalog, state.gloves), [catalog, state.gloves])
 
   const picker = usePicker(selection, item, state, setActiveSticker)
@@ -113,6 +113,7 @@ export function ViewerPage({ selection }: ViewerPageProps) {
           item={item}
           attachments={attachments}
           patches={patches}
+          pets={pets}
           state={state}
           glovesName={glovesName}
           agentName={state.agent ? agents?.agent.get(state.agent)?.name ?? state.agent : null}
@@ -176,6 +177,7 @@ export function ViewerPage({ selection }: ViewerPageProps) {
         agents={agents}
         pins={pins}
         patches={patches}
+        pets={pets}
         only={picker.only}
         startIn={picker.startIn}
         onPick={picker.pick}

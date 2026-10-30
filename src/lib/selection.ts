@@ -1,4 +1,4 @@
-/** What the stage shows: a catalog skin (`item` + paint `kit`), a sticker, charm, pin or patch on its own, or a whole agent. */
+/** What the stage shows: a catalog skin (`item` + paint `kit`), a sticker, charm, pin, patch or pet on its own, or a whole agent. */
 export type Selection =
   | { kind: 'skin'; item: string; kit: string }
   | { kind: 'sticker'; id: string }
@@ -6,6 +6,7 @@ export type Selection =
   | { kind: 'agent'; id: string }
   | { kind: 'pin'; id: string }
   | { kind: 'patch'; id: string }
+  | { kind: 'pet'; id: string }
 
 /**
  * The catalog key of a skin, as the picker and the viewer's items name it.
