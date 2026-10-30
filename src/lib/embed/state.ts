@@ -31,6 +31,8 @@ export function buildEmbedState({ item, shareUrl, state, lighting, viewmodel, vi
     loadout_weapon_float: state.loadout.weaponFloat ?? undefined,
     loadout_weapon_seed: state.loadout.weaponSeed,
     agent_patches: agentPatchesToParam(state.agentPatches),
+    pet_color: state.petVariant,
+    pet_animation: state.petClip ?? '',
     viewmodel_sway: viewmodel.sway,
     viewmodel_left_hand: viewmodel.leftHanded,
     auto_rotate: view.spin,

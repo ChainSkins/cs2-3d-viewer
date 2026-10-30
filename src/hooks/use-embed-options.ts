@@ -22,6 +22,8 @@ export function useEmbedOptions(state: ViewerStateApi, { setLighting, setViewmod
     if (o.loadout_gloves !== undefined) patch.fpg = o.loadout_gloves || null
     if (o.loadout_agent !== undefined) patch.fpa = o.loadout_agent || null
     if (o.agent_patches !== undefined) patch.ap = agentPatchesToParam(agentPatchesFromParam(o.agent_patches)) || null
+    if (o.pet_color !== undefined) patch.pv = Math.max(0, Math.round(o.pet_color)) || null
+    if (o.pet_animation !== undefined) patch.pc = o.pet_animation || null
     if (Object.keys(patch).length) state.patch(patch)
     if (o.map !== undefined) setLighting((l) => ({ ...l, map: o.map && o.map !== 'studio' ? o.map : null }))
     const gloveFloat = o.loadout_gloves_float, gloveSeed = o.loadout_gloves_seed

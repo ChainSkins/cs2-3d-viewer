@@ -13,7 +13,7 @@
 A browser 3D viewer for CS2 skins, built on **the game's own shaders** ported to WebGL. It covers:
 
 - float and pattern (seed);
-- stickers, charms, collectible pins, agent patches, gloves and agents;
+- stickers, charms, collectible pins, agent patches, gloves, agents and pets (the egg, the chick and the three hens, with every colour and animation);
 - first person, with the game's inspect animation and its attack animations (shots, a knife's slashes, stabs and backstabs);
 - the game's inspect maps as backgrounds.
 
@@ -56,6 +56,7 @@ npm run preview    # http://localhost:5321, serves dist/
 | `/agent/:id` | An agent holding the loadout's weapon, wearing its gloves and its patches (`ap`) |
 | `/pin/:id` | A collectible pin on its own (`id` = its item definition index, db.json's `pins` key) |
 | `/patch/:id` | An agent patch on its own, on the game's inspect card (`id` = its patch kit id, db.json's `patches` key) |
+| `/pet/:id` | A pet on its own (`id` = its pet definition: `1` egg, `2` chick, `3` catalana, `4` silkie, `5` polish). The colour is `?pv=<n>` (0 = the first) and the animation `?pc=<clip>` (`chick_trick05`); the sidebar lists both |
 | `/share/:code` | A shared link |
 | `/inspect/*` | An inspect link opened by URL: `/inspect/steam://rungame/730/…+csgo_econ_action_preview%20<hex>`, `/inspect/steam://run/730//+csgo_econ_action_preview%20<hex>`, `/inspect/<hex>`, or `/inspect/<hex>` of the raw protobuf (no key byte, no checksum). Decodes it and redirects to the skin, sticker, charm or agent it names (an agent's patches go in `ap`) |
 | `/embed` | The viewer alone, to put in an iframe (see [Public API](#public-api-embed)) |
@@ -98,7 +99,7 @@ src/
 
 ### The viewer (`src/lib/viewer/`)
 
-`SkinViewer` (`skin-viewer.ts`) is the facade React talks to. Its methods include `load`, `loadFirstPerson`, `showAgent`, `showSticker`, `showCharm`, `showPin`, `showPatch`, `setAgentPatches`, `setFloat`, `setSeed`, `setStickers`, `setCharm`, `setLighting`, `setViewmodel`, `inspect`, `inspectGloves`, `lookAtGloves` and `screenshot`. It is built from these modules:
+`SkinViewer` (`skin-viewer.ts`) is the facade React talks to. Its methods include `load`, `loadFirstPerson`, `showAgent`, `showSticker`, `showCharm`, `showPin`, `showPatch`, `showPet`, `setPetVariant`, `playPetClip`, `setAgentPatches`, `setFloat`, `setSeed`, `setStickers`, `setCharm`, `setLighting`, `setViewmodel`, `inspect`, `inspectGloves`, `lookAtGloves` and `screenshot`. It is built from these modules:
 
 | Module | Does |
 | --- | --- |
@@ -225,6 +226,12 @@ send({ type: 'cs3d:load', target: { pin: '6132' } })
 // Load an agent patch on its own, on the game's inspect card
 send({ type: 'cs3d:load', target: { patch: '4553' } })
 
+// Load a pet (1 egg, 2 chick, 3 catalana, 4 silkie, 5 polish) in its 6th colour, dancing
+send({ type: 'cs3d:load', target: { pet: '3' }, options: { pet_color: 5, pet_animation: 'chick_trick05' } })
+
+// Change the pet on screen, without reloading it
+send({ type: 'cs3d:set', options: { pet_color: 2, pet_animation: 'chick_idle03' } })
+
 // Load an agent wearing patches: up to 3 slots, `id~size`, an empty entry leaves the slot empty
 send({
   type: 'cs3d:load',
@@ -239,7 +246,7 @@ send({ type: 'cs3d:set', options: { agent_patches: '4588~1.15,4572,4584~0.99' } 
 send({ type: 'cs3d:load', target: { inspect: 'steam://run/730//+csgo_econ_action_preview%20<hex>' } })
 ```
 
-Each load answers `cs3d:loading`, then `cs3d:loaded` (`item.kind` is `pin`, `patch` or `agent`; an agent also reports `agentPatches`) or `cs3d:error` (unknown id, bad link…).
+Each load answers `cs3d:loading`, then `cs3d:loaded` (`item.kind` is `pin`, `patch`, `pet` or `agent`; an agent also reports `agentPatches`, a pet `petColor` and `petAnimation`) or `cs3d:error` (unknown id, bad link…).
 
 The embed carries a small **chainskins.net** watermark in its top-left corner, linking to the full viewer, and burnt into its screenshots. It is always shown: `ui=0` does not hide it. Nothing the embed does is kept in the visitor's browser: the full viewer's lighting, viewmodel and loadout stay untouched.
 
@@ -259,6 +266,7 @@ What to show (one of these; if several are given, the first in this order wins):
 | `character` | An agent, by id (`customplayer_…`). An inspect link of an agent brings its patches |
 | `pin` | A collectible pin on its own, by its item definition index (`pin=6101` is the Dust II pin; the keys of db.json's `pins`) |
 | `patch` | An agent patch on its own, on the game's inspect card, by its patch kit id (`patch=4553`; the keys of db.json's `patches`) |
+| `pet` | A pet on its own, by its pet definition number: `1` egg, `2` chick, `3` catalana, `4` silkie, `5` polish (`pet=3`). Pets are not in db.json |
 
 How to show it. The `loadout_*` params are what the player wears: they apply in first person (`view=fpv`) and on an agent (third person), not to the item shown.
 
@@ -277,6 +285,8 @@ How to show it. The `loadout_*` params are what the player wears: they apply in 
 | `loadout_weapon` | the weapon skin an agent holds (`item\|kit`, empty for none) | none |
 | `loadout_weapon_float` | that weapon's float | 0.1 |
 | `loadout_weapon_seed` | that weapon's pattern, 1–1000 | 1 |
+| `pet_color` | a pet shown on its own: its colour as an index, 0 = the first (the egg and the chick have 1, the catalana 13, the silkie 9, the polish 12); clamped | 0 |
+| `pet_animation` | a pet shown on its own: the clip it loops (`chick_idle03`, `chick_trick05` = dance, `chick_walk`, `chick_egg_reaction01` for the egg…); an unknown one plays the default idle | its first idle |
 | `loadout_agent` | the loadout's agent (`customplayer_…`): its arms and sleeves in first person | the default CT agent |
 | `stickers` | the weapon's stickers, `id~slot~wear~x~y~rotation~scale`, comma-separated; first load only | none, or the link's |
 | `viewmodel_sway` | `0`: first person's weapon stops swaying with the pointer | on |
@@ -296,8 +306,8 @@ Send them with `iframe.contentWindow.postMessage(message, '*')`. Any page may dr
 
 | Message | Does |
 | --- | --- |
-| `{ type: 'cs3d:load', target, options? }` | Shows another item. `target` is one of `{ inspect }`, `{ def, paint }`, `{ skin }`, `{ sticker }`, `{ charm }`, `{ character }`, `{ pin }`, `{ patch }`; `options` as for `cs3d:set` |
-| `{ type: 'cs3d:set', options }` | Changes any of `float`, `seed`, `view`, `map`, `loadout_gloves`, `loadout_gloves_float`, `loadout_gloves_seed`, `loadout_agent`, `loadout_weapon`, `loadout_weapon_float`, `loadout_weapon_seed`, `sticker_wear`, `charm_pattern`, `agent_patches`, `viewmodel_sway`, `viewmodel_left_hand`, `side`, `knife_pose`, `auto_rotate`, without reloading the page |
+| `{ type: 'cs3d:load', target, options? }` | Shows another item. `target` is one of `{ inspect }`, `{ def, paint }`, `{ skin }`, `{ sticker }`, `{ charm }`, `{ character }`, `{ pin }`, `{ patch }`, `{ pet }`; `options` as for `cs3d:set` |
+| `{ type: 'cs3d:set', options }` | Changes any of `float`, `seed`, `view`, `map`, `loadout_gloves`, `loadout_gloves_float`, `loadout_gloves_seed`, `loadout_agent`, `loadout_weapon`, `loadout_weapon_float`, `loadout_weapon_seed`, `sticker_wear`, `charm_pattern`, `agent_patches`, `pet_color`, `pet_animation`, `viewmodel_sway`, `viewmodel_left_hand`, `side`, `knife_pose`, `auto_rotate`, without reloading the page |
 | `{ type: 'cs3d:setMap', map }` | Changes the map (an inspect map id, or `studio`) |
 | `{ type: 'cs3d:inspect' }` | Plays the weapon's inspect animation (first person) |
 | `{ type: 'cs3d:inspectGloves' }` | Looks at the gloves: in first person with skin gloves, or on a gloves skin |

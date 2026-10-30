@@ -18,6 +18,7 @@ function targetOf(params: URLSearchParams): EmbedTarget | null {
   if (params.get('character')) return { character: params.get('character')! }
   if (params.get('pin')) return { pin: params.get('pin')! }
   if (params.get('patch')) return { patch: params.get('patch')! }
+  if (params.get('pet')) return { pet: params.get('pet')! }
   return null
 }
 
@@ -46,6 +47,8 @@ export function parseEmbedParams(params: URLSearchParams): EmbedParams {
       loadout_weapon_float: num(params.get('loadout_weapon_float')),
       loadout_weapon_seed: num(params.get('loadout_weapon_seed')),
       agent_patches: params.get('agent_patches') ?? undefined,
+      pet_color: num(params.get('pet_color')),
+      pet_animation: params.get('pet_animation') ?? undefined,
     },
     stickers: params.get('stickers'),
     ui: params.get('ui') !== '0',

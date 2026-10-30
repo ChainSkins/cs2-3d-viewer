@@ -24,6 +24,7 @@ export function resolveTarget(target: EmbedTarget, catalog: CatalogIndex, attach
   if ('character' in target) return { selection: { kind: 'agent', id: target.character }, params: {} }
   if ('pin' in target) return { selection: { kind: 'pin', id: target.pin }, params: {} }
   if ('patch' in target) return { selection: { kind: 'patch', id: target.patch }, params: {} }
+  if ('pet' in target) return { selection: { kind: 'pet', id: target.pet }, params: {} }
   let link: InspectItem
   if ('inspect' in target) {
     try { link = decodeInspectLink(target.inspect) } catch (e) { return (e as Error).message }
