@@ -33,6 +33,8 @@ export { DEFAULT_LIGHTING, DEFAULT_MAP_LIGHTING, DEFAULT_RENDER_QUALITY, DEFAULT
  * model faces the other way than the hens'; the egg is round, so it takes more room around it.
  */
 const PET_TURN = -135
+/** A pin's face looks along the model's X: turned this far to face the camera. */
+const PIN_VIEW = { turn: -90, room: 1 }
 const petView = (glb: string): { turn: number; room: number } =>
   /\/chick\.glb$/.test(glb) ? { turn: PET_TURN + 180, room: 1 } : /egg/.test(glb) ? { turn: 0, room: 1.6 } : { turn: PET_TURN, room: 1 }
 
@@ -128,8 +130,8 @@ export class SkinViewer {
   private gloveGameLight = false
   /** An agent is shown (posed or not). */
   private agentShown = false
-  /** A pet is on the stage: it takes the map's light like an item on its own does (the fixed game inspect). */
-  private petShown = false
+  /** A pet or a pin is on the stage: it takes the map's light like an item on its own does (the fixed game inspect). */
+  private framedShown = false
   private patchLayers: PatchLayer[] = []
   /** The pet on the stage: its meshes (their material swaps with the colour), skinned parts and the clip playing. */
   private petRig: { index: PetIndex; model: PetModel; meshes: THREE.Mesh[]; parts: RigPart[]; clip: InspectClip | null; start: number } | null = null
@@ -570,7 +572,7 @@ export class SkinViewer {
   private get wantsFixedInspect(): boolean {
     const name = this.item?.id.split('|')[0] ?? ''
     if (!this.map.video || !this.map.scene3d?.data.weapon || this.firstPerson) return false
-    return !!this.standalone || this.agentShown || this.petShown || (this.item?.style === 'glove' ? this.gloveGameLight : !!this.item && !!name)
+    return !!this.standalone || this.agentShown || this.framedShown || (this.item?.style === 'glove' ? this.gloveGameLight : !!this.item && !!name)
   }
 
   /** Enters the fixed inspect when it applies, or gives the view back to the orbit. */
@@ -596,8 +598,8 @@ export class SkinViewer {
     this.controls.enabled = false
     const glove = this.item?.style === 'glove'
     const studio = this.fit ? { distance: this.homePosition(35).length(), fov: 35 } : undefined
-    if ((this.standalone || this.agentShown || this.petShown || glove) && this.fit) {
-      this.fixed.enter(scene3d, 'weapon_glock', { radius: this.agentShown ? this.fit.size.y * 0.4 : (this.fit.size.length() / 2) * (this.petRig ? petView(this.petRig.model.glb).room : 1), sunOnly: !!this.standalone, face: !this.standalone?.parts, turn: this.petRig ? petView(this.petRig.model.glb).turn : 0, studio: glove && !this.agentShown && !this.standalone ? studio : undefined })
+    if ((this.standalone || this.agentShown || this.framedShown || glove) && this.fit) {
+      this.fixed.enter(scene3d, 'weapon_glock', { radius: this.agentShown ? this.fit.size.y * 0.4 : (this.fit.size.length() / 2) * (this.petRig ? petView(this.petRig.model.glb).room : this.framedShown ? PIN_VIEW.room : 1), sunOnly: !!this.standalone, face: !this.standalone?.parts, turn: this.petRig ? petView(this.petRig.model.glb).turn : this.framedShown ? PIN_VIEW.turn : 0, studio: glove && !this.agentShown && !this.standalone ? studio : undefined })
     } else if (/knife|bayonet/.test(this.item!.id.split('|')[0]) && this.fit) {
       this.fixed.enter(scene3d, 'weapon_glock', { radius: this.fit.size.length() / 2, studio })
     } else {
@@ -850,7 +852,7 @@ export class SkinViewer {
     this.petRig = null
     this.patchLayers = []
     this.agentShown = false
-    this.petShown = false
+    this.framedShown = false
     this.agentWeaponItem = null
     this.agentGlove = null
     this.inspectStart = null
@@ -970,7 +972,7 @@ export class SkinViewer {
       meshes.push(mesh)
       root.add(mesh)
     })
-    this.petShown = true
+    this.framedShown = true
     this.petRig = { index, model, meshes, parts: [{ skeleton: model.skeleton, geometries: skinned }], clip, start: performance.now() }
     this.setPetVariant(variant)
     this.stepPet(performance.now())
@@ -1030,6 +1032,7 @@ export class SkinViewer {
     if (token !== this.loadToken) return
     const root = new THREE.Group()
     gltf.scene.updateMatrixWorld(true)
+    this.framedShown = true
     let i = 0
     gltf.scene.traverse((o) => {
       if (!(o instanceof THREE.Mesh)) return
