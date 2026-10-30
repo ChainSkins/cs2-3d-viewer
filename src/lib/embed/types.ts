@@ -12,6 +12,7 @@ export type EmbedTarget =
   | { character: string }
   | { pin: string }
   | { patch: string }
+  | { pet: string }
 
 export interface EmbedOptions {
   float?: number
@@ -34,6 +35,10 @@ export interface EmbedOptions {
   loadout_weapon_seed?: number
   /** An agent's patches: `id~size`, comma-separated, one entry per slot (empty = none). */
   agent_patches?: string
+  /** A pet's colour: its index among the model's colours (0 = the first). */
+  pet_color?: number
+  /** The clip a pet plays (`chick_trick05`; empty = its default idle). */
+  pet_animation?: string
 }
 
 export type EmbedCommand =
@@ -71,6 +76,9 @@ export interface EmbedItemInfo {
   charmPattern?: number
   /** An agent's patches, as the `agent_patches` option. */
   agentPatches?: string
+  /** A pet's colour (index) and the clip it plays, as the `pet_color` and `pet_animation` options. */
+  petColor?: number
+  petAnimation?: string
 }
 
 export interface EmbedState extends EmbedOptions {

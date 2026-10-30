@@ -18,6 +18,7 @@ export function useEmbedInfo(selection: Selection | null, item: Item | null, vie
     canInspectGloves: !!viewer?.canInspectGloves || item?.style === 'glove',
     ...(selection.kind === 'sticker' && { stickerWear: stateRef.current.stickerWear }),
     ...(selection.kind === 'charm' && { charmPattern: stateRef.current.charm.seed }),
+    ...(selection.kind === 'pet' && { petColor: stateRef.current.petVariant, petAnimation: stateRef.current.petClip ?? '' }),
     ...(selection.kind === 'agent' && { agentPatches: agentPatchesToParam(stateRef.current.agentPatches) }),
   }, [selection, item, viewer])
 }

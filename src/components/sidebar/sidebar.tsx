@@ -6,6 +6,7 @@ import { CharmPatternSection } from '@/components/sidebar/charm-pattern-section'
 import { CurrentPick } from '@/components/sidebar/current-pick'
 import { FloatSection } from '@/components/sidebar/float-section'
 import { SidebarSkeleton } from '@/components/sidebar/sidebar-skeleton'
+import { PetSection } from '@/components/sidebar/pet-section'
 import { PatternSection } from '@/components/sidebar/pattern-section'
 import { StickerWearSection } from '@/components/sidebar/sticker-wear-section'
 import { FirstPersonSection } from '@/components/sidebar/first-person-section'
@@ -15,6 +16,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import type { AttachmentIndex } from '@/lib/data/attachments'
 import type { PatchIndex } from '@/lib/data/patches'
+import type { PetIndex } from '@/lib/data/pets'
 import type { Item } from '@/lib/data/items'
 import type { Heading } from '@/lib/heading'
 import { isSlabCharm, markupFor } from '@/lib/markup'
@@ -38,6 +40,7 @@ interface SidebarProps {
   item: Item | null
   attachments: AttachmentIndex | null
   patches: PatchIndex | null
+  pets: PetIndex | null
   state: ViewerStateApi
   glovesName: string | null
   agentName: string | null
@@ -53,7 +56,7 @@ interface SidebarProps {
 }
 
 /** The control panel, floating over the page: the selection, then the sections that apply to it. On wide screens it folds into a slim rail. */
-export function Sidebar({ lighting, lightingPreset, onLighting, viewmodel, onViewmodel, collapsed, onToggleCollapsed, selection, heading, item, attachments, patches, state, glovesName, agentName, loadoutWeapon, loadoutWeaponName, onLoadoutFirstPerson, activeSticker, onActiveSticker, onOpenPicker, onOpenInspect, loading }: SidebarProps) {
+export function Sidebar({ lighting, lightingPreset, onLighting, viewmodel, onViewmodel, collapsed, onToggleCollapsed, selection, heading, item, attachments, patches, pets, state, glovesName, agentName, loadoutWeapon, loadoutWeaponName, onLoadoutFirstPerson, activeSticker, onActiveSticker, onOpenPicker, onOpenInspect, loading }: SidebarProps) {
   const isSkin = selection.kind === 'skin'
   const stickerName = (id: string | null) => (id ? attachments?.sticker.get(id)?.name ?? id : '')
   const charmId = selection.kind === 'charm' ? selection.id : state.charm.id
@@ -105,6 +108,10 @@ export function Sidebar({ lighting, lightingPreset, onLighting, viewmodel, onVie
               onOpenPicker={onOpenPicker}
             />
           </>
+        )}
+
+        {selection.kind === 'pet' && (
+          <PetSection pet={pets?.pet.get(selection.id)} pets={pets} variant={state.petVariant} clip={state.petClip} onVariant={state.setPetVariant} onClip={state.setPetClip} />
         )}
 
         {selection.kind === 'sticker' && <StickerWearSection wear={state.stickerWear} onChange={state.setStickerWear} />}

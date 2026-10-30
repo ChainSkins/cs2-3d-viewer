@@ -30,10 +30,10 @@ export interface ShareLink {
 }
 
 /** What a share link holds: the selection and the view's state. */
-export type ShareState = Pick<ViewerState, 'float' | 'seed' | 'firstPerson' | 'gloves' | 'agent' | 'stickers' | 'charm' | 'stickerWear' | 'agentPatches'>
+export type ShareState = Pick<ViewerState, 'float' | 'seed' | 'firstPerson' | 'gloves' | 'agent' | 'stickers' | 'charm' | 'stickerWear' | 'agentPatches' | 'petVariant'>
 
 const VERSION = 1
-const KINDS = ['skin', 'sticker', 'charm', 'agent', 'pin', 'patch'] as const
+const KINDS = ['skin', 'sticker', 'charm', 'agent', 'pin', 'patch', 'pet'] as const
 
 // Skin flags: which optional parts follow.
 const F_FLOAT = 1, F_SEED = 2, F_FIRST_PERSON = 4, F_GLOVES = 8, F_AGENT = 16, F_STICKERS = 32, F_CHARM = 64
@@ -130,6 +130,9 @@ export function encodeShare(selection: Selection, state: ShareState, idx: ShareI
   } else if (selection.kind === 'pin' || selection.kind === 'patch') {
     /** A pin's or patch's id is its item / kit definition index. */
     w.uint(Number(selection.id))
+  } else if (selection.kind === 'pet') {
+    /** A pet's id is its definition number (the colour follows; the animation is left out). */
+    w.uint(Number(selection.id)).uint(state.petVariant)
   } else if (selection.kind === 'agent') {
     const index = agentIndex(selection.id)
     if (index === undefined) return null
@@ -227,6 +230,11 @@ export function decodeShare(code: string, idx: ShareIndexes): string {
       const ap = agentPatchesToParam(worn)
       if (ap) params.set('ap', ap)
     }
+    return link({ kind, id })
+  }
+  if (kind === 'pet') {
+    const id = String(r.uint()), variant = r.uint()
+    if (variant) params.set('pv', String(variant))
     return link({ kind, id })
   }
   if (kind === 'pin' || kind === 'patch') return link({ kind, id: String(r.uint()) })

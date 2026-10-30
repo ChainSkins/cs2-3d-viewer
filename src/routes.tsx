@@ -39,6 +39,12 @@ function PatchRoute() {
   return <ViewerPage selection={selection} />
 }
 
+function PetRoute() {
+  const { id = '' } = useParams()
+  const selection = useMemo(() => ({ kind: 'pet' as const, id }), [id])
+  return <ViewerPage selection={selection} />
+}
+
 function AgentRoute() {
   const { id = '' } = useParams()
   const selection = useMemo(() => ({ kind: 'agent' as const, id }), [id])
@@ -55,6 +61,7 @@ export function AppRoutes() {
       <Route path="/agent/:id" element={<AgentRoute />} />
       <Route path="/pin/:id" element={<PinRoute />} />
       <Route path="/patch/:id" element={<PatchRoute />} />
+      <Route path="/pet/:id" element={<PetRoute />} />
       <Route path="/inspect/*" element={<InspectPage />} />
       <Route path="/share/:code" element={<SharePage />} />
       <Route path="/embed" element={<EmbedPage />} />
