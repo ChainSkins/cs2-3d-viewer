@@ -5,6 +5,7 @@ import type { GloveItem } from '@/lib/data/items'
 import type { WeaponFinish, WeaponItem } from '@/lib/materials/weapon'
 import { addPose, adoptAncestors, poseRig, samplePose, SkinnedGeometry, type InspectClip, type RigPart, type WeaponBind } from '@/lib/viewer/firstperson'
 import { isGlove, setGloveSeed, setWeaponSeed, type Finish, type ModelLoader } from '@/lib/viewer/model-loader'
+import { addEyeAttributes, EyeLayer, loadEyes } from '@/lib/viewer/agent-eyes'
 import { loadPatchSlots, PatchLayer } from '@/lib/viewer/agent-patches'
 import type { Viewmodel } from '@/lib/viewer/viewer-options'
 
@@ -44,7 +45,7 @@ export async function loadAgent(loader: ModelLoader, assetBase: string, id: stri
   const base = assetBase + VIEWER_DATA
   const weaponName = weaponItem?.id.split('|')[0] ?? 'weapon_ak47'
   const team = /(^|_)ctm_/.test(id) ? 'ct' : 't'
-  const [gltf, clip, binds, arms, layer, patchSlots] = await Promise.all([
+  const [gltf, clip, binds, arms, layer, patchSlots, eyeData] = await Promise.all([
     loader.gltf.loadAsync(loader.textures.url(GAME_ROOT + model.body)),
     json<Record<string, Record<string, string>>>(base + 'agentposes/index.json')
       .then((idx) => (idx[team]?.[weaponName] ? json<InspectClip>(base + 'agentposes/' + idx[team][weaponName]) : null))
@@ -53,6 +54,7 @@ export async function loadAgent(loader: ModelLoader, assetBase: string, id: stri
     glove ? loader.armsSkeleton(glove).catch(() => null) : Promise.resolve(null),
     json<InspectClip>(base + 'agentposes/idle_layer.json').catch(() => null),
     loadPatchSlots(assetBase, VIEWER_DATA),
+    loadEyes(assetBase, VIEWER_DATA),
   ])
   if (stale()) return null
   const scene = gltf.scene
@@ -71,10 +73,19 @@ export async function loadAgent(loader: ModelLoader, assetBase: string, id: stri
     meshes.forEach((o, i) => {
       const call = calls[i] ?? calls[0]
       const g = o.geometry.clone().applyMatrix4(o.matrixWorld)
+      const eyeParams = call && eyeData.materials[call.material]
+      const eyeBones = eyeData.models[entry.model]
+      const eyes = eyeParams && eyeBones ? addEyeAttributes(g, eyeBones, o.matrixWorld) : null
       if (clip && g.getAttribute('skinIndex')) geometries.push(new SkinnedGeometry(g))
       const material = call ? loader.plainMaterial(call) : new THREE.MeshStandardMaterial()
       const slots = call && patchSlots[call.material]
       if (slots) patches.push(new PatchLayer(material, slots))
+      if (eyes && eyeParams && eyeBones) {
+        const eyeLayer = new EyeLayer(material, eyeParams, eyeBones, o.matrixWorld, eyes.scale)
+        void Promise.all([loader.textures.load(GAME_ROOT + eyeParams.mask, false), loader.textures.load(GAME_ROOT + eyeParams.albedo, true)])
+          .then(([mask, albedo]) => { albedo.wrapS = albedo.wrapT = THREE.ClampToEdgeWrapping; eyeLayer.set(mask, albedo); material.needsUpdate = true })
+          .catch(() => {})
+      }
       root.add(new THREE.Mesh(g, material))
     })
   }

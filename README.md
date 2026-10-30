@@ -107,6 +107,7 @@ src/
 | `map-stage.ts` | The studio or an inspect map: HDR panorama (reflections), the pre-rendered background video, the map's lights, post. A map without its video doesn't load (the previous one stays); the map's geometry and lightmaps are never downloaded |
 | `fixed-inspect.ts` | The game's fixed inspect camera over the video, and the ambient light from the light probes |
 | `agent-view.ts` | An agent in third person, in its main-menu idle |
+| `agent-eyes.ts` | The agents' eyes: the game's `S_EYEBALLS` (a virtual sphere at each eyeball bone, ray-traced in the head material, with the shared iris texture) |
 | `agent-patches.ts` | The patches on an agent's body material: the game's `csgo_character` F_PATCHES placement (decompiled pixel shader) injected into the material |
 | `firstperson.ts` | Skeletons, CPU skinning, animation clips, forearm twist constraints |
 | `inspect-scene.ts`, `post.ts`, `map-veil.ts` | The map's lights and camera (the viewer loads it `lightsOnly`; the full geometry loader is still there but unused), the map's post (tone curve, bloom, LUT), the transition between maps |
