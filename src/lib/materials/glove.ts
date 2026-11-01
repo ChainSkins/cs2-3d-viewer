@@ -131,7 +131,9 @@ export class GloveFinish {
   }
 
   setFloat(f: number): void {
-    this.composite.uniforms.g_fWearProgress.value = f
+    /** The paint wears as the float raised to the kit's g_fWearExponent (Vice 0.5, Pandora's Box 1, Duct Tape 0.2): its vcompmat's wear curve. */
+    const exponent = this.vmat.floats.g_fWearExponent ?? this.vmat.ints.g_fWearExponent ?? 1
+    this.composite.uniforms.g_fWearProgress.value = Math.pow(Math.max(0, f), exponent)
     this.dirty = true
   }
 
@@ -147,8 +149,10 @@ export class GloveFinish {
   }
 
   /**
-   * The seed's rolls (gloves/paints/_shared_paint_generic.vcompmat): pattern offset x/y, pattern rotation, then the
-   * grunge offset x/y and rotation, which stays at offset 0, rotation 0 (as skinshotter does).
+   * The seed's rolls (gloves/paints/_shared_paint_generic.vcompmat; a kit's own instance_params only sets the bounds of the
+   * ones it names — Hedge Maze and Pandora's Box fix the rotation at 30): pattern offset x/y, pattern rotation, then the
+   * grunge offset x/y and rotation. The grunge is what wears the paint away, so where it wears follows the seed (skincraft.gg:
+   * Hedge Maze at 0.8 wear differs between seeds).
    * The pattern is the shader's transform (texXform; g_bFlipFixup negates the rotation, and the shader negates u) on
    * u ∈ [0, 1], and the right hand's result has its x negated (the shader's p.x *= sign(u)). This composite runs the
    * right hand on u ∈ [−1, 0], hence its +1 shift. Matched against skinshotter's composites (Pandora, Cobalt Skulls,
@@ -156,7 +160,7 @@ export class GloveFinish {
    */
   setSeed(r: RandomFloat): void {
     const px = r(0, 1), py = r(0, 1), prot = r(0, 360)
-    r(0, 1); r(0, 1); r(0, 360)
+    const gx = r(0, 1), gy = r(0, 1), grot = r(0, 360)
     const u = this.composite.uniforms
     const f = (n: string) => this.vmat.floats[n] ?? (DEFAULTS[n] as number[])[0]
     const rot = this.item.patternRotation ?? prot
@@ -169,8 +173,8 @@ export class GloveFinish {
     u.g_vPatternTexCoordXform0.value = new THREE.Vector4(sign * x0.x, sign * x0.y, 0, sign * (x0.w + shift * x0.x))
     u.g_vPatternTexCoordXform1.value = new THREE.Vector4(x1.x, x1.y, 0, x1.w + shift * x1.x)
     set('g_vPatternTexRotationXform', texXform(1, flip ? rot : -rot, [0, 0]))
-    set('g_vGrungeTexCoordXform', texXform(f('g_fGrungeTexCoordScale'), 0, [0, 0]))
-    set('g_vGrungeTexRotationXform', texXform(1, 0, [0, 0]))
+    set('g_vGrungeTexCoordXform', texXform(f('g_fGrungeTexCoordScale'), grot, [gx, gy]))
+    set('g_vGrungeTexRotationXform', texXform(1, -grot, [0, 0]))
     this.dirty = true
   }
 
