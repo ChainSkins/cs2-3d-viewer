@@ -76,7 +76,7 @@ export function Stage({ viewportRef, heading, loading, error, map, onMap, getSha
   )
 
   return (
-    <main className="relative order-1 min-h-[62dvh] flex-1 overflow-hidden border-white/10 lg:order-2 lg:min-h-0 lg:rounded-3xl lg:border lg:shadow-[inset_0_1px_0_oklch(1_0_0/8%),0_30px_80px_-30px_oklch(0_0_0/90%)]">
+    <main className="relative order-1 min-h-[62dvh] flex-1 overflow-hidden border-white/10 lg:order-2 lg:min-h-0">
       <StudioBackdrop />
       <div ref={viewportRef} className="absolute inset-0" />
       {!hideUi && <StageHeading heading={heading} />}
@@ -89,12 +89,14 @@ export function Stage({ viewportRef, heading, loading, error, map, onMap, getSha
             <ShareButton getShare={getShare} />
             <SettingsButton quality={quality} onChange={onQuality} mapLighting={mapLighting} onMapLighting={onMapLighting} readStatus={readRenderStatus} />
             {gloveGameLight !== null && (
-              <SegmentedControl
-                className="glass-panel pointer-events-auto w-36 rounded-2xl p-1"
-                options={[{ value: 'studio', label: 'Studio' }, { value: 'game', label: 'Game' }]}
-                value={gloveGameLight ? 'game' : 'studio'}
-                onChange={(v) => onGloveGameLight(v === 'game')}
-              />
+              <div role="group" aria-label="Light on the gloves" title="The light the gloves have on a map: the studio's or the game's inspect rig">
+                <SegmentedControl
+                  className="glass-panel pointer-events-auto w-56 rounded-2xl p-1"
+                  options={[{ value: 'studio', label: 'Studio light' }, { value: 'game', label: 'Game light' }]}
+                  value={gloveGameLight ? 'game' : 'studio'}
+                  onChange={(v) => onGloveGameLight(v === 'game')}
+                />
+              </div>
             )}
           </>
         )}

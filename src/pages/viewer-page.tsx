@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { InspectDialog } from '@/components/inspect/inspect-dialog'
 import { SkinPicker } from '@/components/picker/skin-picker'
 import { Sidebar } from '@/components/sidebar/sidebar'
 import { Stage } from '@/components/stage/stage'
@@ -45,12 +44,11 @@ export function ViewerPage({ selection }: ViewerPageProps) {
   const readRenderStatus = useCallback(() => (viewer ? { pixelRatio: viewer.pixelRatio, fps: viewer.fps, lights: viewer.lightSources } : null), [viewer])
   const { item, weapon: heldWeapon, status, error } = useSkinLoader(viewer, selection, state)
   const [view, setView] = useState<ViewOptions>({ spin: false, palmUp: false, knifePose: 'tilted', back: false })
-  const [inspectOpen, setInspectOpen] = useState(false)
   const [activeSticker, setActiveSticker] = useState(0)
   const [panelCollapsed, setPanelCollapsed] = useLocalStorage('panel-collapsed', false)
   const [hideUi, setHideUi] = useState(false)
   const togglePanel = () => setPanelCollapsed((prev) => !prev)
-  const [gloveGameLight, setGloveGameLight] = useLocalStorage('glove-game-light', false)
+  const [gloveGameLight, setGloveGameLight] = useLocalStorage('glove-game-light', true)
   useEffect(() => { viewer?.setGloveGameLight(gloveGameLight) }, [viewer, gloveGameLight])
 
   useViewerSync(viewer, selection, item, status, state, view)
@@ -72,14 +70,14 @@ export function ViewerPage({ selection }: ViewerPageProps) {
   const [editing, setEditing] = useState(false)
   const canEdit = selection.kind === 'skin' && !!item && item.style !== 'glove' && !state.firstPerson && (state.stickers.length > 0 || !!state.charm.id)
   useAttachmentEditing(viewer, editing && canEdit, state, setActiveSticker)
-  const noDialog = picker.picker === null && !inspectOpen
+  const noDialog = picker.picker === null
   const isWeapon = selection.kind === 'skin' && !!item && item.style !== 'glove'
   useKeyShortcut('e', noDialog && canEdit, useCallback(() => setEditing((on) => !on), []))
   const { firstPerson, setFirstPerson } = state
   useKeyShortcut('h', noDialog, useCallback(() => setHideUi((on) => !on), []))
   useKeyShortcut('v', noDialog && isWeapon, useCallback(() => setFirstPerson(!firstPerson), [firstPerson, setFirstPerson]))
   const openSelectionPicker = useCallback(() => picker.open({ kind: 'selection' }), [picker.open])
-  useOpenPickerShortcut(picker.picker === null && !inspectOpen, openSelectionPicker)
+  useOpenPickerShortcut(picker.picker === null, openSelectionPicker)
   const loadInspect = useInspectLink(catalog, attachments, agents, state.search, useCallback(() => setActiveSticker(0), []))
   const actions = useInspectActions(viewer, selection, item, status, state.firstPerson, state.agent)
   const loadout = useLoadoutSync(viewer, selection, item, heldWeapon, status, state, catalog)
@@ -98,7 +96,7 @@ export function ViewerPage({ selection }: ViewerPageProps) {
   const isKnife = !!item && item.style !== 'glove' && /knife|bayonet/.test(item.id.split('|')[0])
 
   return (
-    <div className="flex h-dvh flex-col lg:flex-row lg:gap-3 lg:p-3">
+    <div className="flex h-dvh flex-col lg:flex-row">
       <div className={hideUi ? 'hidden' : 'contents'}>
       <Sidebar
           lighting={lighting}
@@ -123,7 +121,6 @@ export function ViewerPage({ selection }: ViewerPageProps) {
           activeSticker={activeSticker}
           onActiveSticker={setActiveSticker}
           onOpenPicker={picker.open}
-          onOpenInspect={() => setInspectOpen(true)}
           loading={status === 'loading'}
       />
       </div>
@@ -184,7 +181,6 @@ export function ViewerPage({ selection }: ViewerPageProps) {
         onLoadInspect={picker.picker?.kind === 'selection' ? loadInspect : undefined}
         onClose={picker.close}
       />
-      <InspectDialog open={inspectOpen} catalog={catalog} attachments={attachments} agents={agents} onLoad={loadInspect} onClose={() => setInspectOpen(false)} />
     </div>
   )
 }

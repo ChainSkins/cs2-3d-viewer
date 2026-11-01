@@ -15,6 +15,8 @@ interface PickerToolbarProps {
   onPortedOnly: (on: boolean) => void
   /** Arrow Down in the search box: on to the cards. */
   onEnterGrid?: () => void
+  /** Enter in the search box (a pasted inspect link is ready to load). */
+  onSubmit?: () => void
   /** Whether the inspect history is shown (undefined hides its button). */
   history?: boolean
   onHistory?: (on: boolean) => void
@@ -22,7 +24,7 @@ interface PickerToolbarProps {
 }
 
 /** The picker's top bar: the search box, the sticker finish filter or the "only ported" switch, the history and close. */
-export function PickerToolbar({ query, placeholder, stickerKind, portedOnly, onQuery, onStickerKind, onPortedOnly, onEnterGrid, history, onHistory, onClose }: PickerToolbarProps) {
+export function PickerToolbar({ query, placeholder, stickerKind, portedOnly, onQuery, onStickerKind, onPortedOnly, onEnterGrid, onSubmit, history, onHistory, onClose }: PickerToolbarProps) {
   return (
     <div className="flex flex-wrap items-center gap-3 border-b border-white/10 px-5 py-4">
       <div className="relative min-w-[220px] flex-1">
@@ -31,7 +33,10 @@ export function PickerToolbar({ query, placeholder, stickerKind, portedOnly, onQ
           autoFocus
           value={query}
           onChange={(e) => onQuery(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'ArrowDown' && onEnterGrid) { e.preventDefault(); onEnterGrid() } }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && onSubmit) { e.preventDefault(); onSubmit() }
+            else if (e.key === 'ArrowDown' && onEnterGrid) { e.preventDefault(); onEnterGrid() }
+          }}
           placeholder={placeholder}
           spellCheck={false}
           className="inset-well h-11 w-full rounded-2xl pl-10 pr-10 text-[14px] outline-none transition placeholder:text-muted-foreground focus:border-violet-400/60 focus:ring-4 focus:ring-violet-500/15"

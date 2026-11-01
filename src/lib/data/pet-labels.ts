@@ -6,6 +6,26 @@ const POSES: Record<number, string> = { 1: 'Shoulder', 2: 'Take the knee', 3: 'H
 
 const num = (s: string) => String(Number(s))
 
+/** The folder titles the pet panel groups its clips under; the order they are listed in. */
+export const CLIP_CATEGORIES = ['Idle and reactions', 'Tricks', 'Movement', 'Turns', 'Menu', 'Photo poses', 'Egg'] as const
+export type ClipCategory = (typeof CLIP_CATEGORIES)[number]
+
+/**
+ * The category of a pet clip, from its folder (menu, snapshot, egg) and, for the world ones, its file name.
+ * @param group the clip's folder in the VPK
+ * @param name the clip's file name without extension
+ */
+export function petClipCategory(group: string, name: string): ClipCategory {
+  if (group === 'snapshot') return 'Photo poses'
+  if (group === 'ui') return 'Menu'
+  if (group === 'egg') return 'Egg'
+  const n = name.replace(/^chick(baby)?_/, '')
+  if (/^\d/.test(n)) return 'Turns'
+  if (/^(idle|react|scared)/.test(n)) return 'Idle and reactions'
+  if (/^trick/.test(n)) return 'Tricks'
+  return 'Movement'
+}
+
 /**
  * A readable name for a pet clip (`chick_trick05` → "Dance"). The tricks and poses carry the game's own names; the rest
  * is described from the clip's file name (a turn in place by its angle, idle / react / scared by their number…).

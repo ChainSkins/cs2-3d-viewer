@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Spinner } from '@/components/common/spinner'
+import { ClipboardOffer } from '@/components/inspect/clipboard-offer'
 import { CategoryNav } from '@/components/picker/category-nav'
 import { HistoryList } from '@/components/picker/history-list'
 import { PickerArrangeBar } from '@/components/picker/picker-arrange-bar'
+import { LinkPanel } from '@/components/picker/link-panel'
 import { PickerCard } from '@/components/picker/picker-card'
 import { PickerToolbar } from '@/components/picker/picker-toolbar'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { useDbImages } from '@/context/db-context'
+import { useClipboardInspectLink } from '@/hooks/use-clipboard-inspect-link'
 import { useInfiniteList } from '@/hooks/use-infinite-list'
 import { useInspectHistory } from '@/hooks/use-inspect-history'
 import { useLocalStorage } from '@/hooks/use-local-storage'
@@ -18,6 +21,8 @@ import type { AgentIndex } from '@/lib/data/agents'
 import type { AttachmentIndex } from '@/lib/data/attachments'
 import type { CatalogIndex } from '@/lib/data/catalog'
 import type { InspectItem } from '@/lib/data/inspect'
+import { inspectPreview } from '@/lib/inspect-preview'
+import { looksLikeInspectLink, parseInspectQuery } from '@/lib/inspect-query'
 import { arrangeGroups, CATEGORIES, categoryCounts, pickerGroups, raritiesIn, type PickerCard as Card, type PickerSort } from '@/lib/picker'
 import type { Selection } from '@/lib/selection'
 
@@ -64,6 +69,25 @@ export function SkinPicker({ open, catalog, attachments, agents = null, pins = n
   const [sort, setSort] = useLocalStorage<PickerSort>('picker-sort', 'relevance')
   const [rarities, setRarities] = useState<number[]>([])
   const historyOn = showHistory && !!onLoadInspect && !only
+  /** A pasted inspect link: the search shows what it carries instead of results, and Enter loads it. */
+  const [loadError, setLoadError] = useState('')
+  const linkText = !only && onLoadInspect ? query.trim() : ''
+  const linkMode = !historyOn && looksLikeInspectLink(linkText)
+  const decoded = useMemo(() => (linkMode ? parseInspectQuery(linkText) : null), [linkMode, linkText])
+  const preview = useMemo(() => (decoded?.item ? inspectPreview(decoded.item, catalog, attachments, images, agents) : null), [decoded, catalog, attachments, images, agents])
+  const linkError = loadError || decoded?.error || ''
+  const canLoadLink = !!decoded?.item && !preview?.problem
+  const clipboardLink = useClipboardInspectLink(open && !!onLoadInspect && !only)
+  const loadLink = () => {
+    if (!decoded?.item || !canLoadLink) return
+    const failure = onLoadInspect!(decoded.item)
+    if (failure) setLoadError(failure)
+    else {
+      history.add(linkText)
+      setQuery('')
+      onClose()
+    }
+  }
 
   useEffect(() => {
     if (open) {
@@ -73,6 +97,7 @@ export function SkinPicker({ open, catalog, attachments, agents = null, pins = n
     }
   }, [open, initial])
   useEffect(() => { body.current?.scrollTo({ top: 0 }) }, [category, query, historyOn, sort, rarities])
+  useEffect(() => { setLoadError('') }, [query])
   // (rarity scales differ between skins, stickers and agents)
   useEffect(() => { setRarities([]) }, [category, only])
 
@@ -96,7 +121,7 @@ export function SkinPicker({ open, catalog, attachments, agents = null, pins = n
     return [{ ...group, cards }]
   })
   const loading = only === 'Agents' ? !agents : only === 'Pins' ? !pins : only === 'Patches' ? !patches : only === 'Pets' ? !pets : only ? !attachments : !catalog
-  const placeholder = only ? `Search ${only.toLowerCase()}` : 'Search skins, charms and stickers: "die", "m4 howl"…'
+  const placeholder = only ? `Search ${only.toLowerCase()}` : onLoadInspect ? 'Search skins, charms and stickers, or paste an inspect link' : 'Search skins, charms and stickers: "die", "m4 howl"…'
 
   return (
     <Dialog open={open} onOpenChange={(next) => { if (!next) onClose() }}>
@@ -123,6 +148,7 @@ export function SkinPicker({ open, catalog, attachments, agents = null, pins = n
             onStickerKind={setStickerKind}
             onPortedOnly={setPortedOnly}
             onEnterGrid={() => focusFirstGridItem(body.current)}
+            onSubmit={linkMode ? loadLink : undefined}
             onClose={onClose}
           />
 
@@ -143,8 +169,17 @@ export function SkinPicker({ open, catalog, attachments, agents = null, pins = n
                 onClear={history.clear}
               />
             </div>
+          ) : linkMode ? (
+            <div ref={body} className="min-h-0 flex-1 overflow-y-auto">
+              <LinkPanel preview={preview} error={linkError} canLoad={canLoadLink} loadingNames={!!preview && !catalog} onLoad={loadLink} />
+            </div>
           ) : (
             <>
+              {!searching && clipboardLink && !history.entries.some((e) => e.link === clipboardLink) && (
+                <div className="px-5 pt-3">
+                  <ClipboardOffer link={clipboardLink} catalog={catalog} attachments={attachments} agents={agents} onUse={() => setQuery(clipboardLink)} />
+                </div>
+              )}
               <PickerArrangeBar
                 summary={loading ? 'Loading…' : searching && !only ? `${total} results for “${query.trim()}” in everything` : `${total} ${total === 1 ? 'item' : 'items'}`}
                 sort={sort}

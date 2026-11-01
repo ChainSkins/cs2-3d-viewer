@@ -7,7 +7,6 @@ import { HomeFooter } from '@/components/home/home-footer'
 import { HomeHero } from '@/components/home/home-hero'
 import { MapGallery } from '@/components/home/map-gallery'
 import { HomeSidebar } from '@/components/home/home-sidebar'
-import { InspectDialog } from '@/components/inspect/inspect-dialog'
 import { SkinPicker } from '@/components/picker/skin-picker'
 import { useCatalog } from '@/hooks/use-catalog'
 import { useInspectHistory } from '@/hooks/use-inspect-history'
@@ -31,9 +30,8 @@ export function HomePage() {
   const { catalog, attachments, agents, pins, patches, pets } = useCatalog()
   const history = useInspectHistory()
   const [picker, setPicker] = useState(false)
-  const [inspect, setInspect] = useState(false)
   const loadInspect = useInspectLink(catalog, attachments, agents, '', useCallback(() => {}, []))
-  useOpenPickerShortcut(!picker && !inspect, useCallback(() => setPicker(true), []))
+  useOpenPickerShortcut(!picker, useCallback(() => setPicker(true), []))
 
   const loadRecent = (item: InspectItem, link: string) => {
     if (!loadInspect(item)) history.add(link)
@@ -47,12 +45,12 @@ export function HomePage() {
         attachments={attachments}
         agents={agents}
         onSearch={() => setPicker(true)}
-        onInspect={() => setInspect(true)}
+        onInspect={() => setPicker(true)}
         onLoadRecent={loadRecent}
       />
       <main className="order-1 flex-1 border-white/10 lg:min-h-0 lg:overflow-y-auto lg:order-2 lg:rounded-3xl lg:border lg:shadow-[inset_0_1px_0_oklch(1_0_0/8%),0_30px_80px_-30px_oklch(0_0_0/90%)]">
         <div className="mx-auto flex max-w-6xl flex-col gap-14 px-5 py-10 lg:px-10 lg:py-14">
-          <HomeHero onInspect={() => setInspect(true)} />
+          <HomeHero onInspect={() => setPicker(true)} />
           <section>
             <BlockTitle title="What it does" sub="Each card opens an example in the viewer." />
             <FeatureGrid />
@@ -86,7 +84,6 @@ export function HomePage() {
         onLoadInspect={loadInspect}
         onClose={() => setPicker(false)}
       />
-      <InspectDialog open={inspect} catalog={catalog} attachments={attachments} agents={agents} onLoad={loadInspect} onClose={() => setInspect(false)} />
     </div>
   )
 }

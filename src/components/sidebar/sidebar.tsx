@@ -1,4 +1,4 @@
-import { LayoutGrid, PanelLeftClose, PanelLeftOpen, Search } from 'lucide-react'
+import { ChevronDown, LayoutGrid, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { BrandMark } from '@/components/common/brand-mark'
 import { AttachmentsSection } from '@/components/sidebar/attachments-section'
 import { AgentPatchesSection } from '@/components/sidebar/agent-patches-section'
@@ -8,11 +8,12 @@ import { FloatSection } from '@/components/sidebar/float-section'
 import { SidebarSkeleton } from '@/components/sidebar/sidebar-skeleton'
 import { PetSection } from '@/components/sidebar/pet-section'
 import { PatternSection } from '@/components/sidebar/pattern-section'
-import { StickerWearSection } from '@/components/sidebar/sticker-wear-section'
+import { StickerCardSection, StickerWearSection } from '@/components/sidebar/sticker-wear-section'
 import { FirstPersonSection } from '@/components/sidebar/first-person-section'
 import { LightingSection } from '@/components/sidebar/lighting-section'
 import { LoadoutSection } from '@/components/sidebar/loadout-section'
 import { Button } from '@/components/ui/button'
+import { useLocalStorage } from '@/hooks/use-local-storage'
 import { cn } from '@/lib/utils'
 import type { AttachmentIndex } from '@/lib/data/attachments'
 import type { PatchIndex } from '@/lib/data/patches'
@@ -22,6 +23,7 @@ import type { Heading } from '@/lib/heading'
 import { isSlabCharm, markupFor } from '@/lib/markup'
 import type { PickerTarget } from '@/lib/picker'
 import type { Selection } from '@/lib/selection'
+import { fadeForItem } from '@/lib/fade'
 import { clampFloat } from '@/lib/wear'
 import { DEFAULT_FLOAT } from '@/lib/config'
 import type { ViewerStateApi } from '@/hooks/use-viewer-state'
@@ -51,13 +53,14 @@ interface SidebarProps {
   activeSticker: number
   onActiveSticker: (index: number) => void
   onOpenPicker: (target: PickerTarget) => void
-  onOpenInspect: () => void
   loading: boolean
 }
 
 /** The control panel, floating over the page: the selection, then the sections that apply to it. On wide screens it folds into a slim rail. */
-export function Sidebar({ lighting, lightingPreset, onLighting, viewmodel, onViewmodel, collapsed, onToggleCollapsed, selection, heading, item, attachments, patches, pets, state, glovesName, agentName, loadoutWeapon, loadoutWeaponName, onLoadoutFirstPerson, activeSticker, onActiveSticker, onOpenPicker, onOpenInspect, loading }: SidebarProps) {
+export function Sidebar({ lighting, lightingPreset, onLighting, viewmodel, onViewmodel, collapsed, onToggleCollapsed, selection, heading, item, attachments, patches, pets, state, glovesName, agentName, loadoutWeapon, loadoutWeaponName, onLoadoutFirstPerson, activeSticker, onActiveSticker, onOpenPicker, loading }: SidebarProps) {
   const isSkin = selection.kind === 'skin'
+  /** On a phone the panel is a sheet over half the screen: it folds down to the pick and its Change button. */
+  const [folded, setFolded] = useLocalStorage('sheet-folded', false)
   const stickerName = (id: string | null) => (id ? attachments?.sticker.get(id)?.name ?? id : '')
   const charmId = selection.kind === 'charm' ? selection.id : state.charm.id
   const charmIsSlab = isSlabCharm(charmId ? attachments?.charm.get(charmId) : undefined)
@@ -65,7 +68,7 @@ export function Sidebar({ lighting, lightingPreset, onLighting, viewmodel, onVie
   return (
     <aside
       className={cn(
-        'glass-panel order-2 flex min-h-0 flex-col rounded-t-3xl transition-[width] duration-300 ease-out lg:order-1 lg:shrink-0 lg:rounded-3xl',
+        'glass-panel order-2 flex min-h-0 flex-col rounded-t-3xl transition-[width] duration-300 ease-out lg:order-1 lg:shrink-0 lg:rounded-none lg:border-y-0 lg:border-l-0 lg:shadow-none',
         collapsed ? 'lg:w-[68px]' : 'lg:w-[340px]',
       )}
     >
@@ -74,6 +77,9 @@ export function Sidebar({ lighting, lightingPreset, onLighting, viewmodel, onVie
         <Button variant="ghost" size="icon-sm" className="hidden lg:inline-flex" aria-label={collapsed ? 'Expand panel' : 'Collapse panel'} onClick={onToggleCollapsed}>
           {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
         </Button>
+        <Button variant="ghost" size="icon-sm" className="lg:hidden" aria-label={folded ? 'Unfold the panel' : 'Fold the panel'} aria-expanded={!folded} onClick={() => setFolded(!folded)}>
+          <ChevronDown className={cn('transition-transform', folded && 'rotate-180')} />
+        </Button>
       </div>
 
       {collapsed && (
@@ -81,21 +87,20 @@ export function Sidebar({ lighting, lightingPreset, onLighting, viewmodel, onVie
           <Button variant="outline" size="icon-lg" aria-label="Change skin" title={heading.title} onClick={() => onOpenPicker({ kind: 'selection' })}>
             <LayoutGrid />
           </Button>
-          <Button variant="outline" size="icon-lg" aria-label="Inspect link" onClick={onOpenInspect}><Search /></Button>
           <span className="mt-1 h-10 w-1.5 rounded-full" style={{ background: heading.color }} />
         </div>
       )}
 
       <div data-loading={loading} aria-busy={loading} className={cn('group/panel flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-4 py-4', collapsed && 'lg:hidden')}>
         <CurrentPick over={heading.over} title={heading.title} color={heading.color} onClick={() => onOpenPicker({ kind: 'selection' })} />
-        <Button variant="outline" onClick={onOpenInspect}><Search /> Inspect link</Button>
+        <div className={cn('contents', folded && 'max-lg:hidden')}>
 
         {isSkin && !item && <SidebarSkeleton />}
 
         {isSkin && item && (
           <>
             <FloatSection item={item} float={clampFloat(item, state.float ?? DEFAULT_FLOAT)} onChange={state.setFloat} />
-            <PatternSection seed={state.seed} onChange={state.setSeed} />
+            <PatternSection seed={state.seed} onChange={state.setSeed} fade={fadeForItem(item, state.seed)} />
             <AttachmentsSection
               markup={markupFor(item)}
               attachments={attachments}
@@ -114,7 +119,12 @@ export function Sidebar({ lighting, lightingPreset, onLighting, viewmodel, onVie
           <PetSection pet={pets?.pet.get(selection.id)} pets={pets} variant={state.petVariant} clip={state.petClip} onVariant={state.setPetVariant} onClip={state.setPetClip} />
         )}
 
-        {selection.kind === 'sticker' && <StickerWearSection wear={state.stickerWear} onChange={state.setStickerWear} card={state.stickerCard} onCard={state.setStickerCard} />}
+        {selection.kind === 'sticker' && (
+          <>
+            <StickerWearSection wear={state.stickerWear} onChange={state.setStickerWear} />
+            <StickerCardSection card={state.stickerCard} onCard={state.setStickerCard} />
+          </>
+        )}
 
         {selection.kind === 'charm' && (
           <CharmPatternSection
@@ -166,6 +176,7 @@ export function Sidebar({ lighting, lightingPreset, onLighting, viewmodel, onVie
         )}
 
         <LightingSection lighting={lighting} presetId={lightingPreset} onChange={onLighting} />
+        </div>
       </div>
     </aside>
   )

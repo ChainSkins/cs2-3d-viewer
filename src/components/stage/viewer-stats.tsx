@@ -3,6 +3,7 @@ import type { ViewerStateApi } from '@/hooks/use-viewer-state'
 import { DEFAULT_FLOAT } from '@/lib/config'
 import type { AgentIndex } from '@/lib/data/agents'
 import type { Item } from '@/lib/data/items'
+import { fadeColor, fadeForItem, fadeLabel } from '@/lib/fade'
 import type { Selection } from '@/lib/selection'
 import { clampFloat, wearOf } from '@/lib/wear'
 
@@ -19,11 +20,13 @@ export function ViewerStats({ selection, item, state, agents }: ViewerStatsProps
     if (!item) return null
     const float = clampFloat(item, state.float ?? DEFAULT_FLOAT)
     const wear = wearOf(float)
+    const fade = fadeForItem(item, state.seed)
     return (
       <>
         <Stat label="Wear" value={wear.short} color={wear.color} />
         <Stat label="Float" value={float.toFixed(4)} />
         <Stat label="Pattern" value={'#' + state.seed} />
+        {fade && <Stat label="Fade" value={fadeLabel(fade)} color={fadeColor(fade.percentage)} />}
       </>
     )
   }

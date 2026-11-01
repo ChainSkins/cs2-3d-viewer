@@ -40,7 +40,7 @@ export function HistoryList({ entries, query, catalog, attachments, agents, onLo
       <div className="flex flex-col items-center gap-2 py-16 text-center text-muted-foreground">
         <History className="size-8 opacity-60" />
         <span>No inspect links yet.</span>
-        <span className="text-[12px]">The links you load from “Inspect link” show up here.</span>
+        <span className="text-[12px]">The links you paste in the search show up here.</span>
       </div>
     )
   }

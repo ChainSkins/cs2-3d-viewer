@@ -1,4 +1,4 @@
-import { Map as MapIcon } from 'lucide-react'
+import { ChevronDown, Map as MapIcon } from 'lucide-react'
 import { useState } from 'react'
 import { DialogHeading } from '@/components/common/dialog-heading'
 import { MapButton } from '@/components/stage/map-button'
@@ -27,8 +27,8 @@ export function MapPicker({ map, onChange }: MapPickerProps) {
 
   return (
     <>
-      <Button variant="outline" className="glass-panel pointer-events-auto h-10 rounded-2xl px-3" title="Change map" onClick={() => setOpen(true)}>
-        <MapIcon /> <span className="hidden sm:inline">{current}</span>
+      <Button variant="outline" className="glass-panel pointer-events-auto h-10 rounded-2xl px-3" title="Change the map behind the item" aria-label={`Map: ${current}. Change it`} aria-haspopup="dialog" onClick={() => setOpen(true)}>
+        <MapIcon /> <span className="hidden sm:inline">{current}</span> <ChevronDown className="size-3.5 opacity-60" />
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>

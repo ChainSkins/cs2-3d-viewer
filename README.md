@@ -19,6 +19,8 @@ A browser 3D viewer for CS2 skins, built on **the game's own shaders** ported to
 
 > Not affiliated with or endorsed by Valve Corporation. Counter-Strike and CS2 are trademarks of Valve Corporation. The game's models, textures, maps and the shaders this viewer ports belong to Valve; the game assets are not in this repository. Only the viewer's own code is under the repository's license.
 
+The Fade percentages follow [chescos' calculator](https://github.com/chescos/csgo-fade-percentage-calculator) (MIT; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)).
+
 React 19 · TypeScript · Vite · Tailwind v4 · shadcn/ui · React Router · three.js.
 
 ```bash
