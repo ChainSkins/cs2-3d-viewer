@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowRight, Link2 } from 'lucide-react'
+import { ArrowRight, Search } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { DEFAULT_SKIN } from '@/lib/config'
@@ -7,7 +7,7 @@ import { HERO_VIDEO } from '@/lib/home'
 import { selectionPath } from '@/lib/selection'
 
 
-export function HomeHero({ onInspect }: { onInspect: () => void }) {
+export function HomeHero({ onSearch }: { onSearch: () => void }) {
   const [failed, setFailed] = useState(false)
 
   return (
@@ -29,8 +29,8 @@ export function HomeHero({ onInspect }: { onInspect: () => void }) {
           <Button size="lg" className="h-11 rounded-2xl px-5" render={<Link to={selectionPath({ kind: 'skin', ...DEFAULT_SKIN })} />}>
             Open the viewer <ArrowRight />
           </Button>
-          <Button size="lg" variant="outline" className="h-11 rounded-2xl px-5" onClick={onInspect}>
-            <Link2 /> Paste an inspect link
+          <Button size="lg" variant="outline" className="h-11 rounded-2xl px-5" onClick={onSearch}>
+            <Search /> Search or paste a link
           </Button>
         </div>
       </div>

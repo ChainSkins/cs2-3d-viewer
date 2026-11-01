@@ -13,7 +13,7 @@ import { FirstPersonSection } from '@/components/sidebar/first-person-section'
 import { LightingSection } from '@/components/sidebar/lighting-section'
 import { LoadoutSection } from '@/components/sidebar/loadout-section'
 import { Button } from '@/components/ui/button'
-import { useLocalStorage } from '@/hooks/use-local-storage'
+import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import type { AttachmentIndex } from '@/lib/data/attachments'
 import type { PatchIndex } from '@/lib/data/patches'
@@ -54,13 +54,18 @@ interface SidebarProps {
   onActiveSticker: (index: number) => void
   onOpenPicker: (target: PickerTarget) => void
   loading: boolean
+  /** On a phone the panel is hidden until the stage's button opens it. */
+  sheetOpen: boolean
+  onCloseSheet: () => void
 }
 
 /** The control panel, floating over the page: the selection, then the sections that apply to it. On wide screens it folds into a slim rail. */
-export function Sidebar({ lighting, lightingPreset, onLighting, viewmodel, onViewmodel, collapsed, onToggleCollapsed, selection, heading, item, attachments, patches, pets, state, glovesName, agentName, loadoutWeapon, loadoutWeaponName, onLoadoutFirstPerson, activeSticker, onActiveSticker, onOpenPicker, loading }: SidebarProps) {
+export function Sidebar({ lighting, lightingPreset, onLighting, viewmodel, onViewmodel, collapsed, onToggleCollapsed, selection, heading, item, attachments, patches, pets, state, glovesName, agentName, loadoutWeapon, loadoutWeaponName, onLoadoutFirstPerson, activeSticker, onActiveSticker, onOpenPicker, loading, sheetOpen, onCloseSheet }: SidebarProps) {
   const isSkin = selection.kind === 'skin'
-  /** On a phone the panel is a sheet over half the screen: it folds down to the pick and its Change button. */
-  const [folded, setFolded] = useLocalStorage('sheet-folded', false)
+  /** On a phone the panel is a sheet over half the screen, opened by the stage's button. */
+  /** On a phone a skin's sections are split into tabs, so the sheet stays short; wide screens show them all. */
+  const [tab, setTab] = useState<'finish' | 'stickers' | 'view'>('finish')
+  const only = (t: typeof tab) => cn('contents', isSkin && tab !== t && 'max-lg:hidden')
   const stickerName = (id: string | null) => (id ? attachments?.sticker.get(id)?.name ?? id : '')
   const charmId = selection.kind === 'charm' ? selection.id : state.charm.id
   const charmIsSlab = isSlabCharm(charmId ? attachments?.charm.get(charmId) : undefined)
@@ -70,6 +75,7 @@ export function Sidebar({ lighting, lightingPreset, onLighting, viewmodel, onVie
       className={cn(
         'glass-panel order-2 flex min-h-0 flex-col rounded-t-3xl transition-[width] duration-300 ease-out lg:order-1 lg:shrink-0 lg:rounded-none lg:border-y-0 lg:border-l-0 lg:shadow-none',
         collapsed ? 'lg:w-[68px]' : 'lg:w-[340px]',
+        sheetOpen ? 'sheet-in max-lg:fixed max-lg:inset-0 max-lg:z-40 max-lg:rounded-none max-lg:border-0' : 'max-lg:hidden',
       )}
     >
       <div className={cn('flex items-center gap-2 border-b border-white/10 px-3.5 py-2', collapsed && 'lg:flex-col lg:px-2.5 lg:py-2.5')}>
@@ -77,8 +83,8 @@ export function Sidebar({ lighting, lightingPreset, onLighting, viewmodel, onVie
         <Button variant="ghost" size="icon-sm" className="hidden lg:inline-flex" aria-label={collapsed ? 'Expand panel' : 'Collapse panel'} onClick={onToggleCollapsed}>
           {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
         </Button>
-        <Button variant="ghost" size="icon-sm" className="lg:hidden" aria-label={folded ? 'Unfold the panel' : 'Fold the panel'} aria-expanded={!folded} onClick={() => setFolded(!folded)}>
-          <ChevronDown className={cn('transition-transform', folded && 'rotate-180')} />
+        <Button variant="ghost" size="icon-sm" className="lg:hidden" aria-label="Close the panel" onClick={onCloseSheet}>
+          <ChevronDown />
         </Button>
       </div>
 
@@ -91,16 +97,30 @@ export function Sidebar({ lighting, lightingPreset, onLighting, viewmodel, onVie
         </div>
       )}
 
-      <div data-loading={loading} aria-busy={loading} className={cn('group/panel flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-4 py-4', collapsed && 'lg:hidden')}>
+      <div data-loading={loading} aria-busy={loading} className={cn('group/panel sheet-cards flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-4 py-4', collapsed && 'lg:hidden')}>
         <CurrentPick over={heading.over} title={heading.title} color={heading.color} onClick={() => onOpenPicker({ kind: 'selection' })} />
-        <div className={cn('contents', folded && 'max-lg:hidden')}>
+        <div className="contents">
+
+        {isSkin && item && (
+          <div role="tablist" className="flex gap-1 rounded-2xl bg-white/[0.05] p-1 lg:hidden">
+            {([['finish', 'Finish'], ['stickers', 'Stickers'], ['view', 'View']] as const).map(([id, label]) => (
+              <button key={id} type="button" role="tab" aria-selected={tab === id} onClick={() => setTab(id)}
+                className={cn('flex-1 rounded-xl py-1.5 text-[12.5px] font-semibold transition-colors', tab === id ? 'bg-white/15 text-white' : 'text-muted-foreground')}>
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
 
         {isSkin && !item && <SidebarSkeleton />}
 
         {isSkin && item && (
           <>
-            <FloatSection item={item} float={clampFloat(item, state.float ?? DEFAULT_FLOAT)} onChange={state.setFloat} />
-            <PatternSection seed={state.seed} onChange={state.setSeed} fade={fadeForItem(item, state.seed)} />
+            <div className={cn(only('finish'), tab === 'finish' && 'max-lg:flex max-lg:flex-col max-lg:gap-3.5')}>
+              <FloatSection item={item} float={clampFloat(item, state.float ?? DEFAULT_FLOAT)} onChange={state.setFloat} />
+              <PatternSection seed={state.seed} onChange={state.setSeed} fade={fadeForItem(item, state.seed)} />
+            </div>
+            <div className={only('stickers')}>
             <AttachmentsSection
               markup={markupFor(item)}
               attachments={attachments}
@@ -112,6 +132,7 @@ export function Sidebar({ lighting, lightingPreset, onLighting, viewmodel, onVie
               onCharm={state.setCharm}
               onOpenPicker={onOpenPicker}
             />
+            </div>
           </>
         )}
 
@@ -140,6 +161,7 @@ export function Sidebar({ lighting, lightingPreset, onLighting, viewmodel, onVie
         )}
 
         {isSkin && item && item.style !== 'glove' && state.firstPerson && (
+          <div className={only('view')}>
           <FirstPersonSection
             agentName={agentName}
             glovesName={glovesName}
@@ -150,6 +172,7 @@ export function Sidebar({ lighting, lightingPreset, onLighting, viewmodel, onVie
             onChooseGloves={() => onOpenPicker({ kind: 'gloves' })}
             onBareArms={() => state.setGloves(null)}
           />
+          </div>
         )}
 
         {selection.kind === 'agent' && (
@@ -175,7 +198,7 @@ export function Sidebar({ lighting, lightingPreset, onLighting, viewmodel, onVie
           <AgentPatchesSection worn={state.agentPatches} patches={patches} onChoose={(slot) => onOpenPicker({ kind: 'patch', slot })} onChange={state.setAgentPatch} />
         )}
 
-        <LightingSection lighting={lighting} presetId={lightingPreset} onChange={onLighting} />
+        <div className={only('view')}><LightingSection lighting={lighting} presetId={lightingPreset} onChange={onLighting} /></div>
         </div>
       </div>
     </aside>

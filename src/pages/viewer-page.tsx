@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { SlidersHorizontal, X } from 'lucide-react'
 import { SkinPicker } from '@/components/picker/skin-picker'
 import { Sidebar } from '@/components/sidebar/sidebar'
+import { Button } from '@/components/ui/button'
 import { Stage } from '@/components/stage/stage'
 import { ViewerStats } from '@/components/stage/viewer-stats'
 import { useDbImages } from '@/context/db-context'
@@ -26,7 +28,7 @@ import { useViewerState } from '@/hooks/use-viewer-state'
 import { useViewerSync, type ViewOptions } from '@/hooks/use-viewer-sync'
 import { headingFor } from '@/lib/heading'
 import { skinDisplayName } from '@/lib/picker'
-import type { Selection } from '@/lib/selection'
+import { selectionPath, type Selection } from '@/lib/selection'
 
 interface ViewerPageProps {
   selection: Selection
@@ -47,6 +49,10 @@ export function ViewerPage({ selection }: ViewerPageProps) {
   const [activeSticker, setActiveSticker] = useState(0)
   const [panelCollapsed, setPanelCollapsed] = useLocalStorage('panel-collapsed', false)
   const [hideUi, setHideUi] = useState(false)
+  /** On a phone the panel stays closed until the button is pressed, and closes again when another item is picked. */
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const selectionKey = selectionPath(selection)
+  useEffect(() => { setSheetOpen(false) }, [selectionKey])
   const togglePanel = () => setPanelCollapsed((prev) => !prev)
   const [gloveGameLight, setGloveGameLight] = useLocalStorage('glove-game-light', true)
   useEffect(() => { viewer?.setGloveGameLight(gloveGameLight) }, [viewer, gloveGameLight])
@@ -96,7 +102,12 @@ export function ViewerPage({ selection }: ViewerPageProps) {
   const isKnife = !!item && item.style !== 'glove' && /knife|bayonet/.test(item.id.split('|')[0])
 
   return (
-    <div className="flex h-dvh flex-col lg:flex-row">
+    <div className="relative flex h-dvh flex-col lg:flex-row">
+      {!hideUi && (
+        <Button variant="outline" size="icon-lg" className="absolute left-3 top-3 z-30 lg:hidden" aria-label={sheetOpen ? 'Close the panel' : 'Open the panel'} aria-expanded={sheetOpen} onClick={() => setSheetOpen((on) => !on)}>
+          {sheetOpen ? <X /> : <SlidersHorizontal />}
+        </Button>
+      )}
       <div className={hideUi ? 'hidden' : 'contents'}>
       <Sidebar
           lighting={lighting}
@@ -122,6 +133,8 @@ export function ViewerPage({ selection }: ViewerPageProps) {
           onActiveSticker={setActiveSticker}
           onOpenPicker={picker.open}
           loading={status === 'loading'}
+          sheetOpen={sheetOpen}
+          onCloseSheet={() => setSheetOpen(false)}
       />
       </div>
       <Stage

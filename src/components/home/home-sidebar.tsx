@@ -1,4 +1,4 @@
-import { ArrowUpRight, Code2, History, Link2, Search } from 'lucide-react'
+import { ArrowUpRight, Code2, History, Search } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { BrandMark } from '@/components/common/brand-mark'
 import { Kbd } from '@/components/common/kbd'
@@ -17,14 +17,13 @@ interface HomeSidebarProps {
   attachments: AttachmentIndex | null
   agents: AgentIndex | null
   onSearch: () => void
-  onInspect: () => void
   onLoadRecent: (item: InspectItem, link: string) => void
 }
 
 /** The home page's panel: find an item, paste an inspect link, the links loaded before, and where else to go. */
-export function HomeSidebar({ history, catalog, attachments, agents, onSearch, onInspect, onLoadRecent }: HomeSidebarProps) {
+export function HomeSidebar({ history, catalog, attachments, agents, onSearch, onLoadRecent }: HomeSidebarProps) {
   return (
-    <aside className="glass-panel order-2 flex flex-col rounded-t-3xl lg:min-h-0 lg:order-1 lg:w-[340px] lg:shrink-0 lg:rounded-3xl">
+    <aside className="glass-panel order-2 flex flex-col rounded-t-3xl lg:min-h-0 lg:order-1 lg:w-[340px] lg:shrink-0 lg:rounded-none lg:border-y-0 lg:border-l-0 lg:shadow-none">
       <div className="flex items-center border-b border-white/10 px-3.5 py-2">
         <BrandMark className="flex-1" />
       </div>
@@ -35,16 +34,9 @@ export function HomeSidebar({ history, catalog, attachments, agents, onSearch, o
           <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-white/15"><Search className="size-4.5" /></span>
           <span className="min-w-0 flex-1">
             <span className="block text-[14px] font-semibold">Find an item</span>
-            <span className="block text-[11.5px] text-white/75">Skins, gloves, knives, stickers, charms, agents</span>
+            <span className="block text-[11.5px] text-white/75">Skins, stickers, charms, agents, or paste an inspect link</span>
           </span>
           <Kbd className="hidden sm:inline-flex">{MOD_KEY} K</Kbd>
-        </button>
-        <button type="button" onClick={onInspect} className="bevel flex items-center gap-3 rounded-2xl p-3 text-left">
-          <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-white/[0.07]"><Link2 className="size-4.5" /></span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-[14px] font-semibold">Paste an inspect link</span>
-            <span className="block text-[11.5px] text-muted-foreground">Float, pattern, stickers and charm, all from the link</span>
-          </span>
         </button>
 
         <div className="mt-2">
@@ -53,7 +45,7 @@ export function HomeSidebar({ history, catalog, attachments, agents, onSearch, o
             : (
               <div className="tile flex flex-col items-center gap-1.5 p-4 text-center text-[12px] text-muted-foreground">
                 <History className="size-5 opacity-70" />
-                The inspect links you load show up here.
+                The inspect links you paste in the search show up here.
               </div>
             )}
         </div>

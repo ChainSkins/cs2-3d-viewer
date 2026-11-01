@@ -38,19 +38,18 @@ export function HomePage() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col lg:h-dvh lg:flex-row lg:gap-3 lg:p-3">
+    <div className="flex min-h-dvh flex-col lg:h-dvh lg:flex-row">
       <HomeSidebar
         history={history.entries}
         catalog={catalog}
         attachments={attachments}
         agents={agents}
         onSearch={() => setPicker(true)}
-        onInspect={() => setPicker(true)}
         onLoadRecent={loadRecent}
       />
-      <main className="order-1 flex-1 border-white/10 lg:min-h-0 lg:overflow-y-auto lg:order-2 lg:rounded-3xl lg:border lg:shadow-[inset_0_1px_0_oklch(1_0_0/8%),0_30px_80px_-30px_oklch(0_0_0/90%)]">
+      <main className="order-1 flex-1 border-white/10 lg:min-h-0 lg:overflow-y-auto lg:order-2">
         <div className="mx-auto flex max-w-6xl flex-col gap-14 px-5 py-10 lg:px-10 lg:py-14">
-          <HomeHero onInspect={() => setPicker(true)} />
+          <HomeHero onSearch={() => setPicker(true)} />
           <section>
             <BlockTitle title="What it does" sub="Each card opens an example in the viewer." />
             <FeatureGrid />
