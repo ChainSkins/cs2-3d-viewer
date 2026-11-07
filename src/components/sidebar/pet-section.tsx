@@ -1,5 +1,7 @@
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, UserRound } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { FieldGroup } from '@/components/common/field-group'
+import { PickerField } from '@/components/common/picker-field'
 import { Section } from '@/components/common/section'
 import { Input } from '@/components/ui/input'
 import { CLIP_CATEGORIES, petClipCategory, petClipLabel } from '@/lib/data/pet-labels'
@@ -14,12 +16,16 @@ interface PetSectionProps {
   clip: string | null
   onVariant: (index: number) => void
   onClip: (name: string | null) => void
+  /** The agent a photo pose stands the pet beside (null: the default one). */
+  agentName: string | null
+  onChooseAgent: () => void
+  onDefaultAgent: () => void
 }
 
 const chip = (on: boolean) => cn('rounded-lg px-2.5 py-1 text-[12px] font-medium', on ? 'bevel-primary text-white' : 'bevel text-foreground/80')
 
 /** A pet's colours (one per material of its model) and the animation it plays: folders that fold, and a search over them. */
-export function PetSection({ pet, pets, variant, clip, onVariant, onClip }: PetSectionProps) {
+export function PetSection({ pet, pets, variant, clip, onVariant, onClip, agentName, onChooseAgent, onDefaultAgent }: PetSectionProps) {
   const model = pet && pets?.models[pet.model]
   const clips = useMemo(() => (pet && pets ? petClips(pets, pet) : []), [pet, pets])
   const playing = clip ?? defaultPetClip(clips)?.name
@@ -40,6 +46,7 @@ export function PetSection({ pet, pets, variant, clip, onVariant, onClip }: PetS
   }, [clips, query])
 
   if (!model) return null
+  const inPose = /snapshots_\d/.test(playing ?? '')
   const isOpen = (title: string, list: PetClip[]) => searching || (toggled[title] ?? list.some((c) => c.name === playing))
   return (
     <>
@@ -50,6 +57,14 @@ export function PetSection({ pet, pets, variant, clip, onVariant, onClip }: PetS
               <button key={i} type="button" aria-pressed={i === variant} className={chip(i === variant)} onClick={() => onVariant(i)}>{v.name}</button>
             ))}
           </div>
+        </Section>
+      )}
+      {inPose && (
+        <Section title="Player" collapsible={{ id: 'pet-player' }}>
+          <FieldGroup label="Agent">
+            <PickerField value={agentName} placeholder="Default CT Agent" icon={UserRound} clearLabel="Default agent" onChoose={onChooseAgent} onClear={onDefaultAgent} />
+          </FieldGroup>
+          <p className="mt-2 text-[11.5px] text-muted-foreground">The photo poses are the pet with a player: the agent is the one first person uses.</p>
         </Section>
       )}
       {clips.length > 0 && (

@@ -6,45 +6,35 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import type { GloveItem, Item } from '@/lib/data/items'
 import { TextureSource } from '@/lib/viewer/textures'
 import type { WeaponItem } from '@/lib/materials/weapon'
-import { loadAttachments } from '@/lib/data/attachments'
-import { GAME_ROOT, VIEWER_DATA } from '@/lib/data/catalog'
+
+import { VIEWER_DATA } from '@/lib/data/catalog'
 import { PatchLayer, type AgentPatch } from '@/lib/viewer/agent-patches'
-import { attackLabel, AUTO_CYCLE, primaryAttacks, secondaryAttack, sortAttacks, type AttackEntry, type AttackInfo } from '@/lib/data/attacks'
-import { loadPatches } from '@/lib/data/patches'
-import { defaultPetClip, loadPetClip, loadPets, petClips, type PetIndex, type PetModel } from '@/lib/data/pets'
-import { loadPins } from '@/lib/data/pins'
+import { attackLabel, secondaryAttack, type AttackInfo } from '@/lib/data/attacks'
+
+import { type PetIndex, type PetModel } from '@/lib/data/pets'
+
 import { DEFAULT_AGENT } from '@/lib/data/agents'
-import { handIK, poseRig, samplePose, SkinnedGeometry, type InspectClip, type RigPart, type ViewmodelPose, type WeaponBind } from '@/lib/viewer/firstperson'
+import { type InspectClip, type RigPart } from '@/lib/viewer/firstperson'
 import type { CharmPart } from '@/lib/materials/charm'
-import { packStickers, stickerCard } from '@/lib/materials/sticker'
 import { FixedInspect } from '@/lib/viewer/fixed-inspect'
 import { MapStage } from '@/lib/viewer/map-stage'
-import { loadAgent, poseAgent, setAgentGloves, setAgentWeapon, type AgentRig } from '@/lib/viewer/agent-view'
+import { poseAgent, setAgentGloves, setAgentWeapon, type AgentRig } from '@/lib/viewer/agent-view'
 import { isGlove, ModelLoader, setGloveSeed, setWeaponSeed, type LoadSink } from '@/lib/viewer/model-loader'
 import { WeaponAttachments } from '@/lib/viewer/weapon-attachments'
 import { DEFAULT_LIGHTING, DEFAULT_MAP_LIGHTING, DEFAULT_RENDER_QUALITY, DEFAULT_VIEWMODEL, type CharmOptions, type LightSource, type Lighting, type MapLighting, type RenderQuality, type SkinViewerOptions, type StickerOptions, type Viewmodel } from '@/lib/viewer/viewer-options'
-import { cropToContent } from '@/lib/canvas'
+
 import { AttachmentEditor, type EditorEvents } from '@/lib/viewer/attachment-editor'
 
+import { showPet, setPetVariant, playPetClip, stepPet } from '@/lib/viewer/pet-view'
+import { showSticker, showPin, showPatch, showCharm } from '@/lib/viewer/standalone-views'
+import { loadFirstPerson, lookAtGloves, enterFirstPerson, attack, startFire, stopFire, inspect, inspectGloves, stepIdle, stepInspect, updateViewmodel } from '@/lib/viewer/first-person-view'
+import { showAgent, setAgentPatches } from '@/lib/viewer/agent-stage'
+import { frame, homePosition, resetView, backView, updateFixedInspect, renderSides, renderItem, setKnifePose, isKnife } from '@/lib/viewer/camera-framing'
+import { setQuality, applyPixelRatio, adapt } from '@/lib/viewer/render-quality'
+import type { FirstPersonRig } from '@/lib/viewer/first-person-view'
+import type { KnifePose } from '@/lib/viewer/camera-framing'
+
 export { DEFAULT_LIGHTING, DEFAULT_MAP_LIGHTING, DEFAULT_RENDER_QUALITY, DEFAULT_VIEWMODEL, type CharmOptions, type LightSource, type Lighting, type MapLighting, type RenderQuality, type SkinViewerOptions, type StickerOptions, type Viewmodel }
-
-/**
- * The game's sticker card: a grey rounded card with a triangle pattern and a faint CS2 mark (materials/default/stickers/sticker_default_backing).
- * models/inventory_items/sticker_inspect/sticker_backing is the same card with a darker mark; skincraft.gg, which follows the game, shows this fainter one.
- */
-const STICKER_CARD = 'materials/default/stickers/sticker_default_backing_psd_a8e114d8.png'
-/** The card's side in sticker sides: the card is the sticker's own size, as skincraft.gg (which follows the game) draws it: measured against it, 1.02 matched. */
-const STICKER_CARD_SIDE = 1.02
-
-/**
- * A pet shown over a map is turned this far from facing the camera (degrees): its side and a bit of its front. The chick's
- * model faces the other way than the hens'; the egg is round, so it takes more room around it.
- */
-const PET_TURN = -135
-/** A pin's face looks along the model's X: turned this far to face the camera. */
-const PIN_VIEW = { turn: -90, room: 1 }
-const petView = (glb: string): { turn: number; room: number } =>
-  /\/chick\.glb$/.test(glb) ? { turn: PET_TURN + 180, room: 1 } : /egg/.test(glb) ? { turn: 0, room: 1.6 } : { turn: PET_TURN, room: 1 }
 
 /** Where the lights sit around the model (world space, before `angle`), as before lighting was adjustable. */
 const KEY_POSITION = new THREE.Vector3(3, 4, 5)
@@ -55,36 +45,14 @@ const RIM_FROM_CAMERA = new THREE.Vector3(-3, 1.5, -5)
 /** The orbit effect's speed (degrees per frame). */
 const ORBIT_SPEED = 0.35
 
-const INCH = 0.0254
-/** Sway: how far (radians) the weapon leans toward the pointer at the edge of the view, and how fast it follows. */
-const SWAY_YAW = 0.045
-const SWAY_PITCH = 0.03
-const SWAY_FOLLOW = 0.08
+export type { KnifePose }
 
-/** The first-person arms and weapon, kept to pose them again (the inspect animation). */
-interface FirstPersonRig {
-  idle: ViewmodelPose
-  /** The idle when it moves (a knife's idle1: a breathing loop), played over and over instead of the still pose. */
-  idleLoop?: InspectClip | null
-  inspect: InspectClip | null
-  /** The weapon's attack animations (shots, slashes…), the clips fetched when first played. */
-  attacks: AttackEntry[]
-  /** With skin gloves: the arms raising them to look at them (deploy, then the look), the weapon put away. */
-  gloveInspect: InspectClip[] | null
-  /** Each skeleton (the agent's, the gloves') with the geometries bound to it. */
-  parts: RigPart[]
-  weapon: THREE.Object3D | null
-  bind?: WeaponBind
-}
-
-const json = <T>(url: string): Promise<T> => fetch(url).then((r) => r.json() as Promise<T>)
-
-/** A 3D viewer for one CS2 skin at a time, with float and pattern (seed). */
-export type KnifePose = 'vertical' | 'horizontal' | 'tilted'
-
-/** How far a knife (modelled upright) leans over for each pose. */
-const KNIFE_TILT: Record<KnifePose, number> = { vertical: 0, tilted: 0.95, horizontal: Math.PI / 2 }
-
+/**
+ * A 3D viewer for one CS2 skin at a time, with float and pattern (seed). The class holds the scene, the state and the
+ * public API; the views that do the work live in their own files and take the viewer as their first argument:
+ * pet-view, standalone-views (sticker, pin, patch, charm), first-person-view, agent-stage, camera-framing, render-quality.
+ * That is why most of its state is not private.
+ */
 export class SkinViewer {
   readonly renderer: THREE.WebGLRenderer
   readonly scene = new THREE.Scene()
@@ -92,83 +60,83 @@ export class SkinViewer {
   readonly controls: OrbitControls
   autoRotate = false
   /** How finely it draws (resolution, map post-processing, adapting to slow frames). */
-  private quality: RenderQuality = { ...DEFAULT_RENDER_QUALITY }
+  quality: RenderQuality = { ...DEFAULT_RENDER_QUALITY }
   /** The map lights' strengths (× the game's). */
-  private mapLighting: MapLighting = { ...DEFAULT_MAP_LIGHTING }
+  mapLighting: MapLighting = { ...DEFAULT_MAP_LIGHTING }
   /** The adaptive resolution's share of the 'auto' resolution (1 = full). */
-  private adaptiveScale = 1
+  adaptiveScale = 1
   /** Frame timing for the adaptive resolution: a smoothed frame time (ms), the last frame, and when it last changed. */
-  private frameMs = 16
-  private lastTick = 0
-  private lastAdapt = 0
+  frameMs = 16
+  lastTick = 0
+  lastAdapt = 0
   private readonly gltf = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder)
-  private readonly holder = new THREE.Group()
+  readonly holder = new THREE.Group()
   private readonly resizeObserver: ResizeObserver
   private readonly keyLight = new THREE.DirectionalLight(0xffffff, DEFAULT_LIGHTING.key)
   private readonly rimLight = new THREE.DirectionalLight(0xffffff, DEFAULT_LIGHTING.rim)
   private lighting: Lighting = { ...DEFAULT_LIGHTING }
   /** The studio or the inspect map around the model. */
-  private readonly map: MapStage
+  readonly map: MapStage
   /** The game's fixed inspect camera over a map's pre-rendered background. */
-  private readonly fixed: FixedInspect
-  private viewmodel: Viewmodel = { ...DEFAULT_VIEWMODEL }
+  readonly fixed: FixedInspect
+  viewmodel: Viewmodel = { ...DEFAULT_VIEWMODEL }
   /** The pointer over the canvas (−1…1 each way), for the first-person sway. */
-  private readonly pointer = new THREE.Vector2()
+  readonly pointer = new THREE.Vector2()
   /** The weapon's own float and pattern, kept to re-apply when the gloves' settings change. */
-  private weaponFloat = 0
-  private weaponSeed = 1
+  weaponFloat = 0
+  weaponSeed = 1
   /** The orbit effect's own turn, added to `lighting.angle`. */
   private lightSpin = 0
   /** What the current model left behind: its finishes, disposables and the gloves' hands. */
-  private readonly loaded: LoadSink = { finishes: [], disposables: [], hands: [] }
-  private readonly loader: ModelLoader
-  private readonly attachments: WeaponAttachments
+  readonly loaded: LoadSink = { finishes: [], disposables: [], hands: [] }
+  readonly loader: ModelLoader
+  readonly attachments: WeaponAttachments
   /** Edit mode: dragging the stickers and the charm. */
   private readonly editor: AttachmentEditor
-  private item: Item | null = null
+  item: Item | null = null
   private palmUp = false
   /** First-person view (the arms hold the weapon, seen from the eye), and the gloves they wear. */
-  private firstPerson = false
-  private fpGlove: GloveItem | null = null
+  firstPerson = false
+  fpGlove: GloveItem | null = null
   /** The first-person rig: what to pose again for the inspect animation (the arms' geometries per skeleton, the weapon). */
-  private fpRig: FirstPersonRig | null = null
+  fpRig: FirstPersonRig | null = null
   /** The agent shown holding a weapon. */
-  private agentRig: AgentRig | null = null
+  agentRig: AgentRig | null = null
   /** Gloves on a map lit by the game's inspect rig (true) or the studio lights (false, the default). */
   private gloveGameLight = false
   /** An agent is shown (posed or not). */
-  private agentShown = false
+  agentShown = false
   /** A pet or a pin is on the stage: it takes the map's light like an item on its own does (the fixed game inspect). */
-  private framedShown = false
-  private patchLayers: PatchLayer[] = []
+  framedShown = false
+  patchLayers: PatchLayer[] = []
   /** The pet on the stage: its meshes (their material swaps with the colour), skinned parts and the clip playing. */
-  private petRig: { index: PetIndex; model: PetModel; meshes: THREE.Mesh[]; parts: RigPart[]; clip: InspectClip | null; start: number } | null = null
-  private agentPatches: (AgentPatch | null)[] = []
+  petRig: { id: string; variant: number; agent: string; pose: boolean; index: PetIndex; model: PetModel; meshes: THREE.Mesh[]; parts: RigPart[]; clip: InspectClip | null; start: number } | null = null
+  agentPatches: (AgentPatch | null)[] = []
   /** The weapon skin the shown agent holds (for its pattern and wear). */
-  private agentWeaponItem: WeaponItem | null = null
+  agentWeaponItem: WeaponItem | null = null
   /** The skin gloves the shown agent wears. */
-  private agentGlove: GloveItem | null = null
+  agentGlove: GloveItem | null = null
   /** The last weapon skin loaded: what an agent holds when shown. */
-  private lastWeapon: Item | null = null
-  private knifePose: KnifePose = 'tilted'
+  lastWeapon: Item | null = null
+  knifePose: KnifePose = 'tilted'
   /** When the inspect animation started (performance.now() ms), while it plays. */
-  private inspectStart: number | null = null
+  inspectStart: number | null = null
   /** The glove skin whose page is playing its look at the gloves (back to it when done). */
-  private gloveLookItem: Item | null = null
+  gloveLookItem: Item | null = null
   /** The clips the playing inspect runs through (the weapon's, or the gloves' deploy and look). */
-  private inspectClips: InspectClip[] | null = null
-  private home = new THREE.Vector3()
+  inspectClips: InspectClip[] | null = null
+  home = new THREE.Vector3()
   /** The loaded weapon's model (its own space: inches, Z up) — stickers and charms go on it. */
-  private weaponRoot: THREE.Object3D | null = null
+  weaponRoot: THREE.Object3D | null = null
   /** A sticker or charm shown on its own (instead of an item). */
   /** The charm or sticker shown on its own. */
-  private standalone: { setWear?: (w: number) => void; setCard?: (on: boolean) => void; parts?: CharmPart[]} | null = null
+  standalone: { setWear?: (w: number) => void; setCard?: (on: boolean) => void; parts?: CharmPart[]} | null = null
   /** Bumped by clear(): a load (item, sticker or charm view) that finished late is dropped. */
-  private loadToken = 0
+  loadToken = 0
   /** The framed model's size and the side it's viewed from, to re-fit the view when the panel resizes. */
-  private fit: { size: THREE.Vector3; side: THREE.Vector3; lookX: boolean } | null = null
+  fit: { size: THREE.Vector3; side: THREE.Vector3; lookX: boolean } | null = null
 
-  constructor(private readonly container: HTMLElement, private readonly opts: SkinViewerOptions) {
+  constructor(private readonly container: HTMLElement, readonly opts: SkinViewerOptions) {
     this.renderer = new THREE.WebGLRenderer({ antialias: opts.antialias ?? true, alpha: true })
     this.renderer.setPixelRatio(this.pixelRatio)
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping
@@ -263,144 +231,43 @@ export class SkinViewer {
    * build_firstperson.py). The arms are the agent's, as in the game: its sleeves, and its arms with its default gloves —
    * or, wearing skin `glove`s, that glove model (its arm in the agent's skin).
    */
-  async loadFirstPerson(item: Item, glove: GloveItem | null, agentId: string = DEFAULT_AGENT): Promise<void> {
-    if (item.style === 'glove') return this.load(item)
-    this.clear()
-    const token = this.loadToken
-    this.item = item
-    const base = this.loader.firstPersonBase
-    const name = item.id.split('|')[0]
-    const index = await json<Record<string, string>>(base + 'index.json')
-    const file = index[name]
-    if (!file) throw new Error('No first-person pose for ' + name)
-    const [pose, binds, inspect, gloveInspect, idleLoop, attacks] = await Promise.all([
-      json<ViewmodelPose>(base + file),
-      json<Record<string, WeaponBind>>(base + 'weapon_binds.json').catch(() => ({} as Record<string, WeaponBind>)),
-      json<Record<string, string>>(base + 'inspect_index.json')
-        .then((idx) => idx[name] ? json<InspectClip>(base + 'inspect/' + idx[name]) : null)
-        .catch(() => null),
-      glove ? this.loader.gloveInspectClips().catch(() => null) : Promise.resolve(null),
-      json<Record<string, string>>(base + 'idle_index.json')
-        .then((idx) => idx[file] ? json<InspectClip>(base + 'idle/' + idx[file]) : null)
-        .catch(() => null),
-      json<Record<string, AttackEntry[]>>(base + 'attack_index.json').then((idx) => sortAttacks(idx[name] ?? [])).catch(() => [] as AttackEntry[]),
-    ])
-    const rig: FirstPersonRig = { idle: pose, idleLoop, inspect, attacks, gloveInspect, parts: [], weapon: null, bind: binds[name] }
-    const patchLayers: PatchLayer[] = []
-    const armsRoot = await this.loader.firstPersonArms(agentId, glove, rig.parts, patchLayers)
-    const weapon = await this.loader.weapon(item)
-    await this.loader.rigWeapon(item, weapon)
-    if (token !== this.loadToken) return
-    weapon.matrixAutoUpdate = false
-    rig.weapon = weapon
-    this.fpRig = rig
-    poseRig(rig.parts, handIK(pose), rig.weapon, rig.bind)
-    this.weaponRoot = weapon
-    this.fpGlove = glove
-    this.patchLayers = patchLayers
-    this.enterFirstPerson(armsRoot, weapon)
-    await this.attachments.apply()
-    await this.setAgentPatches(this.agentPatches)
-    this.setSeed(item.seed)
-  }
+  async loadFirstPerson(item: Item, glove: GloveItem | null, agentId: string = DEFAULT_AGENT): Promise<void> { return loadFirstPerson(this, item, glove, agentId) }
 
   /**
    * On a glove skin's page: first person with just the arms (the agent's sleeves and these gloves, no weapon) playing
    * the glove inspect, then back to the gloves on their own.
    */
-  async lookAtGloves(agentId: string = DEFAULT_AGENT): Promise<void> {
-    const glove = this.item
-    if (!glove || glove.style !== 'glove') return
-    const seed = this.weaponSeed, float = this.weaponFloat
-    this.clear()
-    const token = this.loadToken
-    const clips = await this.loader.gloveInspectClips()
-    const rig: FirstPersonRig = { idle: samplePose(clips[0], 0), inspect: null, attacks: [], gloveInspect: clips, parts: [], weapon: null }
-    const armsRoot = await this.loader.firstPersonArms(agentId, glove as GloveItem, rig.parts)
-    if (token !== this.loadToken) return
-    for (const finish of this.loaded.finishes) {
-      if (!isGlove(finish)) continue
-      setGloveSeed(finish, seed)
-      finish.setFloat(float)
-    }
-    this.fpRig = rig
-    this.fpGlove = glove as GloveItem
-    this.gloveLookItem = glove
-    this.enterFirstPerson(armsRoot)
-    this.inspectClips = clips
-    this.inspectStart = performance.now()
-  }
+  async lookAtGloves(agentId: string = DEFAULT_AGENT): Promise<void> { return lookAtGloves(this, agentId) }
 
   /** Shows the posed first-person models from the eye. */
-  private enterFirstPerson(...models: THREE.Object3D[]): void {
-    // A map's fixed inspect (its game camera and FOV) ends here: first person has its own camera and viewmodel FOV.
-    this.fixed.exit(this.map.scene3d)
-    this.firstPerson = true
-    this.holder.rotation.set(0, 0, 0)
-    this.holder.add(...models)
-    this.updateViewmodel(0)
-    this.controls.enabled = false
-    this.camera.position.set(0, 0, 0)
-    this.camera.up.set(0, 1, 0)
-    this.camera.lookAt(0, 0, 1)
-    this.fit = null
-    this.resize()
-    this.updateFixedInspect()
-  }
+  enterFirstPerson(...models: THREE.Object3D[]): void { enterFirstPerson(this, ...models) }
 
   /** The attack animations the first-person weapon has (a gun's shots, a knife's slashes and stabs). */
   get attacks(): AttackInfo[] {
     return (this.fpRig?.attacks ?? []).map((a) => ({ name: a.name, label: attackLabel(a.name) }))
   }
 
-  private attackNext = 0
-  private readonly attackClips = new Map<string, Promise<InspectClip>>()
+  attackNext = 0
+  readonly attackClips = new Map<string, Promise<InspectClip>>()
 
   /**
    * Plays one of the weapon's attacks (from the start, over whatever plays): the named clip, or — with no name — the plain
    * fire: a gun's shot, a knife's slashes one after the other.
    * @param name a clip name from `attacks`
    */
-  async attack(name?: string): Promise<void> {
-    const rig = this.fpRig
-    if (!rig?.attacks.length) return
-    let entry = name ? rig.attacks.find((a) => a.name === name) : undefined
-    if (!entry) {
-      const primary = primaryAttacks(rig.attacks)
-      entry = primary[this.attackNext++ % primary.length]
-    }
-    let clip = this.attackClips.get(entry.file)
-    if (!clip) this.attackClips.set(entry.file, (clip = json<InspectClip>(this.loader.firstPersonBase + 'attack/' + entry.file)))
-    const loaded = await clip.catch(() => null)
-    if (!loaded || this.fpRig !== rig) return
-    this.inspectClips = [loaded]
-    if (rig.weapon) rig.weapon.visible = true
-    this.inspectStart = performance.now()
-  }
+  async attack(name?: string): Promise<void> { return attack(this, name) }
 
-  private firing = false
-  private fireTimer: ReturnType<typeof setTimeout> | undefined
+  firing = false
+  fireTimer: ReturnType<typeof setTimeout> | undefined
 
   /**
    * Starts firing: one shot, and — on an automatic weapon — a shot every cycle time (the animation restarts each time, so it stays
    * in the kick) until `stopFire`. Semi-automatic weapons and knives play one attack per press.
    */
-  startFire(): void {
-    if (this.firing || !this.fpRig?.attacks.length) return
-    this.firing = true
-    const cycle = AUTO_CYCLE[this.item?.id.split('|')[0] ?? '']
-    const shoot = (): void => {
-      void this.attack()
-      if (cycle && this.firing) this.fireTimer = setTimeout(shoot, cycle * 1000)
-    }
-    shoot()
-  }
+  startFire(): void { startFire(this) }
 
   /** Stops the held fire. */
-  stopFire(): void {
-    this.firing = false
-    clearTimeout(this.fireTimer)
-  }
+  stopFire(): void { stopFire(this) }
 
   /** Whether the loaded first-person weapon has an inspect animation. */
   get canInspect(): boolean {
@@ -408,12 +275,7 @@ export class SkinViewer {
   }
 
   /** Plays the first-person weapon's inspect animation (from the start, if it was already playing). */
-  inspect(): void {
-    if (!this.fpRig?.inspect) return
-    this.inspectClips = [this.fpRig.inspect]
-    if (this.fpRig.weapon) this.fpRig.weapon.visible = true
-    this.inspectStart = performance.now()
-  }
+  inspect(): void { inspect(this) }
 
   /** Whether first person can look at its skin gloves (the glove inspect). */
   get canInspectGloves(): boolean {
@@ -421,42 +283,13 @@ export class SkinViewer {
   }
 
   /** First person looks at its gloves: the weapon put away, the arms raise them (from the start if already playing). */
-  inspectGloves(): void {
-    const rig = this.fpRig
-    if (!rig?.gloveInspect || !this.fpGlove) return
-    this.inspectClips = rig.gloveInspect
-    if (rig.weapon) rig.weapon.visible = false
-    this.inspectStart = performance.now()
-  }
+  inspectGloves(): void { inspectGloves(this) }
 
   /** Poses the animated idle at `now` (ms), looping. */
-  private stepIdle(now: number): void {
-    const rig = this.fpRig
-    const loop = rig?.idleLoop
-    if (!rig || !loop) return
-    poseRig(rig.parts, handIK(samplePose(loop, (now / 1000) % loop.duration)), rig.weapon, rig.bind)
-  }
+  private stepIdle(now: number): void { stepIdle(this, now) }
 
   /** Advances the playing inspect (its clips one after another) to `now` (ms); at its end the idle pose comes back. */
-  private stepInspect(now: number): void {
-    const rig = this.fpRig
-    if (!rig || !this.inspectClips || this.inspectStart === null) { this.inspectStart = null; return }
-    let t = (now - this.inspectStart) / 1000
-    for (const clip of this.inspectClips) {
-      if (t < clip.duration) { poseRig(rig.parts, handIK(samplePose(clip, t)), rig.weapon, rig.bind); return }
-      t -= clip.duration
-    }
-    this.inspectStart = null
-    this.inspectClips = null
-    if (rig.weapon) rig.weapon.visible = true
-    poseRig(rig.parts, handIK(rig.idle), rig.weapon, rig.bind)
-    /** The glove page's look at the gloves ends back on the gloves on their own, as they were. */
-    const glove = this.gloveLookItem
-    if (glove) {
-      const seed = this.weaponSeed, float = this.weaponFloat
-      void this.load(glove).then(() => { this.setFloat(float); this.setSeed(seed) })
-    }
-  }
+  private stepInspect(now: number): void { stepInspect(this, now) }
 
   /** Changes the lighting; anything left out keeps its value. */
   setLighting(changes: Partial<Lighting>): void {
@@ -520,23 +353,7 @@ export class SkinViewer {
    * on — leaning toward the pointer and breathing.
    * @param t time in seconds
    */
-  private updateViewmodel(t: number): void {
-    const vm = this.viewmodel
-    const side = vm.leftHanded ? 1 : -1
-    let bob = 0
-    if (vm.sway) {
-      bob = Math.sin(t * 1.7) * 0.0009
-      const r = this.holder.rotation
-      /** Applied after the mirror, so the same sign leans toward the pointer with either hand. */
-      r.y += (-this.pointer.x * SWAY_YAW - r.y) * SWAY_FOLLOW
-      r.x += (-this.pointer.y * SWAY_PITCH - r.x) * SWAY_FOLLOW
-      r.z = Math.sin(t * 0.85) * 0.006
-    } else {
-      this.holder.rotation.set(0, 0, 0)
-    }
-    this.holder.position.set(side * vm.offsetX * INCH, vm.offsetZ * INCH + bob, vm.offsetY * INCH)
-    this.holder.scale.set(vm.leftHanded ? -1 : 1, 1, 1)
-  }
+  updateViewmodel(t: number): void { updateViewmodel(this, t) }
 
   setSeed(seed: number): void {
     this.weaponSeed = seed
@@ -571,50 +388,20 @@ export class SkinViewer {
 
   private placeHands(): void {
     for (const { side, mesh } of this.loaded.hands) {
-      const turn = side === 'right' && !this.palmUp ? -Math.PI / 2 : Math.PI / 2
+      const turn = side === 'right' && !this.palmUp ? Math.PI / 2 : -Math.PI / 2
       mesh.rotation.set(0, turn, Math.PI)
     }
   }
 
   /** Whether the fixed game inspect applies: a gun, gloves, an agent, or a charm or sticker on its own, over a map's pre-rendered background, outside first person. */
-  private get wantsFixedInspect(): boolean {
+  get wantsFixedInspect(): boolean {
     const name = this.item?.id.split('|')[0] ?? ''
     if (!this.map.video || !this.map.scene3d?.data.weapon || this.firstPerson) return false
     return !!this.standalone || this.agentShown || this.framedShown || (this.item?.style === 'glove' ? this.gloveGameLight : !!this.item && !!name)
   }
 
   /** Enters the fixed inspect when it applies, or gives the view back to the orbit. */
-  private updateFixedInspect(): void {
-    const scene3d = this.map.scene3d
-    scene3d?.setLightScales(this.mapLighting)
-    if (this.firstPerson) {
-      this.fixed.lightFirstPerson(scene3d)
-      return
-    }
-    if (this.fixed.gameLit && !this.fixed.active) {
-      this.fixed.lightFirstPerson(null)
-      scene3d?.useLights(scene3d.data.lights, scene3d.data.sceneLights ?? [])
-    }
-    if (!this.wantsFixedInspect || !scene3d) {
-      if (this.fixed.exit(scene3d)) {
-        this.setLighting({})
-        this.controls.enabled = !this.firstPerson
-        if (!this.firstPerson) this.resetView()
-      }
-      return
-    }
-    this.controls.enabled = false
-    const glove = this.item?.style === 'glove'
-    const studio = this.fit ? { distance: this.homePosition(35).length(), fov: 35 } : undefined
-    if ((this.standalone || this.agentShown || this.framedShown || glove) && this.fit) {
-      this.fixed.enter(scene3d, 'weapon_glock', { radius: this.agentShown ? this.fit.size.y * 0.4 : (this.fit.size.length() / 2) * (this.petRig ? petView(this.petRig.model.glb).room : this.framedShown ? PIN_VIEW.room : 1), sunOnly: !!this.standalone, face: !this.standalone?.parts, turn: this.petRig ? petView(this.petRig.model.glb).turn : this.framedShown ? PIN_VIEW.turn : 0, studio: glove && !this.agentShown && !this.standalone ? studio : undefined })
-    } else if (/knife|bayonet/.test(this.item!.id.split('|')[0]) && this.fit) {
-      this.fixed.enter(scene3d, 'weapon_glock', { radius: this.fit.size.length() / 2, studio })
-    } else {
-      this.fixed.enter(scene3d, this.item!.id.split('|')[0])
-    }
-    this.map.place()
-  }
+  updateFixedInspect(): void { updateFixedInspect(this) }
 
   /** Gloves on a map: the game's inspect light (true) or the studio's (false). */
   setGloveGameLight(on: boolean): void {
@@ -624,127 +411,34 @@ export class SkinViewer {
   }
 
   /** Center the model and put the camera at its side, far enough for it to fit. */
-  private frame(root: THREE.Object3D, tiltUpright: boolean): void {
-    root.userData.framedFrom ??= { position: root.position.clone(), rotation: root.rotation.clone() }
-    let size = new THREE.Box3().setFromObject(root).getSize(new THREE.Vector3())
-    if (tiltUpright && size.y > Math.max(size.x, size.z)) {
-      const angle = this.isKnife() ? KNIFE_TILT[this.knifePose] : 0.95
-      if (size.x <= size.z) root.rotation.x = -angle
-      else root.rotation.z = angle
-      root.updateMatrixWorld(true)
-    }
-    const box = new THREE.Box3().setFromObject(root)
-    size = box.getSize(new THREE.Vector3())
-    root.position.sub(box.getCenter(new THREE.Vector3()))
-    this.holder.rotation.set(0, 0, 0)
-    this.holder.add(root)
-    const lookX = size.x <= size.z
-    this.fit = { size, lookX, side: lookX ? new THREE.Vector3(1, 0.08, 0.12) : new THREE.Vector3(0.12, 0.08, 1) }
-    this.home.copy(this.homePosition())
-    this.camera.position.copy(this.home)
-    this.controls.target.set(0, 0, 0)
-    this.controls.update()
-    this.updateFixedInspect()
-  }
+  frame(root: THREE.Object3D, tiltUpright: boolean, lookX?: boolean): void { frame(this, root, tiltUpright, lookX) }
 
-  private isKnife(): boolean {
-    return !!this.item && /knife|bayonet/.test(this.item.id.split('|')[0])
-  }
+  isKnife(): boolean { return isKnife(this) }
 
   /** How knives stand: upright, lying flat, or tilted (the default). */
-  setKnifePose(pose: KnifePose): void {
-    if (this.knifePose === pose) return
-    this.knifePose = pose
-    const root = this.weaponRoot
-    const from = root?.userData.framedFrom as { position: THREE.Vector3; rotation: THREE.Euler } | undefined
-    if (!root || !from || !this.isKnife() || this.firstPerson) return
-    root.position.copy(from.position)
-    root.rotation.copy(from.rotation)
-    root.updateMatrixWorld(true)
-    this.frame(root, true)
-    this.resetView()
-  }
+  setKnifePose(pose: KnifePose): void { setKnifePose(this, pose) }
 
   /** Where the camera frames the model at the current aspect. */
-  private homePosition(fov = this.camera.fov): THREE.Vector3 {
-    const { size, side, lookX } = this.fit!
-    const across = lookX ? size.z : size.x
-    /** The model's depth along the view: its near side is half of it closer (a round charm would overflow without it). */
-    const depth = lookX ? size.x : size.z
-    const halfTan = Math.tan(THREE.MathUtils.degToRad(fov / 2))
-    const dist = depth / 2 + Math.max(size.y / halfTan, across / (halfTan * this.camera.aspect)) * 0.62
-    return side.clone().multiplyScalar(dist)
-  }
+  homePosition(fov = this.camera.fov): THREE.Vector3 { return homePosition(this, fov) }
 
   /** Back to the framing the item was loaded with. */
-  resetView(): void {
-    // (on a map's fixed inspect: the game's own view back)
-    if (this.fixed.active) { this.fixed.reset(); return }
-    this.holder.rotation.set(0, 0, 0)
-    if (this.fit) this.home.copy(this.homePosition())
-    this.camera.position.copy(this.home)
-    this.controls.target.set(0, 0, 0)
-    this.controls.update()
-  }
+  resetView(): void { resetView(this) }
 
   /** The initial framing seen from the other side (a half turn around the model). */
-  backView(): void {
-    if (this.firstPerson) return
-    this.resetView()
-    if (this.fixed.active) { this.fixed.flip(); return }
-    this.camera.position.applyAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI)
-    this.controls.update()
-  }
+  backView(): void { backView(this) }
 
   /**
    * The item alone from the front (the initial framing) and from the back (a half turn around it), each drawn with
    * `longSide` pixels on its longer side and cut down to what it covers. The camera is left at the front. A knife is
    * shot standing up.
    */
-  renderSides(longSide: number): { front: HTMLCanvasElement; back: HTMLCanvasElement } {
-    /** Over a map the item is the one that turns, in the frame loop's step: it has to be applied before drawing now. */
-    const settle = () => { if (this.fixed.active) this.fixed.step() }
-    /** A knife is shot standing up (whatever pose the viewer shows it in), and left as it was. */
-    const pose = this.knifePose
-    if (this.isKnife()) this.setKnifePose('vertical')
-    this.resetView()
-    settle()
-    const front = this.renderItem(longSide)
-    this.backView()
-    settle()
-    const back = this.renderItem(longSide)
-    if (this.isKnife()) this.setKnifePose(pose)
-    this.resetView()
-    settle()
-    return { front, back }
-  }
+  renderSides(longSide: number): { front: HTMLCanvasElement; back: HTMLCanvasElement } { return renderSides(this, longSide) }
 
-  /** The current view as a PNG data URL (transparent where the scene has no background). */
   /**
    * The model alone (no background, map or studio) as the camera sees it, drawn with `longSide` pixels on the view's
    * longer side and cut down to what it covers — for the share image.
    */
-  renderItem(longSide: number): HTMLCanvasElement {
-    const size = this.renderer.getSize(new THREE.Vector2())
-    const ratio = this.renderer.getPixelRatio()
-    const scale = Math.min(longSide, this.renderer.capabilities.maxTextureSize, 8192) / Math.max(size.x, size.y)
-    const background = this.scene.background
-    const root = this.map.scene3d?.root
-    const rootVisible = root?.visible ?? false
-    this.scene.background = null
-    if (root) root.visible = false
-    this.renderer.setPixelRatio(1)
-    this.renderer.setSize(Math.round(size.x * scale), Math.round(size.y * scale), false)
-    this.renderer.render(this.scene, this.camera)
-    // (read before the frame ends: the drawing buffer isn't kept)
-    const image = cropToContent(this.renderer.domElement)
-    this.scene.background = background
-    if (root) root.visible = rootVisible
-    this.renderer.setPixelRatio(ratio)
-    this.renderer.setSize(size.x, size.y, false)
-    this.map.render()
-    return image
-  }
+  renderItem(longSide: number): HTMLCanvasElement { return renderItem(this, longSide) }
 
   /** Changes the map lights' strengths (× the game's): sun, the item's lights, scene lights, ambient, reflections. */
   setMapLighting(lighting: MapLighting): void {
@@ -786,40 +480,15 @@ export class SkinViewer {
   }
 
   /** Changes how finely it draws (antialiasing is fixed for the canvas: see `antialias` in the options). */
-  setQuality(quality: RenderQuality): void {
-    if (quality.resolution !== this.quality.resolution || !quality.adaptive) this.adaptiveScale = 1
-    this.quality = { ...quality }
-    this.map.setPostEnabled(quality.post)
-    this.applyPixelRatio()
-  }
+  setQuality(quality: RenderQuality): void { setQuality(this, quality) }
 
-  private applyPixelRatio(): void {
-    const ratio = this.pixelRatio
-    if (Math.abs(ratio - this.renderer.getPixelRatio()) < 1e-3) return
-    this.renderer.setPixelRatio(ratio)
-    this.resize()
-  }
+  applyPixelRatio(): void { applyPixelRatio(this) }
 
   /**
    * The adaptive resolution: under ~30 fps (smoothed, over two seconds at least) it draws 20% fewer pixels a side,
    * down to 0.75×; over ~55 fps for a while it goes back up. Only with 'auto' resolution.
    */
-  private adapt(time: number): void {
-    const dt = this.lastTick ? time - this.lastTick : 16
-    this.lastTick = time
-    // (a hidden tab or a long load stall isn't a slow frame)
-    if (dt > 250) return
-    this.frameMs += (dt - this.frameMs) * 0.05
-    if (!this.quality.adaptive || this.quality.resolution !== 'auto' || time - this.lastAdapt < 2000) return
-    const auto = Math.min(devicePixelRatio, 2)
-    if (this.frameMs > 34 && auto * this.adaptiveScale > 0.75) {
-      this.adaptiveScale = Math.max(0.75 / auto, this.adaptiveScale * 0.8)
-    } else if (this.frameMs < 18 && this.adaptiveScale < 1 && time - this.lastAdapt > 6000) {
-      this.adaptiveScale = Math.min(1, this.adaptiveScale / 0.8)
-    } else return
-    this.lastAdapt = time
-    this.applyPixelRatio()
-  }
+  private adapt(time: number): void { adapt(this, time) }
 
   /** Turns edit mode on (dragging the weapon's stickers and charm, told through `events`) or off (null). */
   setEditing(events: EditorEvents | null): void {
@@ -837,12 +506,13 @@ export class SkinViewer {
     return copy
   }
 
+  /** The current view as a PNG data URL (transparent where the scene has no background). */
   screenshot(): string {
     this.map.render()
     return this.renderer.domElement.toDataURL('image/png')
   }
 
-  private clear(): void {
+  clear(): void {
     for (const child of [...this.holder.children]) {
       this.holder.remove(child)
       child.traverse((o) => { if (o instanceof THREE.Mesh) o.geometry.dispose() })
@@ -894,78 +564,13 @@ export class SkinViewer {
   }
 
   /** A sticker on its own, as a card; wear 0–1. */
-  async showSticker(id: string, wear: number): Promise<void> {
-    this.clear()
-    const token = this.loadToken
-    const { def, sources } = await this.attachments.stickerLook(id)
-    if (token !== this.loadToken) return
-    const textures = packStickers(this.renderer, [sources])
-    const card = stickerCard(def, textures)
-    card.setWear(wear)
-    this.loaded.disposables.push(() => { (card.mesh.material as THREE.Material).dispose(); textures.dispose() })
-    const root = new THREE.Group()
-    root.add(card.mesh)
-    /** The card behind the sticker (alpha-tested: its corners are round), hidden until asked for. */
-    const backing = new THREE.Mesh(new THREE.PlaneGeometry(STICKER_CARD_SIDE, STICKER_CARD_SIDE), new THREE.MeshStandardMaterial({ roughness: 0.47, metalness: 0, alphaTest: 0.5, side: THREE.DoubleSide }))
-    const uv = backing.geometry.getAttribute('uv')
-    for (let i = 0; i < uv.count; i++) uv.setY(i, 1 - uv.getY(i))
-    backing.position.z = -0.004
-    backing.visible = false
-    root.add(backing)
-    void this.loader.textures.load(GAME_ROOT + STICKER_CARD, true).then((map) => {
-      if (token !== this.loadToken) return
-      const m = backing.material as THREE.MeshStandardMaterial
-      m.map = map
-      m.needsUpdate = true
-    }).catch(() => {})
-    this.loaded.disposables.push(() => { backing.geometry.dispose(); (backing.material as THREE.Material).dispose() })
-    /** With the card on, everything shrinks so the card takes the room the sticker had (the framing stays the sticker's). */
-    const setCard = (on: boolean) => {
-      backing.visible = on
-      root.scale.setScalar(on ? 1 / STICKER_CARD_SIDE : 1)
-    }
-    this.standalone = { setWear: card.setWear, setCard }
-    this.frame(root, false)
-  }
+  async showSticker(id: string, wear: number): Promise<void> { return showSticker(this, id, wear) }
 
   /** A whole agent holding `weapon` (else the last weapon skin loaded), wearing skin `glove`s or its default ones. */
-  async showAgent(id: string, glove: GloveItem | null = null, weapon: Item | null = null): Promise<void> {
-    const held = weapon ?? this.lastWeapon
-    this.clear()
-    const token = this.loadToken
-    const agent = await loadAgent(this.loader, this.opts.assetBase, id, glove, held && held.style !== 'glove' ? held : null, () => token !== this.loadToken)
-    if (!agent) return
-    this.agentWeaponItem = agent.weapon
-    if (agent.weapon) this.setAgentWeapon(agent.weapon.seed, this.weaponFloat)
-    this.agentGlove = agent.glove
-    this.patchLayers = agent.patches
-    await this.setAgentPatches(this.agentPatches)
-    if (agent.glove) setAgentGloves(this.loaded.finishes, agent.glove, this.viewmodel)
-    this.agentRig = agent.rig
-    this.agentShown = true
-    if (agent.rig) poseAgent(agent.rig, 0)
-    this.frame(agent.root, false)
-  }
+  async showAgent(id: string, glove: GloveItem | null = null, weapon: Item | null = null): Promise<void> { return showAgent(this, id, glove, weapon) }
 
   /** The patches the agent wears (kept across loads): one per slot, null = empty. */
-  async setAgentPatches(worn: (AgentPatch | null)[]): Promise<void> {
-    this.agentPatches = worn
-    if (!this.patchLayers.length) return
-    const index = await loadPatches(this.opts.assetBase)
-    const textures = await Promise.all(worn.map(async (p) => {
-      const entry = p && index.patch.get(p.id)
-      if (!entry) return null
-      const [patch, backing] = await Promise.all([
-        this.loader.textures.load(GAME_ROOT + entry.texture, true).catch(() => null),
-        entry.backing ? this.loader.textures.load(GAME_ROOT + entry.backing, true).catch(() => null) : null,
-      ])
-      /** The game samples patches with a clamping sampler (no tiling where a backing scale shrinks the patch). */
-      for (const t of [patch, backing]) if (t) t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping
-      return patch ? { patch, backing } : null
-    }))
-    if (worn !== this.agentPatches) return
-    for (const layer of this.patchLayers) layer.set(worn, textures)
-  }
+  async setAgentPatches(worn: (AgentPatch | null)[]): Promise<void> { return setAgentPatches(this, worn) }
 
   /** The pattern and wear of the weapon the agent holds, without making it the viewer's item. */
   setAgentWeapon(seed: number, float: number): void {
@@ -976,173 +581,28 @@ export class SkinViewer {
    * A pet on its own (a chicken, the chick, the egg): its model in one of its colours, playing a clip of its skeleton
    * (the named one, else the first idle) in a loop. The roasted chicken has no skeleton animations.
    */
-  async showPet(id: string, variant = 0, clipName: string | null = null): Promise<void> {
-    this.clear()
-    const token = this.loadToken
-    const index = await loadPets(this.opts.assetBase)
-    const entry = index.pet.get(id)
-    const model = entry && index.models[entry.model]
-    if (!entry || !model) throw new Error('No pet ' + id)
-    const clips = petClips(index, entry)
-    const wanted = clips.find((c) => c.name === clipName) ?? defaultPetClip(clips)
-    const [gltf, clip] = await Promise.all([
-      this.loader.gltf.loadAsync(this.loader.textures.url(GAME_ROOT + model.glb)),
-      wanted ? loadPetClip(this.opts.assetBase, index, wanted).catch(() => null) : null,
-    ])
-    if (token !== this.loadToken) return
-    const root = new THREE.Group()
-    gltf.scene.updateMatrixWorld(true)
-    const meshes: THREE.Mesh[] = [], skinned: SkinnedGeometry[] = []
-    gltf.scene.traverse((o) => {
-      if (!(o instanceof THREE.Mesh)) return
-      const g = o.geometry.clone().applyMatrix4(o.matrixWorld)
-      if (g.getAttribute('skinIndex')) skinned.push(new SkinnedGeometry(g))
-      const mesh = new THREE.Mesh(g, new THREE.MeshStandardMaterial())
-      meshes.push(mesh)
-      root.add(mesh)
-    })
-    this.framedShown = true
-    this.petRig = { index, model, meshes, parts: [{ skeleton: model.skeleton, geometries: skinned }], clip, start: performance.now() }
-    this.setPetVariant(variant)
-    this.stepPet(performance.now())
-    /** Posing moved the vertices: the box the framing reads must follow (the glb's, kept by the clone, is the bind pose's). */
-    for (const mesh of meshes) mesh.geometry.computeBoundingBox()
-    this.frame(root, false)
-  }
+  async showPet(id: string, variant = 0, clipName: string | null = null, agentId: string = DEFAULT_AGENT): Promise<void> { return showPet(this, id, variant, clipName, agentId) }
 
   /** Paints the pet in colour `index` of its model (the materials of that variant, in mesh order). */
-  setPetVariant(index: number): void {
-    const rig = this.petRig
-    if (!rig) return
-    const calls = rig.model.variants[Math.min(Math.max(0, index), rig.model.variants.length - 1)]?.drawCalls ?? []
-    rig.meshes.forEach((mesh, i) => {
-      const call = calls[i] ?? calls[0]
-      const old = mesh.material as THREE.Material
-      const material = call ? this.loader.plainMaterial(call) : new THREE.MeshStandardMaterial()
-      /** plainMaterial's defaults (fully metal, fully rough) are for models with a metalness map: without one it is a matte surface. */
-      if (call && !call.rough && material instanceof THREE.MeshStandardMaterial) { material.metalness = 0; material.roughness = 0.7 }
-      mesh.material = material
-      old.dispose()
-    })
-  }
+  setPetVariant(index: number): void { setPetVariant(this, index) }
 
   /** Plays the named clip of the pet from the start (null: its default idle). */
-  async playPetClip(name: string | null): Promise<void> {
-    const rig = this.petRig
-    if (!rig) return
-    const token = this.loadToken
-    const entry = [...rig.index.pet.values()].find((p) => rig.index.models[p.model] === rig.model)
-    const clips = entry ? petClips(rig.index, entry) : []
-    const wanted = clips.find((c) => c.name === name) ?? defaultPetClip(clips)
-    if (!wanted) return
-    const clip = await loadPetClip(this.opts.assetBase, rig.index, wanted).catch(() => null)
-    if (!clip || token !== this.loadToken || this.petRig !== rig) return
-    rig.clip = clip
-    rig.start = performance.now()
-  }
+  async playPetClip(name: string | null): Promise<void> { return playPetClip(this, name) }
 
   /** Poses the pet at `now` (ms) of its clip, looping. */
-  private stepPet(now: number): void {
-    const rig = this.petRig
-    if (!rig?.clip) return
-    const t = ((now - rig.start) / 1000) % rig.clip.duration
-    poseRig(rig.parts, samplePose(rig.clip, t))
-  }
+  stepPet(now: number): void { stepPet(this, now) }
 
   /** A collectible pin on its own: its model with the game's material (glitter overlays blended on top). */
-  async showPin(id: string): Promise<void> {
-    this.clear()
-    const token = this.loadToken
-    const pins = await loadPins(this.opts.assetBase)
-    const entry = pins.pin.get(id)
-    const model = entry && pins.models[entry.model]
-    if (!model) throw new Error('No pin ' + id)
-    const gltf = await this.loader.gltf.loadAsync(this.loader.textures.url(GAME_ROOT + model.glb))
-    if (token !== this.loadToken) return
-    const root = new THREE.Group()
-    gltf.scene.updateMatrixWorld(true)
-    this.framedShown = true
-    let i = 0
-    gltf.scene.traverse((o) => {
-      if (!(o instanceof THREE.Mesh)) return
-      const call = model.drawCalls[i++] ?? model.drawCalls[0]
-      const g = o.geometry.clone().applyMatrix4(o.matrixWorld)
-      const material = this.loader.plainMaterial(call)
-      /**
-       * A pin's metal map has the metalness in G and nothing in R (plainMaterial reads R as roughness: a mirror that
-       * reflects the dark stage). Enamel is glossy, the metal polished but not a mirror.
-       */
-      const compile = material.onBeforeCompile
-      material.onBeforeCompile = (shader, renderer) => {
-        compile.call(material, shader, renderer)
-        shader.fragmentShader = shader.fragmentShader.replace('roughnessFactor = texture2D(roughnessMap, vRoughnessMapUv).r;',
-          'roughnessFactor = mix(0.5, 0.3, texture2D(roughnessMap, vRoughnessMapUv).g);')
-      }
-      material.customProgramCacheKey = () => 'pin'
-      /** The sparkle layers (a glitter texture, tinted) shine over the pin instead of covering it. */
-      if (call.color?.includes('glitter')) {
-        material.transparent = true
-        material.blending = THREE.AdditiveBlending
-        material.depthWrite = false
-      }
-      root.add(new THREE.Mesh(g, material))
-    })
-    this.frame(root, false)
-  }
+  async showPin(id: string): Promise<void> { return showPin(this, id) }
 
   /**
    * An agent patch on its own, on the game's inspect card (the plastic package, with its hang tab): the embroidered
    * texture is drawn over the card's, scaled and offset as the patch's material says, into one canvas texture.
    */
-  async showPatch(id: string): Promise<void> {
-    this.clear()
-    const token = this.loadToken
-    const patches = await loadPatches(this.opts.assetBase)
-    const entry = patches.patch.get(id)
-    if (!entry) throw new Error('No patch ' + id)
-    const t = this.loader.textures
-    const [card, normal, patch] = await Promise.all([
-      t.load(GAME_ROOT + patches.card.color, true), t.load(GAME_ROOT + patches.card.normal, false), t.load(GAME_ROOT + entry.texture, true),
-    ])
-    if (token !== this.loadToken) return
-    const size = 1024
-    const canvas = document.createElement('canvas')
-    canvas.width = canvas.height = size
-    const ctx = canvas.getContext('2d')!
-    ctx.drawImage(card.image as CanvasImageSource, 0, 0, size, size)
-    const side = size * 0.5 * entry.scale
-    ctx.translate(size / 2 + entry.offset[0] * size, size / 2 - entry.offset[1] * size)
-    ctx.rotate(THREE.MathUtils.degToRad(entry.rotation))
-    ctx.scale(1, entry.squash)
-    ctx.drawImage(patch.image as CanvasImageSource, -side / 2, -side / 2, side, side)
-    const map = new THREE.CanvasTexture(canvas)
-    map.flipY = false
-    map.colorSpace = THREE.SRGBColorSpace
-    map.anisotropy = card.anisotropy
-    const geometry = new THREE.PlaneGeometry(1, 1)
-    const uv = geometry.getAttribute('uv')
-    for (let i = 0; i < uv.count; i++) uv.setY(i, 1 - uv.getY(i))
-    const material = new THREE.MeshStandardMaterial({ map, normalMap: normal, roughness: 0.8, metalness: 0, side: THREE.DoubleSide, transparent: true })
-    this.loaded.disposables.push(() => { material.dispose(); map.dispose() })
-    const mesh = new THREE.Mesh(geometry, material)
-    this.standalone = {}
-    this.frame(mesh, false)
-  }
+  async showPatch(id: string): Promise<void> { return showPatch(this, id) }
 
   /** A charm on its own; pattern 0–100000. */
-  async showCharm(id: string, seed: number, sticker?: string | null): Promise<void> {
-    this.clear()
-    const token = this.loadToken
-    const def = (await loadAttachments(this.opts.assetBase)).charm.get(id)
-    if (!def) throw new Error('No charm ' + id)
-    const built = await this.attachments.buildCharm(def)
-    if (token !== this.loadToken) return
-    for (const p of built.parts) p.setSeed(seed)
-    await this.attachments.charmSticker(built.parts, sticker)
-    this.loaded.disposables.push(() => { for (const p of built.parts) p.material.dispose() })
-    this.standalone = { parts: built.parts }
-    this.frame(built.model, false)
-  }
+  async showCharm(id: string, seed: number, sticker?: string | null): Promise<void> { return showCharm(this, id, seed, sticker) }
 
   /** The sticker slab's sticker when the charm is shown on its own. */
   async setStandaloneCharmSticker(id: string | null): Promise<void> {
@@ -1164,7 +624,7 @@ export class SkinViewer {
     for (const p of this.standalone?.parts ?? []) p.setSeed(seed)
   }
 
-  private resize(): void {
+  resize(): void {
     const w = this.container.clientWidth || 1, h = this.container.clientHeight || 1
     this.camera.aspect = w / h
     /**

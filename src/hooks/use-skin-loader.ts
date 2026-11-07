@@ -35,7 +35,9 @@ export function useSkinLoader(viewer: SkinViewer | null, selection: Selection, s
   // The loadout's gloves and agent are drawn in first person (gloves also on an agent's page): elsewhere a change of
   // them must not reload the model.
   const gloves = firstPerson || selection.kind === 'agent' ? state.gloves : null
-  const agent = firstPerson ? state.agent : null
+  /** A photo pose of a pet stands it beside the loadout's agent. */
+  const petPose = selection.kind === 'pet' && /snapshots_\d/.test(state.petClip ?? '')
+  const agent = firstPerson || petPose ? state.agent : null
   const loadoutWeapon = selection.kind === 'agent' ? state.loadout.weapon : null
   const patchParam = selection.kind === 'agent' || firstPerson ? agentPatchesToParam(state.agentPatches) : ''
 
@@ -68,7 +70,7 @@ export function useSkinLoader(viewer: SkinViewer | null, selection: Selection, s
         return null
       }
       if (selection.kind === 'pet') {
-        await viewer.showPet(selection.id, now.petVariant, now.petClip)
+        await viewer.showPet(selection.id, now.petVariant, now.petClip, now.agent ?? undefined)
         return null
       }
       if (selection.kind === 'pin') {
