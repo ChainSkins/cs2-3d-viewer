@@ -1,9 +1,11 @@
 import { ChevronDown, UserRound } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { FieldGroup } from '@/components/common/field-group'
 import { PickerField } from '@/components/common/picker-field'
 import { Section } from '@/components/common/section'
 import { Input } from '@/components/ui/input'
+import { ASSET_BASE } from '@/lib/config'
+import { loadPetHats, type PetHat } from '@/lib/data/pet-hats'
 import { CLIP_CATEGORIES, petClipCategory, petClipLabel } from '@/lib/data/pet-labels'
 import { defaultPetClip, petClips, type PetClip, type PetEntry, type PetIndex } from '@/lib/data/pets'
 import { cn } from '@/lib/utils'
@@ -16,6 +18,9 @@ interface PetSectionProps {
   clip: string | null
   onVariant: (index: number) => void
   onClip: (name: string | null) => void
+  /** The photo-booth hat on (its name), or null. */
+  hat: string | null
+  onHat: (name: string | null) => void
   /** The agent a photo pose stands the pet beside (null: the default one). */
   agentName: string | null
   onChooseAgent: () => void
@@ -25,11 +30,13 @@ interface PetSectionProps {
 const chip = (on: boolean) => cn('rounded-lg px-2.5 py-1 text-[12px] font-medium', on ? 'bevel-primary text-white' : 'bevel text-foreground/80')
 
 /** A pet's colours (one per material of its model) and the animation it plays: folders that fold, and a search over them. */
-export function PetSection({ pet, pets, variant, clip, onVariant, onClip, agentName, onChooseAgent, onDefaultAgent }: PetSectionProps) {
+export function PetSection({ pet, pets, variant, clip, onVariant, onClip, hat, onHat, agentName, onChooseAgent, onDefaultAgent }: PetSectionProps) {
   const model = pet && pets?.models[pet.model]
   const clips = useMemo(() => (pet && pets ? petClips(pets, pet) : []), [pet, pets])
   const playing = clip ?? defaultPetClip(clips)?.name
   const [query, setQuery] = useState('')
+  const [hats, setHats] = useState<PetHat[]>([])
+  useEffect(() => { void loadPetHats(ASSET_BASE).then((d) => setHats(d.hats)).catch(() => {}) }, [])
   /** Folders the visitor opened or closed; the one with the playing clip is open until then. */
   const [toggled, setToggled] = useState<Record<string, boolean>>({})
   const searching = query.trim().length > 0
@@ -46,6 +53,8 @@ export function PetSection({ pet, pets, variant, clip, onVariant, onClip, agentN
   }, [clips, query])
 
   if (!model) return null
+  /** The egg has no head to put anything on. */
+  const wearsHats = hats.length > 0 && !!pet && !/egg/.test(pet.model)
   const inPose = /snapshots_\d/.test(playing ?? '')
   const isOpen = (title: string, list: PetClip[]) => searching || (toggled[title] ?? list.some((c) => c.name === playing))
   return (
@@ -55,6 +64,16 @@ export function PetSection({ pet, pets, variant, clip, onVariant, onClip, agentN
           <div className="flex flex-wrap gap-1.5">
             {model.variants.map((v, i) => (
               <button key={i} type="button" aria-pressed={i === variant} className={chip(i === variant)} onClick={() => onVariant(i)}>{v.name}</button>
+            ))}
+          </div>
+        </Section>
+      )}
+      {wearsHats && (
+        <Section title="Hat" collapsible={{ id: 'pet-hat' }} aside={<span className="text-[11px] tabular-nums text-muted-foreground">{hats.length}</span>}>
+          <div className="flex flex-wrap gap-1.5">
+            <button type="button" aria-pressed={!hat} className={chip(!hat)} onClick={() => onHat(null)}>None</button>
+            {hats.map((h) => (
+              <button key={h.name} type="button" aria-pressed={h.name === hat} className={chip(h.name === hat)} onClick={() => onHat(h.name)}>{h.label}</button>
             ))}
           </div>
         </Section>
@@ -80,7 +99,7 @@ export function PetSection({ pet, pets, variant, clip, onVariant, onClip, agentN
                     type="button"
                     aria-expanded={open}
                     onClick={() => setToggled((t) => ({ ...t, [title]: !open }))}
-                    className="flex w-full items-center gap-2 rounded-lg px-1.5 py-1.5 text-left transition-colors hover:bg-white/[0.04]"
+                    className="flex w-full items-center gap-2 rounded-lg px-1.5 py-1.5 text-left transition-colors hover:bg-white/4"
                   >
                     <span className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{title}</span>
                     <span className="text-[11px] tabular-nums text-muted-foreground/70">{list.length}</span>

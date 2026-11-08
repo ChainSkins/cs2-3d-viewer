@@ -213,6 +213,20 @@ const petCards = (pets: PetIndex | null, score: Score): { card: PickerCard; scor
       },
     }))
 
+/** The Pets category: a group per pet (Chick, Catalana…), a card per colour, each with its own picture. */
+const petGroups = (pets: PetIndex | null, score: Score): PickerGroup[] =>
+  (pets?.pets ?? []).flatMap((p) => {
+    const variants = pets!.models[p.model]?.variants ?? []
+    const cards = (variants.length ? variants : [{ name: 'Default' }])
+      .map((v, i) => ({ v, i, score: score(variants.length > 1 ? v.name : p.name, `${p.id} ${p.name} ${p.key} pet chicken colour ${v.name}`) }))
+      .filter((x) => x.score)
+      .map(({ v, i }): PickerCard => ({
+        key: `pet:${p.id}:${i}`, selection: { kind: 'pet', id: p.id, variant: i }, title: variants.length > 1 ? v.name : p.name, subtitle: p.name,
+        color: '#e4ae39', ported: true, meta: variants.length > 1 ? 'Colour' : 'Pet', icon: `${ASSET_BASE}${VIEWER_DATA}pets/thumbs/pet_${p.id}_${i}.webp`, rarity: null,
+      }))
+    return cards.length ? [{ title: p.name, cards }] : []
+  })
+
 const patchCards = (patches: PatchIndex | null, score: Score, images: DbImages): { card: PickerCard; score: number }[] =>
   (patches?.patches ?? [])
     .map((p) => ({ p, score: score(p.name, `${p.id} patch agent`) }))
@@ -322,7 +336,7 @@ function build(catalog: CatalogIndex | null, attachments: AttachmentIndex | null
     return all.length ? { group: { title: 'Pets', cards: all.map((x) => x.card) }, best: all[0].score } : null
   }
 
-  if (filters.scope === 'Pets' || (!searching && filters.category === 'Pets')) return [petsGroup()?.group].filter((g): g is PickerGroup => !!g)
+  if (filters.scope === 'Pets' || (!searching && filters.category === 'Pets')) return petGroups(pets, score)
   if (filters.scope === 'Patches' || (!searching && filters.category === 'Patches')) return [patchesGroup()?.group].filter((g): g is PickerGroup => !!g)
   if (filters.scope === 'Pins' || (!searching && filters.category === 'Pins')) return [pinsGroup()?.group].filter((g): g is PickerGroup => !!g)
   if (filters.scope === 'Agents' || (!searching && filters.category === 'Agents')) return agentGroups(agents, score, images).map((x) => x.group)

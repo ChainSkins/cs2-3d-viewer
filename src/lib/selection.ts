@@ -6,7 +6,8 @@ export type Selection =
   | { kind: 'agent'; id: string }
   | { kind: 'pin'; id: string }
   | { kind: 'patch'; id: string }
-  | { kind: 'pet'; id: string }
+  /** A pet; `variant` is the colour the picker chose (0 and absent: the first). */
+  | { kind: 'pet'; id: string; variant?: number }
 
 /**
  * The catalog key of a skin, as the picker and the viewer's items name it.

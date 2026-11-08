@@ -137,7 +137,7 @@ export function Sidebar({ lighting, lightingPreset, onLighting, viewmodel, onVie
         )}
 
         {selection.kind === 'pet' && (
-          <PetSection pet={pets?.pet.get(selection.id)} pets={pets} variant={state.petVariant} clip={state.petClip} onVariant={state.setPetVariant} onClip={state.setPetClip} agentName={agentName} onChooseAgent={() => onOpenPicker({ kind: 'agent' })} onDefaultAgent={() => state.setAgent(null)} />
+          <PetSection pet={pets?.pet.get(selection.id)} pets={pets} variant={state.petVariant} clip={state.petClip} onVariant={state.setPetVariant} onClip={state.setPetClip} hat={state.petHat} onHat={state.setPetHat} agentName={agentName} onChooseAgent={() => onOpenPicker({ kind: 'agent' })} onDefaultAgent={() => state.setAgent(null)} />
         )}
 
         {selection.kind === 'sticker' && (

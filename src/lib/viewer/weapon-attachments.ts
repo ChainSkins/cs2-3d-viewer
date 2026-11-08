@@ -1,10 +1,12 @@
 import * as THREE from 'three'
 import { CHARM_MOVE_RANGE, STICKER_MOVE_RANGE } from '@/lib/config'
 import { MARKUP, loadAttachments, loadStickerDef, type CharmDef, type WeaponMarkup } from '@/lib/data/attachments'
+import { VIEWER_DATA } from '@/lib/data/catalog'
 import type { Item } from '@/lib/data/items'
 import { charmMaterial, type CharmPart } from '@/lib/materials/charm'
 import { loadStickerSources, packStickers, type StickerDef, type StickerSources, type StickerTextures } from '@/lib/materials/sticker'
 import { WeaponFinish } from '@/lib/materials/weapon'
+import { loadCharmSkeletons, swingFor, type CharmSwing } from '@/lib/viewer/charm-swing'
 import type { WeaponRig } from '@/lib/viewer/firstperson'
 import { fitSkinning, snapToAnchors } from '@/lib/viewer/geometry'
 import type { LoadSink, ModelLoader } from '@/lib/viewer/model-loader'
@@ -36,6 +38,8 @@ export class WeaponAttachments {
     body: THREE.Mesh; modelToMesh: THREE.Matrix4 | null
     /** The default keychain point (the model's space), which the offset is from. */
     home: THREE.Vector3
+    /** Its bones swinging with the weapon (null when the model has none to swing). */
+    swing: CharmSwing | null
   } | null = null
   private texCache = new Map<string, Promise<THREE.Texture>>()
   /** Bumped on every load / attachment change, so a stale async load doesn't land on a newer model. */
@@ -48,6 +52,11 @@ export class WeaponAttachments {
     private readonly sink: LoadSink,
     private readonly target: () => AttachmentTarget,
   ) {}
+
+  /** Swings the charm for the `dt` seconds since the last frame, with the weapon where it is now. */
+  step(dt: number): void {
+    this.charm?.swing?.step(dt)
+  }
 
   /** The stickers the weapon wears (up to five, later ones on top). */
   async setStickers(list: StickerOptions[]): Promise<void> {
@@ -283,8 +292,9 @@ export class WeaponAttachments {
     const opts = this.charmOpts
     const def = opts ? (await loadAttachments(this.assetBase)).charm.get(opts.id) : undefined
     if (!root || !markup || !def || !opts) return
-    const { model, parts, chain } = await this.buildCharm(def)
+    const [{ model, parts, chain }, skeletons] = await Promise.all([this.buildCharm(def), loadCharmSkeletons(this.assetBase + VIEWER_DATA)])
     if (token !== this.attachToken) return
+    const swing = swingFor(skeletons[opts.id], model)
     for (const p of parts) p.setSeed(opts.seed)
     await this.charmSticker(parts, opts.sticker)
     if (token !== this.attachToken) return
@@ -346,9 +356,10 @@ export class WeaponAttachments {
       hangAt.copy(anchor).applyMatrix4(modelToMesh ?? new THREE.Matrix4())
       settle()
     }
+    const placeAgain: typeof place = (offset, position) => { place(offset, position); swing?.reset() }
     place(opts.offset, opts.position)
     if (skinned) root.userData.onPosed = settle
     mesh.add(holder)
-    this.charm = { id: opts.id, holder, parts, place, body: mesh, modelToMesh, home }
+    this.charm = { id: opts.id, holder, parts, place: placeAgain, body: mesh, modelToMesh, home, swing }
   }
 }

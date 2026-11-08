@@ -17,6 +17,21 @@ const CM_INV = CM.clone().invert()
 /** A Source-space transform expressed in the glTF space. */
 const toGltf = (m: THREE.Matrix4) => CM.clone().multiply(m).multiply(CM_INV)
 
+/**
+ * An attachment of a model (a hat's point on a pet's head): the bone's frame in the bind pose times the attachment's own
+ * (offset and rotation in the bone's space, as the vmdl has them), in glTF space. Posed, the attachment is the bone's
+ * skinning matrix times this.
+ */
+export function bindAttachment(skeleton: ArmsSkeleton, bone: string, rot: number[], pos: number[]): THREE.Matrix4 | null {
+  const index = skeleton.bones.indexOf(bone)
+  if (index < 0) return null
+  const world = (i: number): THREE.Matrix4 => {
+    const m = local(skeleton.pos[i], skeleton.rot[i])
+    return skeleton.parents[i] < 0 ? m : world(skeleton.parents[i]).multiply(m)
+  }
+  return toGltf(world(index).multiply(local(pos, rot)))
+}
+
 const local = (t: number[], q: number[]) => new THREE.Matrix4().compose(new THREE.Vector3(...t), new THREE.Quaternion(...q), new THREE.Vector3(1, 1, 1))
 
 function worlds(pose: BonePose): THREE.Matrix4[] {

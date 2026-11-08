@@ -25,7 +25,7 @@ import { DEFAULT_LIGHTING, DEFAULT_MAP_LIGHTING, DEFAULT_RENDER_QUALITY, DEFAULT
 
 import { AttachmentEditor, type EditorEvents } from '@/lib/viewer/attachment-editor'
 
-import { showPet, setPetVariant, playPetClip, stepPet } from '@/lib/viewer/pet-view'
+import { showPet, setPetVariant, setPetHat, playPetClip, stepPet } from '@/lib/viewer/pet-view'
 import { showSticker, showPin, showPatch, showCharm } from '@/lib/viewer/standalone-views'
 import { loadFirstPerson, lookAtGloves, enterFirstPerson, attack, startFire, stopFire, inspect, inspectGloves, stepIdle, stepInspect, updateViewmodel } from '@/lib/viewer/first-person-view'
 import { showAgent, setAgentPatches } from '@/lib/viewer/agent-stage'
@@ -110,7 +110,7 @@ export class SkinViewer {
   framedShown = false
   patchLayers: PatchLayer[] = []
   /** The pet on the stage: its meshes (their material swaps with the colour), skinned parts and the clip playing. */
-  petRig: { id: string; variant: number; agent: string; pose: boolean; index: PetIndex; model: PetModel; meshes: THREE.Mesh[]; parts: RigPart[]; clip: InspectClip | null; start: number } | null = null
+  petRig: { id: string; variant: number; agent: string; hatName: string | null; hat: { object: THREE.Group; head: number; attach: THREE.Matrix4 } | null; root: THREE.Group; pose: boolean; index: PetIndex; model: PetModel; meshes: THREE.Mesh[]; parts: RigPart[]; clip: InspectClip | null; start: number } | null = null
   agentPatches: (AgentPatch | null)[] = []
   /** The weapon skin the shown agent holds (for its pattern and wear). */
   agentWeaponItem: WeaponItem | null = null
@@ -193,6 +193,7 @@ export class SkinViewer {
 
   /** One frame: the viewmodel, the playing animations, the lights, then the draw. */
   private tick(time: number): void {
+    const dt = this.lastTick ? (time - this.lastTick) / 1000 : 1 / 60
     this.adapt(time)
     if (this.firstPerson) this.updateViewmodel(time / 1000)
     if (this.inspectStart !== null) this.stepInspect(time)
@@ -205,6 +206,7 @@ export class SkinViewer {
     this.placeLights()
     for (const finish of this.loaded.finishes) if (isGlove(finish)) finish.update(this.renderer)
     if (!this.firstPerson && !this.fixed.active) this.controls.update()
+    this.attachments.step(dt)
     this.map.render()
   }
 
@@ -581,10 +583,13 @@ export class SkinViewer {
    * A pet on its own (a chicken, the chick, the egg): its model in one of its colours, playing a clip of its skeleton
    * (the named one, else the first idle) in a loop. The roasted chicken has no skeleton animations.
    */
-  async showPet(id: string, variant = 0, clipName: string | null = null, agentId: string = DEFAULT_AGENT): Promise<void> { return showPet(this, id, variant, clipName, agentId) }
+  async showPet(id: string, variant = 0, clipName: string | null = null, agentId: string = DEFAULT_AGENT, hat: string | null = null): Promise<void> { return showPet(this, id, variant, clipName, agentId, hat) }
 
   /** Paints the pet in colour `index` of its model (the materials of that variant, in mesh order). */
   setPetVariant(index: number): void { setPetVariant(this, index) }
+
+  /** Puts a photo-booth hat on the pet (null: none). */
+  setPetHat(name: string | null): Promise<void> { return setPetHat(this, name) }
 
   /** Plays the named clip of the pet from the start (null: its default idle). */
   async playPetClip(name: string | null): Promise<void> { return playPetClip(this, name) }

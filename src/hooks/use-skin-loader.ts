@@ -70,7 +70,7 @@ export function useSkinLoader(viewer: SkinViewer | null, selection: Selection, s
         return null
       }
       if (selection.kind === 'pet') {
-        await viewer.showPet(selection.id, now.petVariant, now.petClip, now.agent ?? undefined)
+        await viewer.showPet(selection.id, now.petVariant, now.petClip, now.agent ?? undefined, now.petHat)
         return null
       }
       if (selection.kind === 'pin') {
@@ -104,13 +104,16 @@ export function useSkinLoader(viewer: SkinViewer | null, selection: Selection, s
   }, [viewer, key, firstPerson, gloves, agent, selection, loadoutWeapon])
 
   // A pet's colour and animation change in place too.
-  const { petVariant, petClip } = state
+  const { petVariant, petClip, petHat } = state
   useEffect(() => {
     if (viewer && selection.kind === 'pet') viewer.setPetVariant(petVariant)
   }, [viewer, selection.kind, petVariant])
   useEffect(() => {
     if (viewer && selection.kind === 'pet') void viewer.playPetClip(petClip)
   }, [viewer, selection.kind, petClip])
+  useEffect(() => {
+    if (viewer && selection.kind === 'pet') void viewer.setPetHat(petHat)
+  }, [viewer, selection.kind, petHat])
 
   // The patches an agent wears change in place: no reload of the model.
   useEffect(() => {

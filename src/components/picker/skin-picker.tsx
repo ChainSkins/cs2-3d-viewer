@@ -46,6 +46,7 @@ interface SkinPickerProps {
 const isCurrent = (card: Card, current: Selection | null) => {
   if (!current || current.kind !== card.selection.kind) return false
   if (current.kind === 'skin' && card.selection.kind === 'skin') return current.item === card.selection.item && current.kit === card.selection.kit
+  if (current.kind === 'pet' && card.selection.kind === 'pet') return current.id === card.selection.id && (current.variant ?? 0) === (card.selection.variant ?? 0)
   return current.kind !== 'skin' && card.selection.kind !== 'skin' && current.id === card.selection.id
 }
 

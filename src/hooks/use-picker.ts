@@ -39,6 +39,7 @@ export function usePicker(selection: Selection, item: Item | null, state: Viewer
     const kept = new URLSearchParams()
     const current = new URLSearchParams(state.search)
     for (const key of KEPT_PARAMS) if (current.has(key)) kept.set(key, current.get(key)!)
+    if (next.kind === 'pet' && next.variant) kept.set('pv', String(next.variant))
     const query = kept.toString()
     navigate(selectionPath(next) + (query ? '?' + query : ''))
   }, [navigate, state.search])
@@ -69,7 +70,7 @@ export function usePicker(selection: Selection, item: Item | null, state: Viewer
     const parts = key ? parseSkinKey(key) : null
     return parts ? { kind: 'skin', ...parts } : null
   }
-  const current: Selection | null = !picker || picker.kind === 'selection' ? selection
+  const current: Selection | null = !picker || picker.kind === 'selection' ? (selection.kind === 'pet' ? { ...selection, variant: state.petVariant } : selection)
     : picker.kind === 'sticker' ? { kind: 'sticker', id: typeof picker.target === 'number' ? state.stickers[picker.target]?.id ?? '' : picker.target === 'slab' ? state.charm.sticker ?? '' : '' }
       : picker.kind === 'charm' ? { kind: 'charm', id: state.charm.id ?? '' }
         : picker.kind === 'agent' ? { kind: 'agent', id: state.agent ?? DEFAULT_AGENT }
