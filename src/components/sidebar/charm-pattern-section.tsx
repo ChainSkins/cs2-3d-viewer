@@ -17,7 +17,7 @@ interface CharmPatternSectionProps {
 /** The pattern of a charm shown on its own (and the sticker of a sticker slab). */
 export function CharmPatternSection({ charm, seed, isSlab, stickerId, stickerName, onSeed, onChooseSticker, onClearSticker }: CharmPatternSectionProps) {
   return (
-    <Section title="Charm pattern" collapsible={{ id: 'charm-pattern' }} aside={<span className="font-mono text-[12px] tabular-nums">#{seed}</span>}>
+    <Section title="Charm pattern" collapsible={{ id: 'charm-pattern' }} aside={<span className="section-value font-mono">#{seed}</span>}>
       <CharmSeedControl charm={charm} seed={seed} onChange={onSeed} />
       {isSlab && (
         <div className="mt-3">

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { Kbd } from '@/components/common/kbd'
 import { Spinner } from '@/components/common/spinner'
 import { ClipboardOffer } from '@/components/inspect/clipboard-offer'
 import { CategoryNav } from '@/components/picker/category-nav'
@@ -42,6 +43,9 @@ interface SkinPickerProps {
   onLoadInspect?: (item: InspectItem) => string | null
   onClose: () => void
 }
+
+/** The picker's flat surface (also behind its sticky group titles). */
+const SURFACE = '#151514'
 
 const isCurrent = (card: Card, current: Selection | null) => {
   if (!current || current.kind !== card.selection.kind) return false
@@ -126,9 +130,21 @@ export function SkinPicker({ open, catalog, attachments, agents = null, pins = n
 
   return (
     <Dialog open={open} onOpenChange={(next) => { if (!next) onClose() }}>
-      <DialogContent showCloseButton={false} className="flex h-[min(840px,92vh)] w-[min(1220px,96vw)] max-w-none flex-col gap-0 overflow-hidden rounded-3xl p-0 sm:max-w-none md:flex-row">
+      <DialogContent showCloseButton={false} style={{ background: SURFACE }} className="flex h-[min(820px,92vh)] w-[min(1180px,96vw)] max-w-none flex-col gap-0 overflow-hidden rounded-2xl p-0 sm:max-w-none">
         <DialogTitle className="sr-only">Choose a skin</DialogTitle>
 
+        <PickerToolbar
+          query={query}
+          placeholder={historyOn ? 'Search your inspect history' : placeholder}
+          history={onLoadInspect && !only ? historyOn : undefined}
+          onHistory={(on) => { setShowHistory(on); setQuery('') }}
+          onQuery={setQuery}
+          onEnterGrid={() => focusFirstGridItem(body.current)}
+          onSubmit={linkMode ? loadLink : undefined}
+          onClose={onClose}
+        />
+
+        <div className="flex min-h-0 flex-1 flex-col md:flex-row">
         <CategoryNav
           categories={categories}
           active={searching || historyOn ? null : category}
@@ -138,21 +154,6 @@ export function SkinPicker({ open, catalog, attachments, agents = null, pins = n
         />
 
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-          <PickerToolbar
-            query={query}
-            placeholder={historyOn ? 'Search your inspect history' : placeholder}
-            stickerKind={category === 'Stickers' && !searching && !historyOn ? stickerKind : undefined}
-            portedOnly={!only && !historyOn && category !== 'Stickers' && category !== 'Charms' ? portedOnly : undefined}
-            history={onLoadInspect && !only ? historyOn : undefined}
-            onHistory={(on) => { setShowHistory(on); setQuery('') }}
-            onQuery={setQuery}
-            onStickerKind={setStickerKind}
-            onPortedOnly={setPortedOnly}
-            onEnterGrid={() => focusFirstGridItem(body.current)}
-            onSubmit={linkMode ? loadLink : undefined}
-            onClose={onClose}
-          />
-
           {historyOn ? (
             <div ref={body} className="min-h-0 flex-1 overflow-y-auto px-5 pb-6">
               <HistoryList
@@ -187,8 +188,12 @@ export function SkinPicker({ open, catalog, attachments, agents = null, pins = n
                 available={available}
                 rarities={rarities}
                 naming={naming}
+                stickerKind={category === 'Stickers' && !searching ? stickerKind : undefined}
+                portedOnly={!only && category !== 'Stickers' && category !== 'Charms' ? portedOnly : undefined}
                 onSort={setSort}
                 onRarities={setRarities}
+                onStickerKind={setStickerKind}
+                onPortedOnly={setPortedOnly}
               />
 
               <div
@@ -203,11 +208,11 @@ export function SkinPicker({ open, catalog, attachments, agents = null, pins = n
                 {!loading && !total && <div className="py-16 text-center text-muted-foreground">{rarities.length && !query ? 'Nothing of these rarities here.' : `Nothing matches “${query}”.`}</div>}
                 {shown.map((group) => (
                   <section key={group.title}>
-                    <div className="sticky top-0 z-10 -mx-5 px-5 pb-2 pt-4 backdrop-blur-xl">
-                      <span className="text-[13px] font-semibold">{group.title}</span>
-                      <span className="ml-2 text-[11px] tabular-nums text-muted-foreground">{group.cards.length}</span>
+                    <div className="sticky top-0 z-10 -mx-5 flex items-baseline gap-2 px-5 pb-2.5 pt-4" style={{ background: SURFACE }}>
+                      <span className="text-[13px] font-medium">{group.title}</span>
+                      <span className="text-[11.5px] tabular-nums text-muted-foreground">{group.cards.length}</span>
                     </div>
-                    <div className="grid grid-cols-[repeat(auto-fill,minmax(168px,1fr))] gap-3">
+                    <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-2.5">
                       {group.cards.map((card) => (
                         <PickerCard key={card.key} card={card} current={isCurrent(card, current)} onPick={() => { onPick(card.selection); onClose() }} />
                       ))}
@@ -223,6 +228,14 @@ export function SkinPicker({ open, catalog, attachments, agents = null, pins = n
               </div>
             </>
           )}
+        </div>
+        </div>
+
+        <div className="hidden h-10 shrink-0 items-center gap-4 border-t border-border px-5 text-[11.5px] text-muted-foreground md:flex">
+          <span className="flex items-center gap-1.5"><Kbd>↓</Kbd> to the cards</span>
+          <span className="flex items-center gap-1.5"><Kbd>Arrows</Kbd> move</span>
+          <span className="flex items-center gap-1.5"><Kbd>Enter</Kbd> pick</span>
+          {onLoadInspect && !only && <span className="ml-auto">Paste an inspect link in the search to load it</span>}
         </div>
       </DialogContent>
     </Dialog>

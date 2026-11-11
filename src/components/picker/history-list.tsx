@@ -48,7 +48,7 @@ export function HistoryList({ entries, query, catalog, attachments, agents, onLo
   return (
     <div className="flex flex-col gap-3 pt-4">
       <div className="flex items-center gap-2">
-        <span className="text-[13px] font-semibold">Recent inspect links</span>
+        <span className="text-[13px] font-medium">Recent inspect links</span>
         <span className="text-[11px] tabular-nums text-muted-foreground">{shown.length}</span>
         <Button variant="ghost" size="xs" className="ml-auto text-muted-foreground" onClick={onClear}><Trash2 /> Clear history</Button>
       </div>

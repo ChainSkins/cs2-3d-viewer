@@ -1,0 +1,29 @@
+import { cn } from '@/lib/utils'
+
+interface SegmentsProps<T extends string> {
+  label: string
+  options: { value: T; label: string }[]
+  /** The chosen one (null: none of them, for example a custom setup next to presets). */
+  value: T | null
+  onChange: (value: T) => void
+  className?: string
+}
+
+/** A flat row of options in a sunken track, one of them lit: a choice between a few, inside a panel. */
+export function Segments<T extends string>({ label, options, value, onChange, className }: SegmentsProps<T>) {
+  return (
+    <div role="group" aria-label={label} className={cn('flex gap-0.5 rounded-lg bg-black/25 p-0.5', className)}>
+      {options.map((o) => (
+        <button
+          key={o.value}
+          type="button"
+          aria-pressed={o.value === value}
+          onClick={() => onChange(o.value)}
+          className={cn('h-7 flex-1 rounded-md px-2 text-[12px] font-medium transition-colors', o.value === value ? 'bg-white/12 text-foreground' : 'text-muted-foreground hover:text-foreground')}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  )
+}

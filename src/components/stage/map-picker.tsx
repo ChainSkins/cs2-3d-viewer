@@ -14,7 +14,7 @@ interface MapPickerProps {
   onChange: (map: string | null) => void
 }
 
-/** The stage's map button (top right) and its dialog to put the model in an inspect map or the studio. */
+/** The map button of the stage's top bar and its dialog to put the model in an inspect map or the studio. */
 export function MapPicker({ map, onChange }: MapPickerProps) {
   const maps = useInspectMaps()
   const [open, setOpen] = useState(false)
@@ -27,7 +27,7 @@ export function MapPicker({ map, onChange }: MapPickerProps) {
 
   return (
     <>
-      <Button variant="outline" className="glass-panel pointer-events-auto h-10 rounded-2xl px-3" title="Change the map behind the item" aria-label={`Map: ${current}. Change it`} aria-haspopup="dialog" onClick={() => setOpen(true)}>
+      <Button variant="ghost" className="pointer-events-auto h-9 rounded-lg px-2.5 text-[13px]" title="Change the map behind the item" aria-label={`Map: ${current}. Change it`} aria-haspopup="dialog" onClick={() => setOpen(true)}>
         <MapIcon /> <span className="hidden sm:inline">{current}</span> <ChevronDown className="size-3.5 opacity-60" />
       </Button>
 

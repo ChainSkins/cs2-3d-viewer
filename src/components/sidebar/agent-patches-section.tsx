@@ -19,7 +19,7 @@ interface AgentPatchesSectionProps {
 export function AgentPatchesSection({ worn, patches, onChoose, onChange }: AgentPatchesSectionProps) {
   const count = worn.filter(Boolean).length
   return (
-    <Section title="Patches" collapsible={{ id: 'agent-patches', defaultOpen: true }} aside={<span className="text-[11px] tabular-nums text-muted-foreground">{count}/{PATCH_SLOTS}</span>}>
+    <Section title="Patches" collapsible={{ id: 'agent-patches', defaultOpen: true }} aside={<span className="section-value">{count}/{PATCH_SLOTS}</span>}>
       <div className="flex flex-col gap-4">
         {Array.from({ length: PATCH_SLOTS }, (_, slot) => {
           const patch = worn[slot]

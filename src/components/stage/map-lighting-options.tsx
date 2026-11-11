@@ -25,7 +25,7 @@ const NAMES: Record<LightSource, string> = { sun: 'sun', item: 'item light', sce
 /**
  * The map lights' strengths, as the game's inspect rig lights each kind of item (a weapon: sun, its item light, the
  * map's lights and ambient; a charm or sticker alone and first person: sun and ambient). The sources the current view
- * doesn't use are dimmed; in the studio the left panel's Lighting applies.
+ * doesn't use are dimmed; in the studio the studio lighting applies.
  */
 export function MapLightingOptions({ lighting, sources, onChange }: MapLightingOptionsProps) {
   const studio = sources?.length === 1 && sources[0] === 'studio'
@@ -33,14 +33,14 @@ export function MapLightingOptions({ lighting, sources, onChange }: MapLightingO
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
-        <span className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Lighting on maps</span>
+        <span className="text-[13px] font-medium">Lighting on maps</span>
         <Button variant="ghost" size="xs" className="ml-auto text-muted-foreground" disabled={!changed} onClick={() => onChange(DEFAULT_MAP_LIGHTING)}>
           <RotateCcw /> Game’s
         </Button>
       </div>
       <p className="text-[12px] leading-relaxed text-muted-foreground">
         {studio
-          ? 'In the studio the item is lit by the Lighting panel on the left. These apply on a map, where each kind of item gets the game’s own lights.'
+          ? 'In the studio the item is lit by the studio lighting above. These apply on a map, where each kind of item gets the game’s own lights.'
           : sources
             ? <>This item is lit by: <span className="text-foreground/85">{sources.map((s) => NAMES[s]).join(' · ')}</span>.</>
             : 'Each kind of item gets the game’s own lights on a map.'}

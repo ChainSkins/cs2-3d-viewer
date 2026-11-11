@@ -27,7 +27,7 @@ interface PetSectionProps {
   onDefaultAgent: () => void
 }
 
-const chip = (on: boolean) => cn('rounded-lg px-2.5 py-1 text-[12px] font-medium', on ? 'bevel-primary text-white' : 'bevel text-foreground/80')
+const chip = (on: boolean) => cn('rounded-lg px-2.5 py-1 text-[12px] font-medium', on ? 'bevel-active text-foreground' : 'bevel text-foreground/80')
 
 /** A pet's colours (one per material of its model) and the animation it plays: folders that fold, and a search over them. */
 export function PetSection({ pet, pets, variant, clip, onVariant, onClip, hat, onHat, agentName, onChooseAgent, onDefaultAgent }: PetSectionProps) {
@@ -60,7 +60,7 @@ export function PetSection({ pet, pets, variant, clip, onVariant, onClip, hat, o
   return (
     <>
       {model.variants.length > 1 && (
-        <Section title="Colour" collapsible={{ id: 'pet-colour' }} aside={<span className="text-[11px] tabular-nums text-muted-foreground">{Math.min(variant, model.variants.length - 1) + 1}/{model.variants.length}</span>}>
+        <Section title="Colour" collapsible={{ id: 'pet-colour' }} aside={<span className="section-value">{Math.min(variant, model.variants.length - 1) + 1}/{model.variants.length}</span>}>
           <div className="flex flex-wrap gap-1.5">
             {model.variants.map((v, i) => (
               <button key={i} type="button" aria-pressed={i === variant} className={chip(i === variant)} onClick={() => onVariant(i)}>{v.name}</button>
@@ -69,7 +69,7 @@ export function PetSection({ pet, pets, variant, clip, onVariant, onClip, hat, o
         </Section>
       )}
       {wearsHats && (
-        <Section title="Hat" collapsible={{ id: 'pet-hat' }} aside={<span className="text-[11px] tabular-nums text-muted-foreground">{hats.length}</span>}>
+        <Section title="Hat" collapsible={{ id: 'pet-hat' }} aside={<span className="section-value">{hats.length}</span>}>
           <div className="flex flex-wrap gap-1.5">
             <button type="button" aria-pressed={!hat} className={chip(!hat)} onClick={() => onHat(null)}>None</button>
             {hats.map((h) => (
@@ -87,7 +87,7 @@ export function PetSection({ pet, pets, variant, clip, onVariant, onClip, hat, o
         </Section>
       )}
       {clips.length > 0 && (
-        <Section title="Animation" collapsible={{ id: 'pet-animation' }} aside={<span className="text-[11px] tabular-nums text-muted-foreground">{clips.length}</span>}>
+        <Section title="Animation" collapsible={{ id: 'pet-animation' }} aside={<span className="section-value">{clips.length}</span>}>
           <Input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search: dance, sit, sleep…" aria-label="Search the animations" className="mb-2.5" />
           <div className="flex max-h-80 flex-col gap-1 overflow-y-auto pr-1">
             {folders.length === 0 && <p className="px-1 py-2 text-[12px] text-muted-foreground">No animation matches “{query}”.</p>}
@@ -101,7 +101,7 @@ export function PetSection({ pet, pets, variant, clip, onVariant, onClip, hat, o
                     onClick={() => setToggled((t) => ({ ...t, [title]: !open }))}
                     className="flex w-full items-center gap-2 rounded-lg px-1.5 py-1.5 text-left transition-colors hover:bg-white/4"
                   >
-                    <span className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{title}</span>
+                    <span className="text-[10.5px] font-medium uppercase tracking-[0.14em] text-muted-foreground">{title}</span>
                     <span className="text-[11px] tabular-nums text-muted-foreground/70">{list.length}</span>
                     <ChevronDown className={cn('ml-auto size-3.5 text-muted-foreground transition-transform', open && 'rotate-180')} />
                   </button>

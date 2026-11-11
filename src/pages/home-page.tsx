@@ -1,12 +1,13 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ApiTeaser } from '@/components/home/api-teaser'
 import { FeatureGrid } from '@/components/home/feature-grid'
 import { FeaturedSkins } from '@/components/home/featured-skins'
 import { HomeFooter } from '@/components/home/home-footer'
+import { HomeHeader } from '@/components/home/home-header'
 import { HomeHero } from '@/components/home/home-hero'
 import { MapGallery } from '@/components/home/map-gallery'
-import { HomeSidebar } from '@/components/home/home-sidebar'
+import { RecentLinks } from '@/components/inspect/recent-links'
 import { SkinPicker } from '@/components/picker/skin-picker'
 import { useCatalog } from '@/hooks/use-catalog'
 import { useInspectHistory } from '@/hooks/use-inspect-history'
@@ -15,12 +16,26 @@ import { useOpenPickerShortcut } from '@/hooks/use-open-picker-shortcut'
 import type { InspectItem } from '@/lib/data/inspect'
 import { selectionPath, type Selection } from '@/lib/selection'
 
-function BlockTitle({ title, sub }: { title: string; sub: string }) {
+interface BandProps {
+  id: string
+  eyebrow: string
+  title: string
+  sub: string
+  children: ReactNode
+}
+
+function Band({ id, eyebrow, title, sub, children }: BandProps) {
   return (
-    <div className="mb-4">
-      <h2 className="text-[20px] font-semibold tracking-tight">{title}</h2>
-      <p className="mt-1 text-[13px] text-muted-foreground">{sub}</p>
-    </div>
+    <section id={id} className="scroll-mt-16 border-t border-border">
+      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:py-28">
+        <span className="text-[13px] tracking-wide text-muted-foreground">{eyebrow}</span>
+        <div className="mt-4 grid items-end gap-4 lg:grid-cols-2 lg:gap-16">
+          <h2 className="max-w-lg text-[28px] font-medium leading-[1.2] tracking-tight lg:text-[42px]">{title}</h2>
+          <p className="text-[18px] leading-[1.55] text-muted-foreground lg:text-[21px]">{sub}</p>
+        </div>
+        <div className="mt-10 lg:mt-16">{children}</div>
+      </div>
+    </section>
   )
 }
 
@@ -32,43 +47,42 @@ export function HomePage() {
   const [picker, setPicker] = useState(false)
   const loadInspect = useInspectLink(catalog, attachments, agents, '', useCallback(() => {}, []))
   useOpenPickerShortcut(!picker, useCallback(() => setPicker(true), []))
+  const openPicker = () => setPicker(true)
 
   const loadRecent = (item: InspectItem, link: string) => {
     if (!loadInspect(item)) history.add(link)
   }
 
   return (
-    <div className="flex min-h-dvh flex-col lg:h-dvh lg:flex-row">
-      <HomeSidebar
-        history={history.entries}
-        catalog={catalog}
-        attachments={attachments}
-        agents={agents}
-        onSearch={() => setPicker(true)}
-        onLoadRecent={loadRecent}
-      />
-      <main className="order-1 flex-1 border-white/10 lg:min-h-0 lg:overflow-y-auto lg:order-2">
-        <div className="mx-auto flex max-w-6xl flex-col gap-14 px-5 py-10 lg:px-10 lg:py-14">
-          <HomeHero onSearch={() => setPicker(true)} />
-          <section>
-            <BlockTitle title="What it does" sub="Each card opens an example in the viewer." />
-            <FeatureGrid />
-          </section>
-          <section>
-            <BlockTitle title="The game’s maps" sub="Pick an inspect map and see a skin lit as in the game." />
-            <MapGallery />
-          </section>
-          <section>
-            <BlockTitle title="Featured skins" sub="A few well-known ones — or press / to search any item." />
-            <FeaturedSkins catalog={catalog} />
-          </section>
-          <section>
-            <BlockTitle title="For developers" sub="The same viewer, in your own page." />
-            <ApiTeaser />
-          </section>
+    <div className="min-h-dvh">
+      <HomeHeader onSearch={openPicker} />
+      <main>
+        <HomeHero onSearch={openPicker} />
+        {history.entries.length > 0 && (
+          <Band id="recent" eyebrow="Recent" title="Pick up where you left off" sub="The inspect links you pasted in the search. A click loads one again.">
+            <div className="max-w-2xl">
+              <RecentLinks entries={history.entries} catalog={catalog} attachments={attachments} agents={agents} onLoad={loadRecent} limit={6} />
+            </div>
+          </Band>
+        )}
+        <Band id="features" eyebrow="The viewer" title="What it does" sub="Each card opens an example in the viewer.">
+          <FeatureGrid />
+        </Band>
+        <Band id="maps" eyebrow="Maps" title="The game’s maps" sub="Pick an inspect map and see a skin lit as in the game.">
+          <MapGallery />
+        </Band>
+        <Band id="skins" eyebrow="Skins" title="Featured skins" sub="A few well-known ones — or press / to search any item.">
+          <FeaturedSkins catalog={catalog} />
+        </Band>
+        <Band id="developers" eyebrow="For developers" title="The same viewer, in your own page" sub="One iframe, driven by postMessage.">
+          <ApiTeaser />
+        </Band>
+      </main>
+      <div className="border-t border-border">
+        <div className="mx-auto max-w-7xl px-4 pb-2 pt-12 sm:px-6">
           <HomeFooter />
         </div>
-      </main>
+      </div>
 
       <SkinPicker
         open={picker}

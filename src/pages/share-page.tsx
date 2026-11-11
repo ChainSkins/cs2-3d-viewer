@@ -29,7 +29,7 @@ export function SharePage() {
       {failure ? (
         <div className="glass-strong flex max-w-sm flex-col items-center gap-3 rounded-3xl p-6 text-center">
           <Link2Off className="size-8 text-muted-foreground" />
-          <div className="text-[15px] font-semibold">Can’t open this link</div>
+          <div className="text-[15px] font-medium">Can’t open this link</div>
           <div className="text-[12.5px] text-muted-foreground">{failure}</div>
           <Button render={<Link to={selectionPath({ kind: 'skin', ...DEFAULT_SKIN })} />}>Open the viewer</Button>
         </div>

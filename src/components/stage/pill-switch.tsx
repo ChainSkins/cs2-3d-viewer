@@ -8,16 +8,12 @@ interface PillSwitchProps<T extends string> {
   className?: string
 }
 
-/** A pill with a glowing thumb that slides to the chosen option (two or three). */
+/** A flat segmented choice for the stage's bars (two or three options); a click on the chosen one moves on to the next. */
 export function PillSwitch<T extends string>({ options, value, onChange, label, className }: PillSwitchProps<T>) {
   const index = Math.max(0, options.findIndex((o) => o.value === value))
   const next = options[(index + 1) % options.length].value
   return (
-    <div role="radiogroup" aria-label={label} className={cn('glass-panel pointer-events-auto relative flex h-10 items-center rounded-full p-1 text-[11px] font-semibold uppercase tracking-widest', className)}>
-      <span
-        className="absolute inset-y-1 left-1 rounded-full bg-gradient-to-b from-violet-400 to-violet-600 shadow-[0_0_14px_oklch(0.65_0.25_295/55%)] transition-transform duration-300 ease-out"
-        style={{ width: `calc((100% - 8px) / ${options.length})`, transform: `translateX(${index * 100}%)` }}
-      />
+    <div role="radiogroup" aria-label={label} className={cn('pointer-events-auto flex h-9 shrink-0 items-center gap-0.5 rounded-lg bg-black/30 p-0.5 text-[12.5px] font-medium', className)}>
       {options.map((o) => (
         <button
           key={o.value}
@@ -25,7 +21,7 @@ export function PillSwitch<T extends string>({ options, value, onChange, label, 
           role="radio"
           aria-checked={o.value === value}
           onClick={() => onChange(o.value === value ? next : o.value)}
-          className={cn('relative z-10 flex-1 rounded-full text-center transition-colors', o.value === value ? 'text-white' : 'text-muted-foreground hover:text-foreground')}
+          className={cn('h-full rounded-md px-3 transition-colors', o.value === value ? 'bg-white/12 text-foreground' : 'text-muted-foreground hover:text-foreground')}
         >
           {o.label}
         </button>

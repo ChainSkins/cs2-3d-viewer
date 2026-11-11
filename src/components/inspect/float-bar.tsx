@@ -16,8 +16,8 @@ export function FloatBar({ float, wear, min, max }: FloatBarProps) {
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-baseline justify-between gap-2">
-        <span className="font-mono text-[15px] font-semibold tabular-nums">{float.toFixed(10).replace(/0+$/, '').replace(/\.$/, '.0')}</span>
-        <span className="rounded-full border px-2 py-0.5 text-[11px] font-semibold" style={{ color: wear.color, borderColor: `${wear.color}55`, background: `${wear.color}14` }}>
+        <span className="font-mono text-[15px] font-medium tabular-nums">{float.toFixed(10).replace(/0+$/, '').replace(/\.$/, '.0')}</span>
+        <span className="rounded-full border px-2 py-0.5 text-[11px] font-medium" style={{ color: wear.color, borderColor: `${wear.color}55`, background: `${wear.color}14` }}>
           {wear.name}
         </span>
       </div>

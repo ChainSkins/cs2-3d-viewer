@@ -17,6 +17,8 @@ export interface Heading {
   title: string
   chips: string[]
   color: string
+  /** Its market image, when the db has one. */
+  icon?: string
 }
 
 /**
@@ -35,17 +37,17 @@ export function headingFor(selection: Selection, item: Item | null, skin: Catalo
   if (selection.kind === 'sticker') {
     const sticker = attachments?.sticker.get(selection.id)
     const color = sticker ? rarityColor(images.stickerRarity(sticker.index), sticker.rarity, '#e4ae39') : '#e4ae39'
-    return { over: 'Sticker', title: sticker?.name ?? selection.id, chips: [(sticker && STICKER_KIND[stickerKindOf(sticker)]) ?? 'Sticker', 'csgo_weapon_sticker'], color }
+    return { over: 'Sticker', title: sticker?.name ?? selection.id, chips: [(sticker && STICKER_KIND[stickerKindOf(sticker)]) ?? 'Sticker', 'csgo_weapon_sticker'], color, icon: sticker ? images.sticker(sticker.index) : undefined }
   }
   if (selection.kind === 'charm') {
     const charm = attachments?.charm.get(selection.id)
     const color = charm ? rarityColor(images.charmRarity(charm.index), charm.rarity, '#8847ff') : '#8847ff'
-    return { over: 'Charm', title: charm?.name ?? selection.id, chips: ['Keychain', 'Pattern 0–100000'], color }
+    return { over: 'Charm', title: charm?.name ?? selection.id, chips: ['Keychain', 'Pattern 0–100000'], color, icon: charm ? images.charm(charm.index) : undefined }
   }
   if (selection.kind === 'patch') {
     const patch = patches?.patch.get(selection.id)
     const color = rarityColor(images.patchRarity(patch?.index ?? 0) ?? patch?.rarity ?? undefined, undefined, '#b0c3d9')
-    return { over: 'Agent patch', title: patch?.name ?? selection.id, chips: ['Patch'], color }
+    return { over: 'Agent patch', title: patch?.name ?? selection.id, chips: ['Patch'], color, icon: patch ? images.patch(patch.index) : undefined }
   }
   if (selection.kind === 'pet') {
     const pet = pets?.pet.get(selection.id)
@@ -54,16 +56,17 @@ export function headingFor(selection: Selection, item: Item | null, skin: Catalo
   if (selection.kind === 'pin') {
     const pin = pins?.pin.get(selection.id)
     const color = pin ? rarityColor(images.pinRarity(pin.index), undefined, '#b0c3d9') : '#b0c3d9'
-    return { over: 'Collectible', title: (pin?.name ?? selection.id).replace(/ Pin$/, ''), chips: ['Pin'], color }
+    return { over: 'Collectible', title: (pin?.name ?? selection.id).replace(/ Pin$/, ''), chips: ['Pin'], color, icon: pin ? images.pin(pin.index) : undefined }
   }
   if (selection.kind === 'agent') {
     const agent = agents?.agent.get(selection.id)
     const [title, faction] = (agent?.name ?? selection.id).split(' | ')
     const color = agent ? rarityColor(images.agentRarity(agent.index), agent.rarity, '#b0c3d9') : '#b0c3d9'
-    return { over: faction ?? 'Agent', title, chips: [agent?.team === 't' ? 'Terrorist' : 'Counter-Terrorist', 'Agent'], color }
+    return { over: faction ?? 'Agent', title, chips: [agent?.team === 't' ? 'Terrorist' : 'Counter-Terrorist', 'Agent'], color, icon: agent ? images.agent(agent.index) : undefined }
   }
   const color = rarityColor(skin ? images.skinRarity(catalog?.items[skin.item]?.defindex, skin.paintIndex) : undefined, skin?.rarity, '#71717a')
-  if (!item) return { over: skin ? '' : selection.item, title: skin ? variantName(skin) : selection.kit, chips: [], color }
+  const icon = skin ? images.skin(catalog?.items[skin.item]?.defindex, skin.paintIndex) : undefined
+  if (!item) return { over: skin ? '' : selection.item, title: skin ? variantName(skin) : selection.kit, chips: [], color, icon }
   const [weapon, baseFinish = ''] = item.title.split(' | ')
   const subtitle = item.subtitle.split(' · ')
   return {
@@ -71,5 +74,6 @@ export function headingFor(selection: Selection, item: Item | null, skin: Catalo
     title: skin ? variantName(skin) : baseFinish,
     chips: [subtitle[0], item.style === 'bare' ? item.styleName + ' · not ported yet' : subtitle[1] ?? STYLE_LABEL[item.style]],
     color,
+    icon,
   }
 }

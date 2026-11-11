@@ -1,0 +1,47 @@
+import { X, type LucideIcon } from 'lucide-react'
+import { cn } from '@/lib/utils'
+
+interface WornRowProps {
+  /** What kind of thing this is ("Agent", "Gloves"). */
+  kind: string
+  /** The chosen one's name, or null while it is the default. */
+  name: string | null
+  /** What the default is called. */
+  placeholder: string
+  image?: string
+  icon: LucideIcon
+  clearLabel: string
+  /** Lit: its settings are shown under it (undefined: it has none). */
+  open?: boolean
+  onToggle?: () => void
+  onChoose: () => void
+  onClear: () => void
+}
+
+/** Something worn in first person: its picture, what it is, and the ways to swap it or go back to the default. */
+export function WornRow({ kind, name, placeholder, image, icon: Icon, clearLabel, open, onToggle, onChoose, onClear }: WornRowProps) {
+  const body = (
+    <>
+      <span className={cn('grid size-11 shrink-0 place-items-center overflow-hidden rounded-lg border bg-black/25 transition-colors', open ? 'border-foreground/60' : 'border-border')}>
+        {image ? <img src={image} alt="" draggable={false} className="size-full object-contain p-0.5" /> : <Icon className="size-[18px] text-muted-foreground" />}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[11.5px] text-muted-foreground">{kind}</span>
+        <span className={cn('block truncate text-[13px] font-medium', !name && 'text-foreground/70')} title={name ?? placeholder}>{name ?? placeholder}</span>
+      </span>
+    </>
+  )
+  return (
+    <div className="flex items-center gap-1.5">
+      {onToggle
+        ? <button type="button" aria-expanded={open} title={open ? 'Hide its settings' : 'Show its settings'} onClick={onToggle} className="flex min-w-0 flex-1 items-center gap-3 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/60">{body}</button>
+        : <div className="flex min-w-0 flex-1 items-center gap-3">{body}</div>}
+      <button type="button" onClick={onChoose} className="h-7 shrink-0 rounded-md border border-border px-2 text-[12px] font-medium text-muted-foreground transition-colors hover:border-white/20 hover:text-foreground">Change</button>
+      {name && (
+        <button type="button" aria-label={clearLabel} title={clearLabel} onClick={onClear} className="grid size-7 shrink-0 place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:border-white/20 hover:text-foreground">
+          <X className="size-3.5" />
+        </button>
+      )}
+    </div>
+  )
+}

@@ -11,31 +11,30 @@ export function HomeHero({ onSearch }: { onSearch: () => void }) {
   const [failed, setFailed] = useState(false)
 
   return (
-    <section className="relative grid items-center gap-8 xl:grid-cols-[1fr_1.15fr]">
-      <div aria-hidden className="pointer-events-none absolute -left-16 -top-24 h-72 w-md rounded-full bg-violet-600/25 blur-3xl" />
-      <div className="relative">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-400/30 bg-violet-500/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-200">
-          CS2 · in your browser
-        </span>
-        <h1 className="mt-4 text-[36px] font-semibold leading-[1.05] tracking-tight lg:text-[52px]">
-          Any CS2 skin,<br />
-          <span className="bg-linear-to-r from-violet-300 via-fuchsia-300 to-amber-200 bg-clip-text text-transparent">in 3D.</span>
+    <section className="mx-auto max-w-7xl px-4 pb-16 pt-16 sm:px-6 lg:pb-24 lg:pt-28">
+      <div className="max-w-2xl">
+        <Link to="/api" className="group inline-flex items-center gap-2 text-[13px] text-muted-foreground transition-colors hover:text-foreground">
+          <span className="font-medium text-foreground">New</span> Embed API <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+        </Link>
+        <h1 className="mt-6 text-[36px] font-medium leading-[1.1] tracking-tight lg:text-[48px]">
+          Any CS2 skin, <span className="text-muted-foreground">in 3D.</span>
         </h1>
-        <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-muted-foreground">
+        <p className="mt-5 text-[18px] leading-[1.55] text-muted-foreground lg:text-[21px]">
           Built on the game’s own shaders: the real float and pattern, stickers and charms, gloves and agents, first person with the
           inspect animation, and the game’s inspect maps.
         </p>
-        <div className="mt-6 flex flex-wrap gap-2.5">
-          <Button size="lg" className="h-11 rounded-2xl px-5" render={<Link to={selectionPath({ kind: 'skin', ...DEFAULT_SKIN })} />}>
-            Open the viewer <ArrowRight />
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Button size="lg" className="h-10 px-4 text-[15px]" render={<Link to={selectionPath({ kind: 'skin', ...DEFAULT_SKIN })} />}>
+            Open the viewer
           </Button>
-          <Button size="lg" variant="outline" className="h-11 rounded-2xl px-5" onClick={onSearch}>
+          <Button size="lg" variant="outline" className="h-10 px-4 text-[15px]" onClick={onSearch}>
             <Search /> Search or paste a link
           </Button>
         </div>
       </div>
-      <div className="tile relative aspect-video overflow-hidden p-0 shadow-[0_40px_90px_-40px_oklch(0.5_0.25_300/55%)]">
-        <div aria-hidden className="absolute inset-0 bg-linear-to-br from-violet-950 to-background" />
+
+      <div className="tile relative mt-14 aspect-video overflow-hidden p-0 lg:mt-20 lg:aspect-[2.2/1]">
+        <div aria-hidden className="absolute inset-0 bg-linear-to-br from-[#222221] to-background" />
         {!failed && (
           <video
             title="AK-47 | Fire Serpent in 3D on Mirage"

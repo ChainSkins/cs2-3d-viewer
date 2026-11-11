@@ -33,7 +33,7 @@ export function NumberField({ value, min, max, decimals = 0, label, className, o
       onChange={(e) => setDraft(e.target.value)}
       onBlur={commit}
       onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
-      className={cn('inset-well h-8 min-w-0 rounded-lg px-2 text-center font-mono text-[13px] tabular-nums outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50', className)}
+      className={cn('h-8 min-w-0 rounded-md border border-border bg-black/25 px-2 text-right font-mono text-[13px] tabular-nums outline-none transition-colors focus-visible:border-white/25', className)}
     />
   )
 }

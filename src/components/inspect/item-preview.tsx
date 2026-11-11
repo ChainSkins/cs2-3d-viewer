@@ -9,11 +9,6 @@ import { ItemHeader } from '@/components/inspect/item-header'
 import type { InspectPreview } from '@/lib/inspect-preview'
 
 
-/**
- * Everything an inspect link says about its item: the market card, then — for a skin — float, pattern, stickers
- * and charm; for an agent its patches; for a charm item its pattern and the sticker in a slab (a sticker item is
- * just its card).
- */
 export function ItemPreview({ preview }: { preview: InspectPreview }) {
   return (
     <div className="flex flex-col gap-3">

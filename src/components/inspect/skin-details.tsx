@@ -7,7 +7,7 @@ import { PatternWell } from '@/components/inspect/pattern-well'
 import { StickerWear } from '@/components/inspect/sticker-wear'
 import type { InspectPreview } from '@/lib/inspect-preview'
 
-/** A skin's float, pattern, stickers and charm. */
+
 export function SkinDetails({ preview }: { preview: InspectPreview }) {
   return (
     <>

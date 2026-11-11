@@ -28,7 +28,7 @@ import { useViewerState } from '@/hooks/use-viewer-state'
 import { useViewerSync, type ViewOptions } from '@/hooks/use-viewer-sync'
 import { headingFor } from '@/lib/heading'
 import { skinDisplayName } from '@/lib/picker'
-import { selectionPath, type Selection } from '@/lib/selection'
+import { selectionPath, skinKey, type Selection } from '@/lib/selection'
 
 interface ViewerPageProps {
   selection: Selection
@@ -71,6 +71,11 @@ export function ViewerPage({ selection }: ViewerPageProps) {
   const images = useDbImages()
   const heading = headingFor(selection, item, skin, attachments, catalog, images, agents, pins, patches, pets)
   const glovesName = useMemo(() => skinDisplayName(catalog, state.gloves), [catalog, state.gloves])
+  const glovesImage = useMemo(() => {
+    const worn = state.gloves ? catalog?.skins.find((s) => skinKey(s) === state.gloves) : undefined
+    return worn ? images.skin(catalog!.items[worn.item]?.defindex, worn.paintIndex) : undefined
+  }, [catalog, images, state.gloves])
+  const wornAgent = state.agent ? agents?.agent.get(state.agent) : undefined
 
   const picker = usePicker(selection, item, state, setActiveSticker)
   const [editing, setEditing] = useState(false)
@@ -110,9 +115,6 @@ export function ViewerPage({ selection }: ViewerPageProps) {
       )}
       <div className={hideUi ? 'hidden' : 'contents'}>
       <Sidebar
-          lighting={lighting}
-          lightingPreset={presetId}
-          onLighting={setLighting}
           viewmodel={viewmodel}
           onViewmodel={setViewmodel}
           collapsed={panelCollapsed}
@@ -125,7 +127,9 @@ export function ViewerPage({ selection }: ViewerPageProps) {
           pets={pets}
           state={state}
           glovesName={glovesName}
-          agentName={state.agent ? agents?.agent.get(state.agent)?.name ?? state.agent : null}
+          glovesImage={glovesImage}
+          agentName={state.agent ? wornAgent?.name ?? state.agent : null}
+          agentImage={wornAgent ? images.agent(wornAgent.index) : undefined}
           loadoutWeapon={heldWeapon}
           loadoutWeaponName={loadout.weaponName}
           onLoadoutFirstPerson={loadout.openFirstPerson}
@@ -150,6 +154,9 @@ export function ViewerPage({ selection }: ViewerPageProps) {
           onToggleEditing={() => setEditing((on) => !on)}
           quality={quality}
           onQuality={setQuality}
+          lighting={lighting}
+          lightingPreset={presetId}
+          onLighting={setLighting}
           mapLighting={mapLighting}
           onMapLighting={setMapLighting}
           readRenderStatus={readRenderStatus}

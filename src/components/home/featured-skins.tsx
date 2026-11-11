@@ -9,7 +9,6 @@ import { variantName } from '@/lib/picker'
 import { rarityColor } from '@/lib/rarity'
 import { parseSkinKey, selectionPath } from '@/lib/selection'
 
-/** A row of well-known skins, as picker cards that open them in the viewer. */
 export function FeaturedSkins({ catalog }: { catalog: CatalogIndex | null }) {
   const images = useDbImages()
   const navigate = useNavigate()
@@ -26,7 +25,7 @@ export function FeaturedSkins({ catalog }: { catalog: CatalogIndex | null }) {
 
   return (
     <div className="grid grid-cols-[repeat(auto-fill,minmax(168px,1fr))] gap-3">
-      {!catalog && FEATURED_SKINS.map((k) => <Skeleton key={k} className="h-[190px] rounded-2xl" />)}
+      {!catalog && FEATURED_SKINS.map((k) => <Skeleton key={k} className="h-47.5 rounded-2xl" />)}
       {cards.map(({ key, skin, card }) => (
         <PickerCard key={key} card={card} current={false} onPick={() => navigate(selectionPath({ kind: 'skin', item: skin.item, kit: skin.kit }))} />
       ))}

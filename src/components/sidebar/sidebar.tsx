@@ -10,7 +10,6 @@ import { PetSection } from '@/components/sidebar/pet-section'
 import { PatternSection } from '@/components/sidebar/pattern-section'
 import { StickerCardSection, StickerWearSection } from '@/components/sidebar/sticker-wear-section'
 import { FirstPersonSection } from '@/components/sidebar/first-person-section'
-import { LightingSection } from '@/components/sidebar/lighting-section'
 import { LoadoutSection } from '@/components/sidebar/loadout-section'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
@@ -27,12 +26,9 @@ import { fadeForItem } from '@/lib/fade'
 import { clampFloat } from '@/lib/wear'
 import { DEFAULT_FLOAT } from '@/lib/config'
 import type { ViewerStateApi } from '@/hooks/use-viewer-state'
-import type { Lighting, Viewmodel } from '@/lib/viewer/skin-viewer'
+import type { Viewmodel } from '@/lib/viewer/skin-viewer'
 
 interface SidebarProps {
-  lighting: Lighting
-  lightingPreset: string | null
-  onLighting: (changes: Partial<Lighting>) => void
   viewmodel: Viewmodel
   onViewmodel: (changes: Partial<Viewmodel>) => void
   collapsed: boolean
@@ -45,7 +41,9 @@ interface SidebarProps {
   pets: PetIndex | null
   state: ViewerStateApi
   glovesName: string | null
+  glovesImage?: string
   agentName: string | null
+  agentImage?: string
   /** On an agent's page: the loadout weapon it holds (loaded) and its name; opening it in first person. */
   loadoutWeapon: Item | null
   loadoutWeaponName: string | null
@@ -60,11 +58,14 @@ interface SidebarProps {
 }
 
 /** The control panel, floating over the page: the selection, then the sections that apply to it. On wide screens it folds into a slim rail. */
-export function Sidebar({ lighting, lightingPreset, onLighting, viewmodel, onViewmodel, collapsed, onToggleCollapsed, selection, heading, item, attachments, patches, pets, state, glovesName, agentName, loadoutWeapon, loadoutWeaponName, onLoadoutFirstPerson, activeSticker, onActiveSticker, onOpenPicker, loading, sheetOpen, onCloseSheet }: SidebarProps) {
+export function Sidebar({ viewmodel, onViewmodel, collapsed, onToggleCollapsed, selection, heading, item, attachments, patches, pets, state, glovesName, glovesImage, agentName, agentImage, loadoutWeapon, loadoutWeaponName, onLoadoutFirstPerson, activeSticker, onActiveSticker, onOpenPicker, loading, sheetOpen, onCloseSheet }: SidebarProps) {
   const isSkin = selection.kind === 'skin'
   /** On a phone the panel is a sheet over half the screen, opened by the stage's button. */
   /** On a phone a skin's sections are split into tabs, so the sheet stays short; wide screens show them all. */
-  const [tab, setTab] = useState<'finish' | 'stickers' | 'view'>('finish')
+  const [wantedTab, setTab] = useState<'finish' | 'stickers' | 'view'>('finish')
+  /** The View tab holds first person alone, so it is there only while that is on. */
+  const hasView = isSkin && !!item && item.style !== 'glove' && state.firstPerson
+  const tab = wantedTab === 'view' && !hasView ? 'finish' : wantedTab
   const only = (t: typeof tab) => cn('contents', isSkin && tab !== t && 'max-lg:hidden')
   const stickerName = (id: string | null) => (id ? attachments?.sticker.get(id)?.name ?? id : '')
   const charmId = selection.kind === 'charm' ? selection.id : state.charm.id
@@ -78,7 +79,7 @@ export function Sidebar({ lighting, lightingPreset, onLighting, viewmodel, onVie
         sheetOpen ? 'sheet-in max-lg:fixed max-lg:inset-0 max-lg:z-40 max-lg:rounded-none max-lg:border-0' : 'max-lg:hidden',
       )}
     >
-      <div className={cn('flex items-center gap-2 border-b border-white/10 px-3.5 py-2', collapsed && 'lg:flex-col lg:px-2.5 lg:py-2.5')}>
+      <div className={cn('flex items-center gap-2 border-b border-border px-3.5 py-2', collapsed && 'lg:flex-col lg:px-2.5 lg:py-2.5')}>
         <BrandMark compact={collapsed} className={cn('flex-1', collapsed && 'lg:flex-none')} />
         <Button variant="ghost" size="icon-sm" className="hidden lg:inline-flex" aria-label={collapsed ? 'Expand panel' : 'Collapse panel'} onClick={onToggleCollapsed}>
           {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
@@ -97,15 +98,15 @@ export function Sidebar({ lighting, lightingPreset, onLighting, viewmodel, onVie
         </div>
       )}
 
-      <div data-loading={loading} aria-busy={loading} className={cn('group/panel sheet-cards flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-4 py-4', collapsed && 'lg:hidden')}>
-        <CurrentPick over={heading.over} title={heading.title} color={heading.color} onClick={() => onOpenPicker({ kind: 'selection' })} />
+      <div data-loading={loading} aria-busy={loading} className={cn('group/panel panel-flat sheet-cards flex min-h-0 flex-1 flex-col overflow-y-auto', collapsed && 'lg:hidden')}>
+        <CurrentPick over={heading.over} title={heading.title} color={heading.color} icon={heading.icon} onClick={() => onOpenPicker({ kind: 'selection' })} />
         <div className="contents">
 
         {isSkin && item && (
-          <div role="tablist" className="flex gap-1 rounded-2xl bg-white/[0.05] p-1 lg:hidden">
-            {([['finish', 'Finish'], ['stickers', 'Stickers'], ['view', 'View']] as const).map(([id, label]) => (
+          <div role="tablist" className="mx-4 my-3 flex gap-0.5 rounded-lg bg-black/25 p-0.5 lg:hidden">
+            {([['finish', 'Finish'], ['stickers', 'Stickers'], ['view', 'View']] as const).filter(([id]) => id !== 'view' || hasView).map(([id, label]) => (
               <button key={id} type="button" role="tab" aria-selected={tab === id} onClick={() => setTab(id)}
-                className={cn('flex-1 rounded-xl py-1.5 text-[12.5px] font-semibold transition-colors', tab === id ? 'bg-white/15 text-white' : 'text-muted-foreground')}>
+                className={cn('flex-1 rounded-md py-1.5 text-[12.5px] font-medium transition-colors', tab === id ? 'bg-white/12 text-foreground' : 'text-muted-foreground')}>
                 {label}
               </button>
             ))}
@@ -116,7 +117,7 @@ export function Sidebar({ lighting, lightingPreset, onLighting, viewmodel, onVie
 
         {isSkin && item && (
           <>
-            <div className={cn(only('finish'), tab === 'finish' && 'max-lg:flex max-lg:flex-col max-lg:gap-3.5')}>
+            <div className={cn(only('finish'), tab === 'finish' && 'max-lg:flex max-lg:flex-col')}>
               <FloatSection item={item} float={clampFloat(item, state.float ?? DEFAULT_FLOAT)} onChange={state.setFloat} />
               <PatternSection seed={state.seed} onChange={state.setSeed} fade={fadeForItem(item, state.seed)} />
             </div>
@@ -164,7 +165,9 @@ export function Sidebar({ lighting, lightingPreset, onLighting, viewmodel, onVie
           <div className={only('view')}>
           <FirstPersonSection
             agentName={agentName}
+            agentImage={agentImage}
             glovesName={glovesName}
+            glovesImage={glovesImage}
             viewmodel={viewmodel}
             onViewmodel={onViewmodel}
             onChooseAgent={() => onOpenPicker({ kind: 'agent' })}
@@ -198,7 +201,6 @@ export function Sidebar({ lighting, lightingPreset, onLighting, viewmodel, onVie
           <AgentPatchesSection worn={state.agentPatches} patches={patches} onChoose={(slot) => onOpenPicker({ kind: 'patch', slot })} onChange={state.setAgentPatch} />
         )}
 
-        <div className={only('view')}><LightingSection lighting={lighting} presetId={lightingPreset} onChange={onLighting} /></div>
         </div>
       </div>
     </aside>

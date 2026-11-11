@@ -26,7 +26,7 @@ export function AttackMenu({ attacks, onAttack }: AttackMenuProps) {
     <div ref={root} className="relative">
       <ToolButton icon={Swords} label="Attacks" pressed={open} onClick={() => setOpen((on) => !on)} />
       {open && (
-        <ul className="glass-panel absolute bottom-full left-1/2 z-20 mb-2 w-44 -translate-x-1/2 rounded-2xl bg-zinc-950/90 p-1.5" role="menu" aria-label="Attacks">
+        <ul className="glass-strong absolute bottom-full left-1/2 z-20 mb-2 w-44 -translate-x-1/2 rounded-xl p-1" role="menu" aria-label="Attacks">
           {attacks.map((a) => (
             <li key={a.name} role="none">
               <button

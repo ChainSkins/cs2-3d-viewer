@@ -1,8 +1,10 @@
-import { Camera, Crosshair, Eye, Hand, HandMetal, MousePointer2, RotateCw, ScanSearch } from 'lucide-react'
+import { Camera, Crosshair, Eye, Hand, HandMetal, RotateCw, ScanSearch } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { AttackMenu } from '@/components/stage/attack-menu'
+import { PillSwitch } from '@/components/stage/pill-switch'
 import { ToolButton } from '@/components/stage/tool-button'
 import type { AttackInfo } from '@/lib/data/attacks'
+import type { KnifePose } from '@/lib/viewer/skin-viewer'
 import { cn } from '@/lib/utils'
 
 export interface StageToolbarProps {
@@ -19,6 +21,12 @@ export interface StageToolbarProps {
   /** First person's attack animations (a gun's shots, a knife's slashes and stabs). */
   attacks: AttackInfo[]
   stats: ReactNode
+  /** Front: the initial view; Back: a half turn around the model. */
+  showingBack: boolean
+  onSide: (back: boolean) => void
+  /** Knives only (null: not a knife): how it stands. */
+  knifePose: KnifePose | null
+  onKnifePose: (pose: KnifePose) => void
   onToggleSpin: () => void
   onToggleFirstPerson: () => void
   onTogglePalmUp: () => void
@@ -29,12 +37,37 @@ export interface StageToolbarProps {
   onScreenshot: () => void
 }
 
-/** The floating bar under the model: view tools, the read-out, and a hint. */
-export function StageToolbar({ spin, isWeapon, isGlove, firstPerson, palmUp, canInspect, canInspectGloves, attacks, stats, onToggleSpin, onToggleFirstPerson, onTogglePalmUp, onInspect, onInspectGloves, onAttack, onScreenshot }: StageToolbarProps) {
+const DIVIDER = <span aria-hidden className="mx-0.5 h-5 w-px shrink-0 bg-white/10" />
+
+/**
+ * Under the model: one dock in the middle with how it is seen (its side, a knife's pose) and the view tools, the
+ * read-out as a quiet line in the left corner and a hint in the right one.
+ */
+export function StageToolbar({ spin, isWeapon, isGlove, firstPerson, palmUp, canInspect, canInspectGloves, attacks, stats, showingBack, onSide, knifePose, onKnifePose, onToggleSpin, onToggleFirstPerson, onTogglePalmUp, onInspect, onInspectGloves, onAttack, onScreenshot }: StageToolbarProps) {
   const inFirstPerson = firstPerson && isWeapon
+  const hint = inFirstPerson
+    ? (canInspect ? 'Move the mouse to sway · F to inspect' : 'Move the mouse to sway') + (attacks.length ? ' · click or Space to fire' : '')
+    : 'Drag to rotate · scroll to zoom'
   return (
-    <div className="glass-panel pointer-events-auto flex max-w-full flex-wrap items-center justify-center gap-2 rounded-2xl p-2">
-      <div className="flex gap-1.5">
+    <div className="grid w-full grid-cols-1 items-end gap-2 lg:grid-cols-[1fr_auto_1fr]">
+      <div className="hidden min-w-0 flex-wrap items-center gap-x-4 gap-y-1 lg:flex">{stats}</div>
+
+      <div className="glass-panel pointer-events-auto flex max-w-full flex-wrap items-center justify-center gap-1 justify-self-center rounded-xl p-1">
+        <PillSwitch
+          label="Front / Back"
+          options={[{ value: 'front', label: 'Front' }, { value: 'back', label: 'Back' }]}
+          value={showingBack ? 'back' : 'front'}
+          onChange={(v) => onSide(v === 'back')}
+        />
+        {knifePose && (
+          <PillSwitch
+            label="Knife pose"
+            options={[{ value: 'vertical', label: 'Vertical' }, { value: 'horizontal', label: 'Flat' }, { value: 'tilted', label: 'Tilted' }]}
+            value={knifePose}
+            onChange={onKnifePose}
+          />
+        )}
+        {DIVIDER}
         <ToolButton icon={RotateCw} label="Auto-rotate" pressed={spin} disabled={inFirstPerson} iconClassName={cn(spin && !inFirstPerson && 'animate-spin [animation-duration:3s]')} onClick={onToggleSpin} />
         {isWeapon && <ToolButton icon={Eye} label="First person (V)" pressed={firstPerson} onClick={onToggleFirstPerson} />}
         {inFirstPerson && canInspect && <ToolButton icon={ScanSearch} label="Inspect (F)" onClick={onInspect} />}
@@ -42,19 +75,11 @@ export function StageToolbar({ spin, isWeapon, isGlove, firstPerson, palmUp, can
         {inFirstPerson && attacks.length > 1 && <AttackMenu attacks={attacks} onAttack={onAttack} />}
         {((inFirstPerson && canInspectGloves) || isGlove) && <ToolButton icon={HandMetal} label="Look at gloves (G)" onClick={onInspectGloves} />}
         {isGlove && <ToolButton icon={Hand} label="Right glove palm-up" pressed={palmUp} onClick={onTogglePalmUp} />}
+        {DIVIDER}
         <ToolButton icon={Camera} label="Save screenshot" onClick={onScreenshot} />
       </div>
 
-      {stats && (
-        <>
-          <span className="hidden h-8 w-px bg-white/10 sm:block" />
-          <div className="inset-well hidden items-center gap-4 sm:flex rounded-xl px-3.5 py-1.5">{stats}</div>
-        </>
-      )}
-
-      <span className="hidden items-center gap-1.5 px-2 text-[11px] text-muted-foreground md:flex">
-        <MousePointer2 className="size-3.5" /> {inFirstPerson ? (canInspect ? 'Move the mouse to sway · F to inspect' : 'Move the mouse to sway') + (attacks.length ? ' · click or Space to fire' : '') : 'Drag to rotate · scroll to zoom'}
-      </span>
+      <span className="hidden justify-self-end text-right text-[11.5px] text-muted-foreground lg:block">{hint}</span>
     </div>
   )
 }

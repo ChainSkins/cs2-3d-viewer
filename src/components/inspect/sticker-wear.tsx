@@ -1,4 +1,3 @@
-/** A sticker's wear as a label and a bar of what is left of it (0 = pristine, 1 = scraped off). */
 export function StickerWear({ wear }: { wear: number }) {
   return (
     <div className="flex w-20 shrink-0 flex-col items-end gap-1">

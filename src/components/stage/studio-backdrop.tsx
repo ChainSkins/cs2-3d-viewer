@@ -5,7 +5,7 @@
 export function StudioBackdrop() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-      <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 80% 70% at 50% 35%, oklch(0.24 0.06 292 / 70%), transparent 75%)' }} />
+      <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 80% 70% at 50% 35%, oklch(0.27 0.004 100 / 70%), transparent 75%)' }} />
       <div
         className="absolute -inset-x-1/2 bottom-0 h-[58%] origin-bottom"
         style={{

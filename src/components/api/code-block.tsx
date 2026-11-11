@@ -21,7 +21,7 @@ export function CodeBlock({ code, label, className }: CodeBlockProps) {
   return (
     <div className={cn('inset-well overflow-hidden rounded-2xl', className)}>
       <div className="flex items-center justify-between border-b border-white/6 px-3.5 py-2">
-        <span className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{label ?? 'Code'}</span>
+        <span className="text-[10.5px] font-medium uppercase tracking-[0.14em] text-muted-foreground">{label ?? 'Code'}</span>
         <button type="button" onClick={copy} className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] text-muted-foreground transition hover:bg-white/10 hover:text-foreground">
           {copied ? <><Check className="size-3.5" /> Copied</> : <><Copy className="size-3.5" /> Copy</>}
         </button>

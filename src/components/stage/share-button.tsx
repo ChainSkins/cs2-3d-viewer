@@ -39,7 +39,7 @@ export function ShareButton({ getShare }: ShareButtonProps) {
   const [share, setShare] = useState<ShareSource | null>(null)
   return (
     <>
-      <Button variant="outline" className="glass-panel pointer-events-auto size-10 rounded-2xl" aria-label="Share" title="Share this view" onClick={() => setShare(getShare())}>
+      <Button variant="ghost" className="pointer-events-auto size-9 rounded-lg text-muted-foreground" aria-label="Share" title="Share this view" onClick={() => setShare(getShare())}>
         <Share2 />
       </Button>
       <ShareDialog share={share} onClose={() => setShare(null)} />
