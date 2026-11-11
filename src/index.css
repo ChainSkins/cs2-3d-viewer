@@ -8,19 +8,6 @@
 @theme inline {
     --font-heading: var(--font-sans);
     --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
-    --color-sidebar-ring: var(--sidebar-ring);
-    --color-sidebar-border: var(--sidebar-border);
-    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-    --color-sidebar-accent: var(--sidebar-accent);
-    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-    --color-sidebar-primary: var(--sidebar-primary);
-    --color-sidebar-foreground: var(--sidebar-foreground);
-    --color-sidebar: var(--sidebar);
-    --color-chart-5: var(--chart-5);
-    --color-chart-4: var(--chart-4);
-    --color-chart-3: var(--chart-3);
-    --color-chart-2: var(--chart-2);
-    --color-chart-1: var(--chart-1);
     --color-ring: var(--ring);
     --color-input: var(--input);
     --color-border: var(--border);
@@ -48,43 +35,8 @@
     --radius-4xl: 2rem;
 }
 
-:root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
-}
-
 /* Warm near-black neutrals (the Radix "sand" dark scale), one light primary, hairline borders. */
-.dark {
+:root {
     --sand-1: #111110;
     --sand-2: #191918;
     --sand-3: #222221;
@@ -117,19 +69,6 @@
     --border: var(--hairline);
     --input: rgb(255 250 237 / 17.5%);
     --ring: var(--sand-10);
-    --chart-1: var(--sand-12);
-    --chart-2: var(--sand-11);
-    --chart-3: var(--sand-9);
-    --chart-4: var(--sand-7);
-    --chart-5: var(--sand-5);
-    --sidebar: var(--sand-2);
-    --sidebar-foreground: var(--sand-12);
-    --sidebar-primary: var(--sand-12);
-    --sidebar-primary-foreground: #000;
-    --sidebar-accent: var(--sand-4);
-    --sidebar-accent-foreground: var(--sand-12);
-    --sidebar-border: var(--hairline);
-    --sidebar-ring: var(--sand-10);
 
     /* The raised surface: a 1px light edge on top, a dark ring, a soft drop. */
     --edge: inset 0 1px 1px rgb(255 255 255 / 10%), 0 0 0 1px rgb(0 0 0 / 20%);
@@ -162,7 +101,6 @@
     backdrop-filter: blur(24px);
 }
 
-/* The quiet button. */
 @utility bevel {
     background: linear-gradient(180deg, rgb(181 179 173 / 15%), rgb(181 179 173 / 10%));
     border: 1px solid transparent;
@@ -172,7 +110,7 @@
     &:active:not(:disabled) { transform: scale(0.98); }
 }
 
-/* The one loud button: light on dark. */
+/* The primary button: light on dark. */
 @utility bevel-primary {
     background: linear-gradient(180deg, var(--sand-12), var(--sand-11));
     border: 1px solid #000;
@@ -182,45 +120,17 @@
     &:active:not(:disabled) { transform: scale(0.98); }
 }
 
-/* The chosen one of a set: a lifted dark chip. */
-@utility bevel-active {
-    background: var(--sand-4);
-    border: 1px solid transparent;
-    box-shadow: inset 0 1px 1px rgb(255 255 255 / 20%), 0 1px 3px rgb(0 0 0 / 50%), 0 1px 2px -1px rgb(0 0 0 / 50%);
-}
-
-/* The card. */
 @utility tile {
     border-radius: var(--radius-xl);
     border: 1px solid var(--hairline);
     background: rgb(255 255 255 / 3%);
 }
 
-/* Sunken tracks: inputs, segmented controls. */
 @utility inset-well {
     background: rgb(0 0 0 / 25%);
     border: 1px solid var(--hairline);
 }
 
-
-@utility tilt-card {
-    transform: perspective(700px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateZ(0);
-    transform-style: preserve-3d;
-    transition: transform 180ms ease-out, box-shadow 200ms ease, border-color 200ms ease;
-    will-change: transform;
-    &::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        border-radius: inherit;
-        pointer-events: none;
-        background: radial-gradient(circle at var(--mx, 50%) var(--my, 0%), rgb(255 255 255 / 9%), transparent 55%);
-        opacity: 0;
-        transition: opacity 200ms ease;
-    }
-    &:hover::after { opacity: 1; }
-    @media (prefers-reduced-motion: reduce) { transform: none !important; }
-}
 
 @layer base {
   * {
@@ -381,28 +291,17 @@
     & p a:hover, & li > a:hover { text-decoration-color: currentColor; }
 }
 
-/* The shared pieces, flattened to match: hairline boxes, 6-8px corners, no bevels. */
+/* The shared pieces take the docs' tighter corners. */
 .docs .tile,
-.docs .inset-well {
-    border: 1px solid rgb(255 255 255 / 10%);
-    border-radius: 8px;
-    background: rgb(255 255 255 / 4%);
-    box-shadow: none;
-}
-.docs input.inset-well { border-radius: 6px; background: rgb(0 0 0 / 30%); }
+.docs .inset-well { border-radius: 8px; }
+.docs input.inset-well,
 .docs [data-slot='button'] { border-radius: 6px; }
 .docs .bevel {
     background: transparent;
     box-shadow: inset 0 0 0 1px rgb(255 255 255 / 10%);
-    border-radius: 6px;
     &:hover { background: rgb(255 255 255 / 5%); }
 }
-.docs .bevel-active {
-    background: rgb(247 248 254 / 12%);
-    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 14%);
-    border-radius: 6px;
-}
-.docs .bevel-primary { border-radius: 6px; box-shadow: none; background: #f7f8fe; }
+.docs .bevel-primary { box-shadow: none; background: #f7f8fe; }
 
 
 /* A flat panel: its sections are rows between hairlines, not cards. */
@@ -412,7 +311,6 @@
     border-bottom: 1px solid var(--border);
     border-radius: 0;
     background: none;
-    box-shadow: none;
 }
 
 /* What a section holds now, on the right of its title (readable while it is folded). */
@@ -433,6 +331,4 @@
     border-radius: 9999px;
     opacity: 0.4;
 }
-/* (the page-wide glow steps aside there) */
 :root:has(.home-page) body { background-image: none; }
-
