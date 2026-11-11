@@ -8,7 +8,6 @@ interface CharmSeedControlProps {
   onChange: (seed: number) => void
 }
 
-/** A charm's pattern (0–100000), its slider painted with the charm's colors along the pattern range. */
 export function CharmSeedControl({ charm, seed, onChange }: CharmSeedControlProps) {
   const gradient = useCharmGradient(charm)
   return (

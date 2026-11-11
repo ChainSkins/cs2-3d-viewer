@@ -28,7 +28,7 @@ export function EventLog({
     <div className="inset-well flex h-full min-h-0 flex-col overflow-hidden rounded-2xl">
       <div className="flex shrink-0 items-center gap-2 border-b border-white/6 px-3.5 py-2">
         <Radio className="size-3.5 text-emerald-300" />
-        <span className="text-[10.5px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+        <span className="text-[11.5px] font-medium text-muted-foreground">
           Messages
         </span>
 

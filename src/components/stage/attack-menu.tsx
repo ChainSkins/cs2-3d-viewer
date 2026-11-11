@@ -8,7 +8,6 @@ interface AttackMenuProps {
   onAttack: (name: string) => void
 }
 
-/** A toolbar button that opens a small list of the weapon's attacks over the bar; a pick plays it and closes the list. */
 export function AttackMenu({ attacks, onAttack }: AttackMenuProps) {
   const [open, setOpen] = useState(false)
   const root = useRef<HTMLDivElement>(null)

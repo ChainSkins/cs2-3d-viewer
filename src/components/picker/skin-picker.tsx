@@ -39,12 +39,10 @@ interface SkinPickerProps {
   patches?: PatchIndex | null
   startIn?: string
   onPick: (selection: Selection) => void
-  /** Loads an inspect link from the history (an error message when it can't); no history without it. */
   onLoadInspect?: (item: InspectItem) => string | null
   onClose: () => void
 }
 
-/** The picker's flat surface (also behind its sticky group titles). */
 const SURFACE = '#151514'
 
 const isCurrent = (card: Card, current: Selection | null) => {
@@ -54,10 +52,6 @@ const isCurrent = (card: Card, current: Selection | null) => {
   return current.kind !== 'skin' && card.selection.kind !== 'skin' && current.id === card.selection.id
 }
 
-/**
- * A modal to choose a skin, a sticker or a charm: categories on the left, a search over everything, cards with their
- * icon grouped by weapon — or the inspect links loaded before (History, in the top bar).
- */
 export function SkinPicker({ open, catalog, attachments, agents = null, pins = null, patches = null, pets = null, current, only, startIn, onPick, onLoadInspect, onClose }: SkinPickerProps) {
   const initial = only ?? startIn ?? (current?.kind === 'sticker' ? 'Stickers' : current?.kind === 'charm' ? 'Charms' : current?.kind === 'agent' ? 'Agents' : current?.kind === 'pin' ? 'Pins' : current?.kind === 'patch' ? 'Patches' : current?.kind === 'pet' ? 'Pets'
     : CATEGORIES.find((c) => current?.kind === 'skin' && c.types?.includes(catalog?.items[current.item]?.type ?? ''))?.label ?? 'All')
@@ -74,7 +68,6 @@ export function SkinPicker({ open, catalog, attachments, agents = null, pins = n
   const [sort, setSort] = useLocalStorage<PickerSort>('picker-sort', 'relevance')
   const [rarities, setRarities] = useState<number[]>([])
   const historyOn = showHistory && !!onLoadInspect && !only
-  /** A pasted inspect link: the search shows what it carries instead of results, and Enter loads it. */
   const [loadError, setLoadError] = useState('')
   const linkText = !only && onLoadInspect ? query.trim() : ''
   const linkMode = !historyOn && looksLikeInspectLink(linkText)

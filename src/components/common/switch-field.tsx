@@ -8,7 +8,6 @@ interface SwitchFieldProps {
   onChange: (checked: boolean) => void
 }
 
-/** A switch with its label beside it. */
 export function SwitchField({ checked, label, onChange }: SwitchFieldProps) {
   const id = useId()
   return (

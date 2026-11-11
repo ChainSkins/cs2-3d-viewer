@@ -13,13 +13,11 @@ import type { Lighting, LightSource, MapLighting, RenderQuality } from '@/lib/vi
 interface SettingsButtonProps {
   quality: RenderQuality
   onChange: (changes: Partial<RenderQuality>) => void
-  /** The studio's lights, and the preset they match (null: custom). */
   lighting: Lighting
   lightingPreset: string | null
   onLighting: (changes: Partial<Lighting>) => void
   mapLighting: MapLighting
   onMapLighting: (changes: Partial<MapLighting>) => void
-  /** What it draws at right now (pixels per CSS pixel, frame rate) and what lights the view, read while the dialog is open. */
   readStatus: () => RenderStatus | null
 }
 
@@ -29,7 +27,6 @@ const RESOLUTIONS: { value: RenderQuality['resolution']; label: string }[] = [
   { value: 'auto', label: 'Auto' }, { value: 1, label: '1×' }, { value: 1.5, label: '1.5×' }, { value: 2, label: '2×' },
 ]
 
-/** The stage's settings button (under share) and its dialog: how finely the viewer draws, the studio's lights, and the map lights' strengths. */
 export function SettingsButton({ quality, onChange, lighting, lightingPreset, onLighting, mapLighting, onMapLighting, readStatus }: SettingsButtonProps) {
   const [open, setOpen] = useState(false)
   const [status, setStatus] = useState<RenderStatus | null>(null)
@@ -49,7 +46,7 @@ export function SettingsButton({ quality, onChange, lighting, lightingPreset, on
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent showCloseButton={false} className="flex max-h-[92vh] flex-col gap-0 overflow-hidden rounded-3xl p-0 sm:max-w-120">
+        <DialogContent showCloseButton={false} className="flex max-h-[92vh] flex-col gap-0 overflow-hidden rounded-2xl p-0 sm:max-w-120">
           <DialogHeading icon={Settings} title="Display & lighting" description="How finely the viewer draws, and how the item is lit." onClose={() => setOpen(false)} />
           <div className="flex min-h-0 flex-col gap-4 overflow-y-auto p-5">
             <FieldGroup label="Resolution">
@@ -61,7 +58,7 @@ export function SettingsButton({ quality, onChange, lighting, lightingPreset, on
               <SwitchField checked={quality.post} label="Map effects (bloom and color grading)" onChange={(post) => onChange({ post })} />
             </div>
             {status && (
-              <div className="inset-well flex items-center gap-2 rounded-xl px-3 py-2 text-[12px] text-muted-foreground">
+              <div className="flex items-center gap-2 rounded-lg border border-border bg-black/20 px-3 py-2 text-[12px] text-muted-foreground">
                 <Gauge className="size-4" />
                 Now drawing at <span className="font-mono text-foreground">{status.pixelRatio.toFixed(2)}×</span> · <span className="font-mono text-foreground">{status.fps}</span> fps
               </div>

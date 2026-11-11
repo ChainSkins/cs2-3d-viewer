@@ -1,22 +1,21 @@
 import { Plus } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
 
 interface SlotProps {
-  /** What it holds (none: an empty slot). */
   name?: string
   icon?: string
-  /** A small mark in its corner (a sticker's position on the weapon). */
   badge?: string
   active?: boolean
   disabled?: boolean
-  /** The empty slot's accessible name and tooltip. */
   emptyLabel: string
   onClick: () => void
 }
 
-/** One slot: the picture of what it holds, or a plus to fill it. */
-function Slot({ name, icon, badge, active, disabled, emptyLabel, onClick }: SlotProps) {
+export function Slot({ name, icon, badge, active, disabled, emptyLabel, onClick }: SlotProps) {
   const filled = name !== undefined
+  const [failed, setFailed] = useState(false)
+  useEffect(() => { setFailed(false) }, [icon])
   return (
     <button
       type="button"
@@ -32,8 +31,8 @@ function Slot({ name, icon, badge, active, disabled, emptyLabel, onClick }: Slot
       )}
     >
       {!filled && <Plus className="size-4" />}
-      {filled && (icon
-        ? <img src={icon} alt="" draggable={false} className="size-full object-contain p-1" />
+      {filled && (icon && !failed
+        ? <img src={icon} alt="" draggable={false} onError={() => setFailed(true)} className="size-full object-contain p-1" />
         : <span className="px-1 text-[10px] leading-tight text-muted-foreground">{name.slice(0, 8)}</span>)}
       {badge && <span className="absolute bottom-0.5 right-1 font-mono text-[9px] leading-none text-muted-foreground">{badge}</span>}
     </button>
@@ -43,25 +42,20 @@ function Slot({ name, icon, badge, active, disabled, emptyLabel, onClick }: Slot
 export interface SlotSticker {
   name: string
   icon?: string
-  /** Its position on the weapon, 1-based. */
   slot: number
 }
 
 interface AttachmentSlotsProps {
   stickers: SlotSticker[]
-  /** How many stickers a weapon takes. */
   max: number
-  /** The charm it wears (null: none). */
   charm: { name: string; icon?: string } | null
   hasCharmPoint: boolean
-  /** What the controls below edit. */
   focus: { kind: 'sticker'; index: number } | { kind: 'charm' } | null
   onSticker: (index: number) => void
   onAddSticker: () => void
   onCharm: () => void
 }
 
-/** What the weapon wears, at a glance: a slot per sticker it can take, then its charm. A filled slot selects it, an empty one opens the picker. */
 export function AttachmentSlots({ stickers, max, charm, hasCharmPoint, focus, onSticker, onAddSticker, onCharm }: AttachmentSlotsProps) {
   return (
     <div className="flex gap-3">

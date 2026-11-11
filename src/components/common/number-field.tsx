@@ -11,7 +11,6 @@ interface NumberFieldProps {
   onChange: (value: number) => void
 }
 
-/** A number input you can type in: the value is applied (clamped) on Enter or blur. */
 export function NumberField({ value, min, max, decimals = 0, label, className, onChange }: NumberFieldProps) {
   const [draft, setDraft] = useState(value.toFixed(decimals))
 

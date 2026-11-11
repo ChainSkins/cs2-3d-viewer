@@ -1,9 +1,7 @@
 import { ChevronDown, UserRound } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import { FieldGroup } from '@/components/common/field-group'
-import { PickerField } from '@/components/common/picker-field'
 import { Section } from '@/components/common/section'
-import { Input } from '@/components/ui/input'
+import { WornRow } from '@/components/sidebar/worn-row'
 import { ASSET_BASE } from '@/lib/config'
 import { loadPetHats, type PetHat } from '@/lib/data/pet-hats'
 import { CLIP_CATEGORIES, petClipCategory, petClipLabel } from '@/lib/data/pet-labels'
@@ -14,30 +12,26 @@ interface PetSectionProps {
   pet: PetEntry | undefined
   pets: PetIndex | null
   variant: number
-  /** The clip playing (null: the default idle). */
   clip: string | null
   onVariant: (index: number) => void
   onClip: (name: string | null) => void
-  /** The photo-booth hat on (its name), or null. */
   hat: string | null
   onHat: (name: string | null) => void
-  /** The agent a photo pose stands the pet beside (null: the default one). */
   agentName: string | null
+  agentImage?: string
   onChooseAgent: () => void
   onDefaultAgent: () => void
 }
 
-const chip = (on: boolean) => cn('rounded-lg px-2.5 py-1 text-[12px] font-medium', on ? 'bevel-active text-foreground' : 'bevel text-foreground/80')
+const chip = (on: boolean) => cn('rounded-md border px-2.5 py-1 text-[12px] font-medium transition-colors', on ? 'border-foreground/50 bg-white/10 text-foreground' : 'border-border text-muted-foreground hover:bg-white/5 hover:text-foreground')
 
-/** A pet's colours (one per material of its model) and the animation it plays: folders that fold, and a search over them. */
-export function PetSection({ pet, pets, variant, clip, onVariant, onClip, hat, onHat, agentName, onChooseAgent, onDefaultAgent }: PetSectionProps) {
+export function PetSection({ pet, pets, variant, clip, onVariant, onClip, hat, onHat, agentName, agentImage, onChooseAgent, onDefaultAgent }: PetSectionProps) {
   const model = pet && pets?.models[pet.model]
   const clips = useMemo(() => (pet && pets ? petClips(pets, pet) : []), [pet, pets])
   const playing = clip ?? defaultPetClip(clips)?.name
   const [query, setQuery] = useState('')
   const [hats, setHats] = useState<PetHat[]>([])
   useEffect(() => { void loadPetHats(ASSET_BASE).then((d) => setHats(d.hats)).catch(() => {}) }, [])
-  /** Folders the visitor opened or closed; the one with the playing clip is open until then. */
   const [toggled, setToggled] = useState<Record<string, boolean>>({})
   const searching = query.trim().length > 0
 
@@ -53,7 +47,6 @@ export function PetSection({ pet, pets, variant, clip, onVariant, onClip, hat, o
   }, [clips, query])
 
   if (!model) return null
-  /** The egg has no head to put anything on. */
   const wearsHats = hats.length > 0 && !!pet && !/egg/.test(pet.model)
   const inPose = /snapshots_\d/.test(playing ?? '')
   const isOpen = (title: string, list: PetClip[]) => searching || (toggled[title] ?? list.some((c) => c.name === playing))
@@ -80,15 +73,13 @@ export function PetSection({ pet, pets, variant, clip, onVariant, onClip, hat, o
       )}
       {inPose && (
         <Section title="Player" collapsible={{ id: 'pet-player' }}>
-          <FieldGroup label="Agent">
-            <PickerField value={agentName} placeholder="Default CT Agent" icon={UserRound} clearLabel="Default agent" onChoose={onChooseAgent} onClear={onDefaultAgent} />
-          </FieldGroup>
-          <p className="mt-2 text-[11.5px] text-muted-foreground">The photo poses are the pet with a player: the agent is the one first person uses.</p>
+          <WornRow kind="Agent" name={agentName} placeholder="Default CT agent" image={agentImage} icon={UserRound} clearLabel="Default agent" onChoose={onChooseAgent} onClear={onDefaultAgent} />
+          <p className="mt-2.5 text-[11.5px] leading-relaxed text-muted-foreground">The photo poses are the pet with a player: the agent is the one first person uses.</p>
         </Section>
       )}
       {clips.length > 0 && (
         <Section title="Animation" collapsible={{ id: 'pet-animation' }} aside={<span className="section-value">{clips.length}</span>}>
-          <Input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search: dance, sit, sleep…" aria-label="Search the animations" className="mb-2.5" />
+          <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search: dance, sit, sleep…" aria-label="Search the animations" className="mb-2.5 h-8 w-full rounded-md border border-border bg-black/25 px-2.5 text-[13px] outline-none transition-colors placeholder:text-muted-foreground/70 focus-visible:border-white/25" />
           <div className="flex max-h-80 flex-col gap-1 overflow-y-auto pr-1">
             {folders.length === 0 && <p className="px-1 py-2 text-[12px] text-muted-foreground">No animation matches “{query}”.</p>}
             {folders.map(([title, list]) => {
@@ -101,7 +92,7 @@ export function PetSection({ pet, pets, variant, clip, onVariant, onClip, hat, o
                     onClick={() => setToggled((t) => ({ ...t, [title]: !open }))}
                     className="flex w-full items-center gap-2 rounded-lg px-1.5 py-1.5 text-left transition-colors hover:bg-white/4"
                   >
-                    <span className="text-[10.5px] font-medium uppercase tracking-[0.14em] text-muted-foreground">{title}</span>
+                    <span className="text-[11.5px] font-medium text-muted-foreground">{title}</span>
                     <span className="text-[11px] tabular-nums text-muted-foreground/70">{list.length}</span>
                     <ChevronDown className={cn('ml-auto size-3.5 text-muted-foreground transition-transform', open && 'rotate-180')} />
                   </button>

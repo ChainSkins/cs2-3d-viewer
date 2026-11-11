@@ -10,7 +10,7 @@ interface ApiSectionProps {
 
 export function ApiSection({ id, title, intro, children }: ApiSectionProps) {
   return (
-    <section id={id} className="scroll-mt-28 pt-7">
+    <section id={id} className="scroll-mt-36 pt-7 lg:scroll-mt-28">
       <h2 className="group text-[22.5px] font-semibold leading-tight tracking-normal">
         {title}
         <a href={`#${id}`} aria-label={`Link to ${title}`} className="ml-2 text-muted-foreground no-underline opacity-0 transition group-hover:opacity-100">#</a>

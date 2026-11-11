@@ -4,7 +4,6 @@ interface StatProps {
   color?: string
 }
 
-/** A quiet label and its monospaced value on one line, for the stage's read-out. */
 export function Stat({ label, value, color }: StatProps) {
   return (
     <span className="flex items-baseline gap-1.5 whitespace-nowrap">

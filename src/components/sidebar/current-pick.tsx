@@ -6,12 +6,10 @@ interface CurrentPickProps {
   over: string
   title: string
   color: string
-  /** Its market image (an icon stands in without one). */
   icon?: string
   onClick: () => void
 }
 
-/** The current selection, as the panel's first row: its picture over a line of its rarity, its name, and the way to change it. */
 export function CurrentPick({ over, title, color, icon, onClick }: CurrentPickProps) {
   return (
     <button

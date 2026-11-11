@@ -23,7 +23,6 @@ interface AttachmentsSectionProps {
   onOpenPicker: (target: PickerTarget) => void
 }
 
-/** Stickers and the charm of the shown weapon: a row of slots, then the controls of the one selected. */
 export function AttachmentsSection({ markup, attachments, stickers, activeSticker, charm, onActiveSticker, onStickers, onCharm, onOpenPicker }: AttachmentsSectionProps) {
   const images = useDbImages()
   const stickerDef = (id: string | null) => (id ? attachments?.sticker.get(id) : undefined)
@@ -31,7 +30,6 @@ export function AttachmentsSection({ markup, attachments, stickers, activeSticke
   const charmDef = charm.id ? attachments?.charm.get(charm.id) : undefined
   const charmName = charmDef?.name ?? charm.id ?? ''
   const active = Math.min(activeSticker, stickers.length - 1)
-  /** Which of the two the controls below edit; the other takes over when this one has nothing. */
   const [wanted, setWanted] = useState<'sticker' | 'charm'>('sticker')
   // (picking a sticker on the weapon itself, in Edit, brings its controls back)
   useEffect(() => { setWanted('sticker') }, [activeSticker])

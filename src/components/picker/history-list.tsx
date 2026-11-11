@@ -17,13 +17,11 @@ interface HistoryListProps {
   catalog: CatalogIndex | null
   attachments: AttachmentIndex | null
   agents: AgentIndex | null
-  /** Loads a link; an error message when the viewer can't show it. */
   onLoad: (item: InspectItem) => string | null
   onRemove: (link: string) => void
   onClear: () => void
 }
 
-/** The inspect links loaded before, newest first, one per line: a click loads one again. */
 export function HistoryList({ entries, query, catalog, attachments, agents, onLoad, onRemove, onClear }: HistoryListProps) {
   const images = useDbImages()
   const [error, setError] = useState('')

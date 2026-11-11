@@ -8,7 +8,6 @@ interface PillSwitchProps<T extends string> {
   className?: string
 }
 
-/** A flat segmented choice for the stage's bars (two or three options); a click on the chosen one moves on to the next. */
 export function PillSwitch<T extends string>({ options, value, onChange, label, className }: PillSwitchProps<T>) {
   const index = Math.max(0, options.findIndex((o) => o.value === value))
   const next = options[(index + 1) % options.length].value

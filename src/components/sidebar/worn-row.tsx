@@ -2,23 +2,18 @@ import { X, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface WornRowProps {
-  /** What kind of thing this is ("Agent", "Gloves"). */
   kind: string
-  /** The chosen one's name, or null while it is the default. */
   name: string | null
-  /** What the default is called. */
   placeholder: string
   image?: string
   icon: LucideIcon
   clearLabel: string
-  /** Lit: its settings are shown under it (undefined: it has none). */
   open?: boolean
   onToggle?: () => void
   onChoose: () => void
   onClear: () => void
 }
 
-/** Something worn in first person: its picture, what it is, and the ways to swap it or go back to the default. */
 export function WornRow({ kind, name, placeholder, image, icon: Icon, clearLabel, open, onToggle, onChoose, onClear }: WornRowProps) {
   const body = (
     <>

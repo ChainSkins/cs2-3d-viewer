@@ -14,7 +14,6 @@ interface ViewerStatsProps {
   agents: AgentIndex | null
 }
 
-/** The stage bar's read-out: a skin's wear, float and pattern; a sticker's wear; an agent's team; a charm's pattern. */
 export function ViewerStats({ selection, item, state, agents }: ViewerStatsProps) {
   if (selection.kind === 'skin') {
     if (!item) return null

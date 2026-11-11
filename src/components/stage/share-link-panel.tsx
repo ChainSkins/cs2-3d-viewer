@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import type { ShareLink } from '@/lib/share-code'
 
-/** The view's link in a field, ready to copy, and whether it is the short one. */
 export function ShareLinkPanel({ link }: { link: ShareLink }) {
   const [copied, setCopied] = useState(false)
   const copy = async () => {
@@ -22,9 +21,9 @@ export function ShareLinkPanel({ link }: { link: ShareLink }) {
           value={link.url}
           onFocus={(e) => e.target.select()}
           spellCheck={false}
-          className="inset-well h-11 min-w-0 flex-1 rounded-2xl px-3.5 font-mono text-[13px] outline-none focus:border-white/20 focus:ring-4 focus:ring-white/8"
+          className="h-10 min-w-0 flex-1 rounded-lg border border-border bg-black/25 px-3 font-mono text-[13px] outline-none transition-colors focus:border-white/25"
         />
-        <Button className="h-11 px-5" onClick={copy}>
+        <Button className="h-10 px-4" onClick={copy}>
           {copied ? <><Check /> Copied</> : <><Copy /> Copy</>}
         </Button>
       </div>

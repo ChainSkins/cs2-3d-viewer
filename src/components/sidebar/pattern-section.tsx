@@ -7,11 +7,9 @@ import type { FadeResult } from '@/lib/fade'
 interface PatternSectionProps {
   seed: number
   onChange: (seed: number) => void
-  /** The skin's Fade percentage at this seed, when it is a Fade. */
   fade?: FadeResult | null
 }
 
-/** The pattern seed (1–1000): a slider, the value to type in, and a random button. */
 export function PatternSection({ seed, onChange, fade }: PatternSectionProps) {
   return (
     <Section title="Pattern" collapsible={{ id: 'pattern' }} aside={<span className="section-value font-mono">#{seed}</span>}>

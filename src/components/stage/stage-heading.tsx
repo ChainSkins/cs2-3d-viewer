@@ -1,12 +1,11 @@
 import { Badge } from '@/components/ui/badge'
 import type { Heading } from '@/lib/heading'
 
-/** The stage's title block: what kind of item in its rarity color, the name, and chips. */
 export function StageHeading({ heading }: { heading: Heading }) {
   return (
     <div className="pointer-events-none absolute inset-x-0 top-0 p-5 max-lg:pt-16 pr-20 sm:pr-40 lg:p-6 lg:pr-44">
       <div
-        className="inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.16em]"
+        className="inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-[12px] font-medium"
         style={{ color: heading.color, borderColor: `${heading.color}66`, background: `${heading.color}1f` }}
       >
         <span className="size-1.5 rounded-full" style={{ background: heading.color }} />

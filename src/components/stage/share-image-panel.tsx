@@ -11,21 +11,17 @@ import { cardBlob, cardSize, DEFAULT_CARD_STYLE, drawShareImage, itemRenderSize,
 interface ShareImagePanelProps {
   card: ShareCard
   link: string
-  /** The item's render at `longSide` pixels (transparent, cropped), or null without a viewer. */
   renderItem: (longSide: number) => HTMLCanvasElement | null
 }
 
-/** How wide the preview is drawn (pixels on its longer side). */
 const PREVIEW = 900
 
-/** The share image: a live preview, its options, and download or copy at the chosen resolution and type. */
 export function ShareImagePanel({ card, link, renderItem }: ShareImagePanelProps) {
   const [style, setStyle] = useStoredSettings<CardStyle>('share-image', DEFAULT_CARD_STYLE)
   const [preview, setPreview] = useState<string | null>(null)
   const [busy, setBusy] = useState<'download' | 'copy' | null>(null)
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState('')
-  /** The item rendered once for the previews. */
   const previewItem = useRef<HTMLCanvasElement | null>(null)
 
   useEffect(() => {
@@ -38,7 +34,6 @@ export function ShareImagePanel({ card, link, renderItem }: ShareImagePanelProps
     return () => { live = false }
   }, [card, link, style, renderItem])
 
-  /** The image at full resolution. */
   const full = async () => {
     const item = renderItem(itemRenderSize(style.aspect, style.quality))
     if (!item) throw new Error('The viewer isn’t ready.')

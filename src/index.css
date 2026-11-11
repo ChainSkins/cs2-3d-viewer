@@ -192,16 +192,14 @@
 /* The card. */
 @utility tile {
     border-radius: var(--radius-xl);
-    border: 1px solid transparent;
-    background: linear-gradient(180deg, var(--sand-3), rgb(34 34 33 / 30%));
-    box-shadow: var(--edge), var(--drop-xl);
+    border: 1px solid var(--hairline);
+    background: rgb(255 255 255 / 3%);
 }
 
 /* Sunken tracks: inputs, segmented controls. */
 @utility inset-well {
-    background: linear-gradient(180deg, rgb(0 0 0 / 40%), rgb(0 0 0 / 20%));
-    border: 1px solid transparent;
-    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 20%), 0 1px 0 rgb(255 255 255 / 4%);
+    background: rgb(0 0 0 / 25%);
+    border: 1px solid var(--hairline);
 }
 
 
@@ -426,4 +424,15 @@
 }
 
 
+/* The home page's hero: three 1024px discs of color hung from its top edge (they scroll away with it). */
+.hero-glow {
+    position: absolute;
+    top: -512px;
+    width: 1024px;
+    height: 1024px;
+    border-radius: 9999px;
+    opacity: 0.4;
+}
+/* (the page-wide glow steps aside there) */
+:root:has(.home-page) body { background-image: none; }
 

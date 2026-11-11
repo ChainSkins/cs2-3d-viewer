@@ -1,7 +1,3 @@
-/**
- * The studio behind the model: a soft vignette and a floor grid in perspective. Pure CSS under the (transparent)
- * WebGL canvas, so the renderer and screenshots are unchanged.
- */
 export function StudioBackdrop() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">

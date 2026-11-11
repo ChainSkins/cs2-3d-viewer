@@ -13,7 +13,6 @@ interface ColorBarSliderProps {
   onChange: (value: number) => void
 }
 
-/** A slider whose track is a color bar (for example the wear bands), with a white round thumb. */
 export function ColorBarSlider({ value, min, max, step, background, label, className, onChange }: ColorBarSliderProps) {
   const slider = useSliderDraft(value, onChange)
   return (

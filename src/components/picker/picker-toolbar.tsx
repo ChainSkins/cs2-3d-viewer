@@ -6,17 +6,13 @@ interface PickerToolbarProps {
   query: string
   placeholder: string
   onQuery: (query: string) => void
-  /** Arrow Down in the search box: on to the cards. */
   onEnterGrid?: () => void
-  /** Enter in the search box (a pasted inspect link is ready to load). */
   onSubmit?: () => void
-  /** Whether the inspect history is shown (undefined hides its button). */
   history?: boolean
   onHistory?: (on: boolean) => void
   onClose: () => void
 }
 
-/** The picker's top row, as in a command palette: one wide search line, the history and close. */
 export function PickerToolbar({ query, placeholder, onQuery, onEnterGrid, onSubmit, history, onHistory, onClose }: PickerToolbarProps) {
   return (
     <div className="flex h-14 shrink-0 items-center gap-2 border-b border-border pl-5 pr-3">

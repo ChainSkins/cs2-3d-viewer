@@ -1,8 +1,10 @@
 import { ChevronDown, LayoutGrid, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { BrandMark } from '@/components/common/brand-mark'
+import { ItemImage } from '@/components/common/item-image'
 import { AttachmentsSection } from '@/components/sidebar/attachments-section'
 import { AgentPatchesSection } from '@/components/sidebar/agent-patches-section'
 import { CharmPatternSection } from '@/components/sidebar/charm-pattern-section'
+import { SlabSection } from '@/components/sidebar/slab-section'
 import { CurrentPick } from '@/components/sidebar/current-pick'
 import { FloatSection } from '@/components/sidebar/float-section'
 import { SidebarSkeleton } from '@/components/sidebar/sidebar-skeleton'
@@ -44,30 +46,24 @@ interface SidebarProps {
   glovesImage?: string
   agentName: string | null
   agentImage?: string
-  /** On an agent's page: the loadout weapon it holds (loaded) and its name; opening it in first person. */
   loadoutWeapon: Item | null
   loadoutWeaponName: string | null
+  loadoutWeaponImage?: string
   onLoadoutFirstPerson: (() => void) | null
   activeSticker: number
   onActiveSticker: (index: number) => void
   onOpenPicker: (target: PickerTarget) => void
   loading: boolean
-  /** On a phone the panel is hidden until the stage's button opens it. */
   sheetOpen: boolean
   onCloseSheet: () => void
 }
 
-/** The control panel, floating over the page: the selection, then the sections that apply to it. On wide screens it folds into a slim rail. */
-export function Sidebar({ viewmodel, onViewmodel, collapsed, onToggleCollapsed, selection, heading, item, attachments, patches, pets, state, glovesName, glovesImage, agentName, agentImage, loadoutWeapon, loadoutWeaponName, onLoadoutFirstPerson, activeSticker, onActiveSticker, onOpenPicker, loading, sheetOpen, onCloseSheet }: SidebarProps) {
+export function Sidebar({ viewmodel, onViewmodel, collapsed, onToggleCollapsed, selection, heading, item, attachments, patches, pets, state, glovesName, glovesImage, agentName, agentImage, loadoutWeapon, loadoutWeaponName, loadoutWeaponImage, onLoadoutFirstPerson, activeSticker, onActiveSticker, onOpenPicker, loading, sheetOpen, onCloseSheet }: SidebarProps) {
   const isSkin = selection.kind === 'skin'
-  /** On a phone the panel is a sheet over half the screen, opened by the stage's button. */
-  /** On a phone a skin's sections are split into tabs, so the sheet stays short; wide screens show them all. */
   const [wantedTab, setTab] = useState<'finish' | 'stickers' | 'view'>('finish')
-  /** The View tab holds first person alone, so it is there only while that is on. */
   const hasView = isSkin && !!item && item.style !== 'glove' && state.firstPerson
   const tab = wantedTab === 'view' && !hasView ? 'finish' : wantedTab
   const only = (t: typeof tab) => cn('contents', isSkin && tab !== t && 'max-lg:hidden')
-  const stickerName = (id: string | null) => (id ? attachments?.sticker.get(id)?.name ?? id : '')
   const charmId = selection.kind === 'charm' ? selection.id : state.charm.id
   const charmIsSlab = isSlabCharm(charmId ? attachments?.charm.get(charmId) : undefined)
 
@@ -91,10 +87,10 @@ export function Sidebar({ viewmodel, onViewmodel, collapsed, onToggleCollapsed, 
 
       {collapsed && (
         <div className="hidden flex-col items-center gap-2.5 py-3 lg:flex">
-          <Button variant="outline" size="icon-lg" aria-label="Change skin" title={heading.title} onClick={() => onOpenPicker({ kind: 'selection' })}>
-            <LayoutGrid />
-          </Button>
-          <span className="mt-1 h-10 w-1.5 rounded-full" style={{ background: heading.color }} />
+          <button type="button" aria-label="Change the item" title={`${heading.title} · change`} onClick={() => onOpenPicker({ kind: 'selection' })} className="group relative overflow-hidden rounded-lg border border-border bg-black/20 outline-none transition-colors hover:border-white/25 focus-visible:border-foreground/70">
+            <ItemImage src={heading.icon} color={heading.color} fallback={LayoutGrid} className="size-11 rounded-none p-1" imageClassName="transition-transform duration-200 group-hover:scale-108" />
+            <span aria-hidden className="absolute inset-x-0 bottom-0 h-0.5" style={{ background: heading.color }} />
+          </button>
         </div>
       )}
 
@@ -138,7 +134,7 @@ export function Sidebar({ viewmodel, onViewmodel, collapsed, onToggleCollapsed, 
         )}
 
         {selection.kind === 'pet' && (
-          <PetSection pet={pets?.pet.get(selection.id)} pets={pets} variant={state.petVariant} clip={state.petClip} onVariant={state.setPetVariant} onClip={state.setPetClip} hat={state.petHat} onHat={state.setPetHat} agentName={agentName} onChooseAgent={() => onOpenPicker({ kind: 'agent' })} onDefaultAgent={() => state.setAgent(null)} />
+          <PetSection pet={pets?.pet.get(selection.id)} pets={pets} variant={state.petVariant} clip={state.petClip} onVariant={state.setPetVariant} onClip={state.setPetClip} hat={state.petHat} onHat={state.setPetHat} agentName={agentName} agentImage={agentImage} onChooseAgent={() => onOpenPicker({ kind: 'agent' })} onDefaultAgent={() => state.setAgent(null)} />
         )}
 
         {selection.kind === 'sticker' && (
@@ -148,17 +144,17 @@ export function Sidebar({ viewmodel, onViewmodel, collapsed, onToggleCollapsed, 
           </>
         )}
 
-        {selection.kind === 'charm' && (
-          <CharmPatternSection
-            charm={charmId ? attachments?.charm.get(charmId) : undefined}
-            seed={state.charm.seed}
-            isSlab={charmIsSlab}
+        {selection.kind === 'charm' && charmIsSlab && (
+          <SlabSection
+            sticker={state.charm.sticker ? attachments?.sticker.get(state.charm.sticker) : undefined}
             stickerId={state.charm.sticker}
-            stickerName={stickerName(state.charm.sticker)}
-            onSeed={(seed) => state.setCharm({ seed })}
             onChooseSticker={() => onOpenPicker({ kind: 'sticker', target: 'slab' })}
             onClearSticker={() => state.setCharm({ sticker: null })}
           />
+        )}
+
+        {selection.kind === 'charm' && !charmIsSlab && (
+          <CharmPatternSection charm={charmId ? attachments?.charm.get(charmId) : undefined} seed={state.charm.seed} onSeed={(seed) => state.setCharm({ seed })} />
         )}
 
         {isSkin && item && item.style !== 'glove' && state.firstPerson && (
@@ -182,9 +178,11 @@ export function Sidebar({ viewmodel, onViewmodel, collapsed, onToggleCollapsed, 
           <LoadoutSection
             weapon={loadoutWeapon}
             weaponName={loadoutWeaponName}
+            weaponImage={loadoutWeaponImage}
             weaponSeed={state.loadout.weaponSeed}
             weaponFloat={loadoutWeapon ? clampFloat(loadoutWeapon, state.loadout.weaponFloat ?? DEFAULT_FLOAT) : DEFAULT_FLOAT}
             glovesName={glovesName}
+            glovesImage={glovesImage}
             viewmodel={viewmodel}
             onChooseWeapon={() => onOpenPicker({ kind: 'weapon' })}
             onNoWeapon={() => state.updateLoadout({ weapon: null })}

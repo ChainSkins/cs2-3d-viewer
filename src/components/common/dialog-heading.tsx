@@ -1,5 +1,5 @@
 import { X, type LucideIcon } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Kbd } from '@/components/common/kbd'
 import { DialogDescription, DialogTitle } from '@/components/ui/dialog'
 
 interface DialogHeadingProps {
@@ -9,16 +9,18 @@ interface DialogHeadingProps {
   onClose: () => void
 }
 
-/** A dialog's top bar: its icon in a raised tile, the title and a line under it, and close. */
 export function DialogHeading({ icon: Icon, title, description, onClose }: DialogHeadingProps) {
   return (
-    <div className="flex shrink-0 items-center gap-3.5 border-b border-white/10 px-5 py-4">
-      <div className="bevel-active grid size-11 shrink-0 place-items-center rounded-2xl text-foreground"><Icon className="size-5" /></div>
-      <div className="min-w-0 flex-1">
-        <DialogTitle className="text-[16px] font-medium tracking-tight">{title}</DialogTitle>
-        <DialogDescription className="text-[12px] text-muted-foreground">{description}</DialogDescription>
+    <div className="flex h-14 shrink-0 items-center gap-3 border-b border-border pl-5 pr-3">
+      <Icon className="size-[18px] shrink-0 text-muted-foreground" />
+      <div className="flex min-w-0 flex-1 items-baseline gap-2.5">
+        <DialogTitle className="shrink-0 text-[15px] font-medium tracking-tight">{title}</DialogTitle>
+        <DialogDescription className="hidden truncate text-[12.5px] text-muted-foreground sm:block">{description}</DialogDescription>
       </div>
-      <Button variant="ghost" size="icon-sm" aria-label="Close" onClick={onClose}><X /></Button>
+      <button type="button" aria-label="Close" onClick={onClose} className="flex h-8 shrink-0 items-center rounded-lg px-2 text-muted-foreground transition hover:bg-white/6 hover:text-foreground">
+        <Kbd className="hidden sm:inline-flex">Esc</Kbd>
+        <X className="size-4 sm:hidden" />
+      </button>
     </div>
   )
 }

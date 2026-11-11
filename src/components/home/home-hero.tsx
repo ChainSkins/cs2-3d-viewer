@@ -11,8 +11,14 @@ export function HomeHero({ onSearch }: { onSearch: () => void }) {
   const [failed, setFailed] = useState(false)
 
   return (
-    <section className="mx-auto max-w-7xl px-4 pb-16 pt-16 sm:px-6 lg:pb-24 lg:pt-28">
-      <div className="max-w-2xl">
+    <section className="overflow-hidden">
+    <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-28 sm:px-6 lg:pb-24 lg:pt-44">
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div className="hero-glow left-1/2" style={{ background: 'radial-gradient(circle, rgb(249 115 22 / 30%) 0%, rgb(249 115 22 / 0%) 70%)' }} />
+        <div className="hero-glow right-0" style={{ background: 'radial-gradient(circle, rgb(147 51 234 / 30%) 0%, rgb(147 51 234 / 0%) 70%)' }} />
+        <div className="hero-glow right-1/2" style={{ background: 'radial-gradient(circle, rgb(59 130 246 / 40%) 0%, rgb(59 130 246 / 0%) 70%)' }} />
+      </div>
+      <div className="relative max-w-2xl">
         <Link to="/api" className="group inline-flex items-center gap-2 text-[13px] text-muted-foreground transition-colors hover:text-foreground">
           <span className="font-medium text-foreground">New</span> Embed API <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
         </Link>
@@ -49,6 +55,7 @@ export function HomeHero({ onSearch }: { onSearch: () => void }) {
         )}
         <span className="pointer-events-none absolute bottom-3 left-3 flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1 text-[11.5px] text-white/90 backdrop-blur-sm"><span className="size-1.5 animate-pulse rounded-full bg-emerald-400" />AK-47 | Fire Serpent · Mirage</span>
       </div>
+    </div>
     </section>
   )
 }

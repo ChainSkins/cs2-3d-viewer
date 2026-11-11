@@ -7,7 +7,6 @@ const ICONS: Record<PickerCategory['icon'], LucideIcon> = {
   grid: LayoutGrid, rifle: Crosshair, target: Target, pistol: Crosshair, knife: Swords, glove: Hand, cube: Box, sticker: Sticker, charm: Sticker, agent: UserRound, pin: MapPin, patch: Shield, pet: Bird,
 }
 
-/** A category's picture: its item image, or its generic icon when it has none or the image fails to load. */
 export function CategoryIcon({ category, active }: { category: PickerCategory; active: boolean }) {
   const [failed, setFailed] = useState(false)
   const Icon = ICONS[category.icon]

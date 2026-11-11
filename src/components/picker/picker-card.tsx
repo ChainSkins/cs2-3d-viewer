@@ -6,13 +6,11 @@ import { GRID_ITEM } from '@/lib/grid-focus'
 import { cn } from '@/lib/utils'
 
 interface PickerCardProps {
-  /** What the card shows (a catalog card, or anything shaped like one: `ported` false dims it). */
   card: Pick<Card, 'title' | 'subtitle' | 'color' | 'icon'> & { ported?: boolean }
   current: boolean
   onPick: () => void
 }
 
-/** A picker card: a flat tile with the market icon over its rarity glow, the name and subtitle, and a line of its rarity along the foot. */
 export function PickerCard({ card, current, onPick }: PickerCardProps) {
   return (
     <button

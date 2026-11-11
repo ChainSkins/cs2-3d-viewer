@@ -18,7 +18,6 @@ interface CharmEditorProps {
   onChooseSticker: () => void
 }
 
-/** The weapon's charm: which one, its pattern, and where it hangs. */
 export function CharmEditor({ charm, isSlab, charmDef, charmName, stickerName, onChange, onChoose, onChooseSticker }: CharmEditorProps) {
   return (
     <div className="flex flex-col gap-2.5">

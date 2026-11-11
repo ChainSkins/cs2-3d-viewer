@@ -6,17 +6,12 @@ import { getColorByRarity, rarityName } from '@/lib/rarity'
 import { cn } from '@/lib/utils'
 
 interface PickerArrangeBarProps {
-  /** The line on the left ("120 items"…). */
   summary: string
   sort: PickerSort
-  /** The rarities the current cards have, and the ones kept (none: all). */
   available: number[]
   rarities: number[]
-  /** How this category names its rarities. */
   naming: 'skin' | 'other' | 'agent'
-  /** The sticker finish filter, when browsing stickers (undefined hides it). */
   stickerKind?: string | null
-  /** The "only ported" switch, when it applies (undefined hides it). */
   portedOnly?: boolean
   onSort: (sort: PickerSort) => void
   onRarities: (rarities: number[]) => void
@@ -24,7 +19,6 @@ interface PickerArrangeBarProps {
   onPortedOnly: (on: boolean) => void
 }
 
-/** Above the cards: their count, then every way to narrow or order them (finish, rarity, ported, sort). */
 export function PickerArrangeBar({ summary, sort, available, rarities, naming, stickerKind, portedOnly, onSort, onRarities, onStickerKind, onPortedOnly }: PickerArrangeBarProps) {
   const toggle = (r: number) => onRarities(rarities.includes(r) ? rarities.filter((x) => x !== r) : [...rarities, r])
   return (

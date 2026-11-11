@@ -10,7 +10,6 @@ interface FloatSectionProps {
   onChange: (value: number) => void
 }
 
-/** The skin's wear: a slider that is the wear color bar over its float range, and the value to type in. */
 export function FloatSection({ item, float, onChange }: FloatSectionProps) {
   const wear = wearOf(float)
   return (

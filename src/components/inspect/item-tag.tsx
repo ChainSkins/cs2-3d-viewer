@@ -8,5 +8,5 @@ interface ItemTagProps {
 }
 
 export function ItemTag({ className, style, children }: ItemTagProps) {
-  return <span className={cn('rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide', className)} style={style}>{children}</span>
+  return <span className={cn('rounded-md px-1.5 py-0.5 text-[11px] font-medium', className)} style={style}>{children}</span>
 }

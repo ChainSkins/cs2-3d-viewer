@@ -1,24 +1,24 @@
 import { Crosshair, Eye, Hand } from 'lucide-react'
+import { useState } from 'react'
 import { ColorBarSlider } from '@/components/common/color-bar-slider'
-import { FieldGroup } from '@/components/common/field-group'
-import { LabeledSlider } from '@/components/common/labeled-slider'
 import { NumberField } from '@/components/common/number-field'
-import { PickerField } from '@/components/common/picker-field'
 import { Section } from '@/components/common/section'
 import { SeedControl } from '@/components/common/seed-control'
-import { Button } from '@/components/ui/button'
+import { GloveSettings } from '@/components/sidebar/glove-settings'
+import { WornRow } from '@/components/sidebar/worn-row'
 import { SEED_MAX } from '@/lib/config'
 import type { Item } from '@/lib/data/items'
 import type { Viewmodel } from '@/lib/viewer/skin-viewer'
-import { bandsGradient, clampSeed, wearOf } from '@/lib/wear'
+import { bandsGradient, wearOf } from '@/lib/wear'
 
 interface LoadoutSectionProps {
-  /** The weapon skin the agent holds (loaded), its name, pattern and float. */
   weapon: Item | null
   weaponName: string | null
+  weaponImage?: string
   weaponSeed: number
   weaponFloat: number
   glovesName: string | null
+  glovesImage?: string
   viewmodel: Viewmodel
   onChooseWeapon: () => void
   onNoWeapon: () => void
@@ -27,58 +27,65 @@ interface LoadoutSectionProps {
   onChooseGloves: () => void
   onAgentGloves: () => void
   onViewmodel: (changes: Partial<Viewmodel>) => void
-  /** Opens the weapon in first person with this agent and these gloves. */
   onFirstPerson: (() => void) | null
 }
 
-/**
- * An agent's loadout: the weapon skin it holds (with its pattern and float) and its gloves (with theirs). The same
- * loadout first person uses, kept across visits.
- */
 export function LoadoutSection({
-  weapon, weaponName, weaponSeed, weaponFloat, glovesName, viewmodel,
+  weapon, weaponName, weaponImage, weaponSeed, weaponFloat, glovesName, glovesImage, viewmodel,
   onChooseWeapon, onNoWeapon, onWeaponSeed, onWeaponFloat, onChooseGloves, onAgentGloves, onViewmodel, onFirstPerson,
 }: LoadoutSectionProps) {
+  const [weaponOpen, setWeaponOpen] = useState(true)
+  const [glovesOpen, setGlovesOpen] = useState(true)
   const wear = wearOf(weaponFloat)
-  const gloveWear = wearOf(viewmodel.gloveFloat)
-  return (
-    <Section title="Loadout" collapsible={{ id: 'loadout', defaultOpen: true }}>
-      <div className="flex flex-col gap-4">
-        <FieldGroup label="Weapon">
-          <PickerField value={weaponName} placeholder="Choose a weapon skin" icon={Crosshair} clearLabel="No weapon" onChoose={onChooseWeapon} onClear={onNoWeapon} />
-          {weapon && (
-            <>
-              <div className="flex items-center gap-3">
-                <ColorBarSlider label="Float" value={weaponFloat} min={weapon.floatMin} max={weapon.floatMax} step={0.0001} background={bandsGradient(weapon)} onChange={onWeaponFloat} />
-                <NumberField label="Float value" value={weaponFloat} min={weapon.floatMin} max={weapon.floatMax} decimals={4} className="w-24 shrink-0" onChange={onWeaponFloat} />
-              </div>
-              <div className="-mt-1 text-[10.5px]" style={{ color: wear.color }}>{wear.name}</div>
-              <SeedControl label="Pattern seed" value={weaponSeed} min={1} max={SEED_MAX} onChange={onWeaponSeed} />
-            </>
-          )}
-        </FieldGroup>
+  const summary = [weaponName ? weaponName.split(' | ')[0] : 'No weapon', glovesName ? 'gloves' : null].filter(Boolean).join(' · ')
 
-        <FieldGroup label="Gloves">
-          <PickerField value={glovesName} placeholder="Agent's gloves" icon={Hand} clearLabel="Agent's gloves" onChoose={onChooseGloves} onClear={onAgentGloves} />
-          {glovesName && (
-            <>
-              <LabeledSlider label="Float" value={viewmodel.gloveFloat} min={0} max={1} step={0.001} format={(v) => v.toFixed(3)} onChange={(gloveFloat) => onViewmodel({ gloveFloat })} />
-              <div className="-mt-1 pl-[66px] text-[10.5px]" style={{ color: gloveWear.color }}>{gloveWear.name}</div>
-              <LabeledSlider
-                label="Pattern"
-                value={viewmodel.gloveSeed ?? 1}
-                min={1}
-                max={SEED_MAX}
-                step={1}
-                format={(v) => (viewmodel.gloveSeed === null ? 'Own' : '#' + v)}
-                onChange={(v) => onViewmodel({ gloveSeed: clampSeed(v) })}
-              />
-            </>
-          )}
-        </FieldGroup>
+  return (
+    <Section title="Loadout" collapsible={{ id: 'loadout', defaultOpen: true }} aside={<span className="section-value max-w-40 truncate">{summary}</span>}>
+      <div className="flex flex-col gap-3">
+        <WornRow
+          kind="Weapon"
+          name={weaponName}
+          placeholder="No weapon"
+          image={weaponImage}
+          icon={Crosshair}
+          clearLabel="No weapon"
+          open={weapon ? weaponOpen : undefined}
+          onToggle={weapon ? () => setWeaponOpen((on) => !on) : undefined}
+          onChoose={onChooseWeapon}
+          onClear={onNoWeapon}
+        />
+        {weapon && weaponOpen && (
+          <div className="flex flex-col gap-2.5 rounded-lg border border-border bg-black/15 p-3">
+            <div className="flex items-baseline justify-between text-[11.5px] text-muted-foreground">
+              Float <span className="font-medium" style={{ color: wear.color }}>{wear.name}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <ColorBarSlider label="Float" value={weaponFloat} min={weapon.floatMin} max={weapon.floatMax} step={0.0001} background={bandsGradient(weapon)} onChange={onWeaponFloat} />
+              <NumberField label="Float value" value={weaponFloat} min={weapon.floatMin} max={weapon.floatMax} decimals={4} className="w-[88px] shrink-0" onChange={onWeaponFloat} />
+            </div>
+            <div className="mt-1 text-[11.5px] text-muted-foreground">Pattern</div>
+            <SeedControl label="Pattern seed" value={weaponSeed} min={1} max={SEED_MAX} onChange={onWeaponSeed} />
+          </div>
+        )}
+
+        <WornRow
+          kind="Gloves"
+          name={glovesName}
+          placeholder="The agent’s gloves"
+          image={glovesImage}
+          icon={Hand}
+          clearLabel="The agent’s gloves"
+          open={glovesName ? glovesOpen : undefined}
+          onToggle={glovesName ? () => setGlovesOpen((on) => !on) : undefined}
+          onChoose={onChooseGloves}
+          onClear={onAgentGloves}
+        />
+        {glovesName && glovesOpen && <GloveSettings viewmodel={viewmodel} onViewmodel={onViewmodel} />}
 
         {onFirstPerson && (
-          <Button variant="outline" onClick={onFirstPerson}><Eye /> See in first person</Button>
+          <button type="button" onClick={onFirstPerson} className="flex h-9 items-center justify-center gap-2 rounded-lg border border-border text-[13px] font-medium text-foreground/90 transition-colors hover:border-white/20 hover:bg-white/4">
+            <Eye className="size-4 text-muted-foreground" /> See in first person
+          </button>
         )}
       </div>
     </Section>

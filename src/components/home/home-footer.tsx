@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom'
 
 const LINK = 'transition-colors hover:text-foreground'
 
-/** The home page's footer: what this is, where to go next, and the Valve disclaimer. */
 export function HomeFooter() {
   return (
     <footer className="text-[12.5px] text-muted-foreground">
@@ -14,13 +13,13 @@ export function HomeFooter() {
           <p className="mt-2 leading-relaxed">CS2 skins in your browser, on the game’s own shaders: real float and pattern, stickers, charms, gloves, agents and inspect maps.</p>
         </div>
         <nav aria-label="Viewer" className="flex flex-col gap-2">
-          <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-foreground/80">Viewer</span>
+          <span className="text-[13px] font-medium text-foreground">Viewer</span>
           <Link to="/" className={LINK}>Home</Link>
           <Link to="/api" className={LINK}>Embed API</Link>
           <Link to="/api#playground" className={LINK}>Playground</Link>
         </nav>
         <nav aria-label="chainskins" className="flex flex-col gap-2">
-          <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-foreground/80">chainskins</span>
+          <span className="text-[13px] font-medium text-foreground">chainskins</span>
           <a href="https://chainskins.net" target="_blank" rel="noopener" className={LINK}>chainskins.net</a>
           <a href="https://hub.chainskins.net/legal/terms-conditions/" target="_blank" rel="noopener" className={LINK}>Terms</a>
           <a href="https://hub.chainskins.net/legal/privacy-policy/" target="_blank" rel="noopener" className={LINK}>Privacy</a>

@@ -26,7 +26,7 @@ interface BandProps {
 
 function Band({ id, eyebrow, title, sub, children }: BandProps) {
   return (
-    <section id={id} className="scroll-mt-16 border-t border-border">
+    <section id={id} className="scroll-mt-14 border-t border-border">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:py-28">
         <span className="text-[13px] tracking-wide text-muted-foreground">{eyebrow}</span>
         <div className="mt-4 grid items-end gap-4 lg:grid-cols-2 lg:gap-16">
@@ -54,7 +54,7 @@ export function HomePage() {
   }
 
   return (
-    <div className="min-h-dvh">
+    <div className="home-page min-h-dvh">
       <HomeHeader onSearch={openPicker} />
       <main>
         <HomeHero onSearch={openPicker} />

@@ -4,14 +4,12 @@ import { cn } from '@/lib/utils'
 interface ToolButtonProps {
   icon: LucideIcon
   label: string
-  /** A toggle: lit while on. */
   pressed?: boolean
   disabled?: boolean
   iconClassName?: string
   onClick: () => void
 }
 
-/** A flat icon button of the stage's bars; with `pressed` it is a toggle, lit while on. */
 export function ToolButton({ icon: Icon, label, pressed, disabled, iconClassName, onClick }: ToolButtonProps) {
   return (
     <button

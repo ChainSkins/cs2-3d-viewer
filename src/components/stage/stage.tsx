@@ -21,16 +21,12 @@ interface StageProps extends StageToolbarProps {
   heading: Heading
   loading: boolean
   error: string
-  /** The map around the model (null: the studio). */
   map: string | null
   onMap: (map: string | null) => void
-  /** The view's link, card and render, for the share button. */
   getShare: () => ShareSource
-  /** Edit mode (dragging stickers and the charm): whether it applies to this view, and whether it's on. */
   canEdit: boolean
   editing: boolean
   onToggleEditing: () => void
-  /** Display settings (resolution, antialiasing, map effects) and what it draws at now. */
   quality: RenderQuality
   onQuality: (changes: Partial<RenderQuality>) => void
   lighting: Lighting
@@ -39,15 +35,12 @@ interface StageProps extends StageToolbarProps {
   mapLighting: MapLighting
   onMapLighting: (changes: Partial<MapLighting>) => void
   readRenderStatus: () => RenderStatus | null
-  /** Gloves on a map: lit by the game's inspect rig or the studio (null: not offered). */
   gloveGameLight: boolean | null
   onGloveGameLight: (on: boolean) => void
-  /** Everything but the viewport and its own button hidden (clean view, screenshots). */
   hideUi: boolean
   onToggleUi: () => void
 }
 
-/** The 3D viewport with the title, one bar in the top right corner (edit, map, share, settings, hide), the dock and read-out under the model, and the loading and error states over it. */
 export function Stage({ viewportRef, heading, loading, error, map, onMap, getShare, canEdit, editing, onToggleEditing, quality, onQuality, lighting, lightingPreset, onLighting, mapLighting, onMapLighting, readRenderStatus, gloveGameLight, onGloveGameLight, hideUi, onToggleUi, ...toolbar }: StageProps) {
   return (
     <main className="relative order-1 min-h-[62dvh] flex-1 overflow-hidden border-white/10 lg:order-2 lg:min-h-0">
@@ -60,7 +53,7 @@ export function Stage({ viewportRef, heading, loading, error, map, onMap, getSha
             <>
               {canEdit && <EditButton editing={editing} onToggle={onToggleEditing} />}
               {!IS_MOBILE_DEVICE && <MapPicker map={map} onChange={onMap} />}
-              <span aria-hidden className="mx-0.5 h-5 w-px bg-white/10" />
+              {(canEdit || !IS_MOBILE_DEVICE) && <span aria-hidden className="mx-0.5 h-5 w-px bg-white/10" />}
               <ShareButton getShare={getShare} />
               <SettingsButton quality={quality} onChange={onQuality} lighting={lighting} lightingPreset={lightingPreset} onLighting={onLighting} mapLighting={mapLighting} onMapLighting={onMapLighting} readStatus={readRenderStatus} />
             </>

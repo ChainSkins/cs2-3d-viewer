@@ -4,19 +4,16 @@ import { cn } from '@/lib/utils'
 
 interface CategoryNavProps {
   categories: PickerCategory[]
-  /** The highlighted one (none while searching everything). */
   active: string | null
   counts: Record<string, number>
   onSelect: (label: string) => void
-  /** The counts are known (dims the empty categories). */
   loaded: boolean
 }
 
-/** The picker's categories: a rail of rows on wide screens, a scrolling row of chips on small ones; empty ones dimmed. */
 export function CategoryNav({ categories, active, counts, onSelect, loaded }: CategoryNavProps) {
   return (
     <nav aria-label="Categories" className="flex shrink-0 gap-1 overflow-x-auto border-b border-border p-2 md:w-52 md:flex-col md:gap-px md:overflow-y-auto md:border-b-0 md:border-r md:p-2.5">
-      <div className="hidden px-2.5 pb-1.5 pt-2 text-[11px] font-medium uppercase tracking-[0.5px] text-muted-foreground md:block">Categories</div>
+      <div className="hidden px-2.5 pb-1.5 pt-2 text-[11.5px] font-medium text-muted-foreground md:block">Categories</div>
       {categories.map((c) => {
         const isActive = active === c.label
         const empty = loaded && !counts[c.label]

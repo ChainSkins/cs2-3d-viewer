@@ -6,16 +6,13 @@ import { Button } from '@/components/ui/button'
 import type { InspectPreview } from '@/lib/inspect-preview'
 
 interface LinkPanelProps {
-  /** What the link says, once it decodes. */
   preview: InspectPreview | null
   error: string
   canLoad: boolean
-  /** The catalog is still loading: names come later. */
   loadingNames: boolean
   onLoad: () => void
 }
 
-/** A pasted inspect link, in the picker's results: everything it carries (nothing is sent anywhere), and the button that loads it. */
 export function LinkPanel({ preview, error, canLoad, loadingNames, onLoad }: LinkPanelProps) {
   return (
     <div className="flex flex-col gap-3 px-5 pb-6 pt-4">

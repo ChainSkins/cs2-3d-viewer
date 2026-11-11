@@ -14,7 +14,6 @@ interface StickerEditorProps {
   onReplace: () => void
 }
 
-/** The selected sticker: which one, where it sits on the weapon, and its wear and placement. */
 export function StickerEditor({ sticker, name, slotCount, onChange, onRemove, onReplace }: StickerEditorProps) {
   return (
     <div className="flex flex-col gap-2.5">

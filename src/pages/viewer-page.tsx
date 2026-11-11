@@ -49,7 +49,6 @@ export function ViewerPage({ selection }: ViewerPageProps) {
   const [activeSticker, setActiveSticker] = useState(0)
   const [panelCollapsed, setPanelCollapsed] = useLocalStorage('panel-collapsed', false)
   const [hideUi, setHideUi] = useState(false)
-  /** On a phone the panel stays closed until the button is pressed, and closes again when another item is picked. */
   const [sheetOpen, setSheetOpen] = useState(false)
   const selectionKey = selectionPath(selection)
   useEffect(() => { setSheetOpen(false) }, [selectionKey])
@@ -71,10 +70,12 @@ export function ViewerPage({ selection }: ViewerPageProps) {
   const images = useDbImages()
   const heading = headingFor(selection, item, skin, attachments, catalog, images, agents, pins, patches, pets)
   const glovesName = useMemo(() => skinDisplayName(catalog, state.gloves), [catalog, state.gloves])
-  const glovesImage = useMemo(() => {
-    const worn = state.gloves ? catalog?.skins.find((s) => skinKey(s) === state.gloves) : undefined
+  const skinImage = useCallback((key: string | null) => {
+    const worn = key ? catalog?.skins.find((s) => skinKey(s) === key) : undefined
     return worn ? images.skin(catalog!.items[worn.item]?.defindex, worn.paintIndex) : undefined
-  }, [catalog, images, state.gloves])
+  }, [catalog, images])
+  const glovesImage = useMemo(() => skinImage(state.gloves), [skinImage, state.gloves])
+  const loadoutWeaponImage = useMemo(() => skinImage(state.loadout.weapon), [skinImage, state.loadout.weapon])
   const wornAgent = state.agent ? agents?.agent.get(state.agent) : undefined
 
   const picker = usePicker(selection, item, state, setActiveSticker)
@@ -132,6 +133,7 @@ export function ViewerPage({ selection }: ViewerPageProps) {
           agentImage={wornAgent ? images.agent(wornAgent.index) : undefined}
           loadoutWeapon={heldWeapon}
           loadoutWeaponName={loadout.weaponName}
+          loadoutWeaponImage={loadoutWeaponImage}
           onLoadoutFirstPerson={loadout.openFirstPerson}
           activeSticker={activeSticker}
           onActiveSticker={setActiveSticker}

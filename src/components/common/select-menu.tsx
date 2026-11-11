@@ -8,14 +8,9 @@ interface SelectMenuProps<T extends string> {
   options: { value: T; label: string }[]
   value: T
   onChange: (value: T) => void
-  /** Which edge of the button the menu lines up with. Default right. */
   align?: 'left' | 'right'
 }
 
-/**
- * A compact choice: a button with the current option, opening a glass menu under it (arrow keys and Enter, Escape or
- * a click outside closes it).
- */
 export function SelectMenu<T extends string>({ label, icon: Icon, options, value, onChange, align = 'right' }: SelectMenuProps<T>) {
   const [open, setOpen] = useState(false)
   const [hover, setHover] = useState(0)

@@ -7,7 +7,6 @@ interface EditButtonProps {
   onToggle: () => void
 }
 
-/** The stage's edit toggle (top right, E): while on, the weapon's stickers and charm are dragged with the pointer. */
 export function EditButton({ editing, onToggle }: EditButtonProps) {
   return (
     <Button

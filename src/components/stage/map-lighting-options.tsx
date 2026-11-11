@@ -7,7 +7,6 @@ import { DEFAULT_MAP_LIGHTING, type LightSource, type MapLighting } from '@/lib/
 
 interface MapLightingOptionsProps {
   lighting: MapLighting
-  /** What lights the current view (null: unknown yet). */
   sources: LightSource[] | null
   onChange: (changes: Partial<MapLighting>) => void
 }
@@ -22,11 +21,6 @@ const LIGHTS: { key: keyof MapLighting; label: string; icon: LucideIcon; hint: s
 
 const NAMES: Record<LightSource, string> = { sun: 'sun', item: 'item light', scene: 'map lights', ambient: 'ambient', reflections: 'reflections', studio: 'studio key and rim' }
 
-/**
- * The map lights' strengths, as the game's inspect rig lights each kind of item (a weapon: sun, its item light, the
- * map's lights and ambient; a charm or sticker alone and first person: sun and ambient). The sources the current view
- * doesn't use are dimmed; in the studio the studio lighting applies.
- */
 export function MapLightingOptions({ lighting, sources, onChange }: MapLightingOptionsProps) {
   const studio = sources?.length === 1 && sources[0] === 'studio'
   const changed = (Object.keys(DEFAULT_MAP_LIGHTING) as (keyof MapLighting)[]).some((k) => lighting[k] !== DEFAULT_MAP_LIGHTING[k])

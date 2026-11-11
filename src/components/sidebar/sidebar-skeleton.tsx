@@ -1,7 +1,6 @@
 import { Section } from '@/components/common/section'
 import { Skeleton } from '@/components/ui/skeleton'
 
-/** Placeholder sections shown in the sidebar before the first skin has loaded. */
 export function SidebarSkeleton() {
   return (
     <>

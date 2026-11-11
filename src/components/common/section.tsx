@@ -5,19 +5,13 @@ import { cn } from '@/lib/utils'
 
 interface SectionProps {
   title: string
-  /** An icon before the title (a dot without it). */
   icon?: LucideIcon
   aside?: ReactNode
-  /** Foldable: the title toggles it, and whether it is open is remembered under this id. */
   collapsible?: { id: string; defaultOpen?: boolean }
   className?: string
   children: ReactNode
 }
 
-/**
- * A titled block with an optional value or action on the right of its title: a card on its own, a row between
- * hairlines inside a flat panel (`.panel-flat`, see index.css).
- */
 export function Section({ collapsible, ...props }: SectionProps) {
   return collapsible
     ? <CollapsibleSection {...props} id={collapsible.id} defaultOpen={collapsible.defaultOpen ?? true} />

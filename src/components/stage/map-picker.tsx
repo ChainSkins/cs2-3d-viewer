@@ -9,12 +9,10 @@ import { ASSET_BASE } from '@/lib/config'
 import { VIEWER_DATA } from '@/lib/data/catalog'
 
 interface MapPickerProps {
-  /** The map around the model (null: the studio). */
   map: string | null
   onChange: (map: string | null) => void
 }
 
-/** The map button of the stage's top bar and its dialog to put the model in an inspect map or the studio. */
 export function MapPicker({ map, onChange }: MapPickerProps) {
   const maps = useInspectMaps()
   const [open, setOpen] = useState(false)
@@ -32,7 +30,7 @@ export function MapPicker({ map, onChange }: MapPickerProps) {
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent showCloseButton={false} className="flex max-h-[min(760px,90vh)] flex-col gap-0 overflow-hidden rounded-3xl p-0 sm:max-w-180">
+        <DialogContent showCloseButton={false} className="flex max-h-[min(760px,90vh)] flex-col gap-0 overflow-hidden rounded-2xl p-0 sm:max-w-180">
           <DialogHeading icon={MapIcon} title="Map" description="Where the item is shown: the studio or an inspect map." onClose={() => setOpen(false)} />
           <div className="grid grid-cols-2 gap-3 overflow-y-auto p-5 sm:grid-cols-3">
             <MapButton label="Studio" active={!map} onClick={() => choose(null)} />

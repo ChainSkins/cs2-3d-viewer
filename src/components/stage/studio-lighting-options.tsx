@@ -14,10 +14,6 @@ interface StudioLightingOptionsProps {
   onChange: (changes: Partial<Lighting>) => void
 }
 
-/**
- * The studio's lights (they light the item when no map is behind it): the presets, and folded under them the
- * brightness, the key / rim / ambient lights, their angle and colors, and the orbit and follow-camera effects.
- */
 export function StudioLightingOptions({ lighting, presetId, onChange }: StudioLightingOptionsProps) {
   const [fine, setFine] = useState(false)
   const onMap = !!lighting.map && lighting.map !== 'studio'
@@ -40,8 +36,8 @@ export function StudioLightingOptions({ lighting, presetId, onChange }: StudioLi
             aria-pressed={presetId === p.id}
             onClick={() => onChange({ ...p.lighting, map: lighting.map })}
             className={cn(
-              'flex flex-col items-center gap-1 rounded-lg px-1 py-1.5 text-[11px] font-medium',
-              presetId === p.id ? 'bevel-active text-foreground' : 'bevel text-foreground/80',
+              'flex flex-col items-center gap-1 rounded-lg border px-1 py-1.5 text-[11px] font-medium transition-colors',
+              presetId === p.id ? 'border-foreground/50 bg-white/10 text-foreground' : 'border-border text-muted-foreground hover:bg-white/5 hover:text-foreground',
             )}
           >
             <span className="flex">

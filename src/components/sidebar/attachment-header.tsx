@@ -7,7 +7,6 @@ interface AttachmentHeaderProps {
   onRemove: () => void
 }
 
-/** The selected sticker or charm, named above its controls, with the ways to swap it and to take it off. */
 export function AttachmentHeader({ name, removeLabel, onChange, onRemove }: AttachmentHeaderProps) {
   return (
     <div className="flex items-center gap-1.5">

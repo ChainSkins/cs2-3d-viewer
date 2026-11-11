@@ -9,22 +9,16 @@ import { cn } from '@/lib/utils'
 
 export interface StageToolbarProps {
   spin: boolean
-  /** First person applies to weapons; palm-up to gloves. */
   isWeapon: boolean
   isGlove: boolean
   firstPerson: boolean
   palmUp: boolean
-  /** The first-person weapon has an inspect animation. */
   canInspect: boolean
-  /** First person wears skin gloves: it can look at them (a glove skin's page always can). */
   canInspectGloves: boolean
-  /** First person's attack animations (a gun's shots, a knife's slashes and stabs). */
   attacks: AttackInfo[]
   stats: ReactNode
-  /** Front: the initial view; Back: a half turn around the model. */
   showingBack: boolean
   onSide: (back: boolean) => void
-  /** Knives only (null: not a knife): how it stands. */
   knifePose: KnifePose | null
   onKnifePose: (pose: KnifePose) => void
   onToggleSpin: () => void
@@ -32,17 +26,12 @@ export interface StageToolbarProps {
   onTogglePalmUp: () => void
   onInspect: () => void
   onInspectGloves: () => void
-  /** Plays an attack; with no name, the plain fire (Space). */
   onAttack: (name?: string) => void
   onScreenshot: () => void
 }
 
-const DIVIDER = <span aria-hidden className="mx-0.5 h-5 w-px shrink-0 bg-white/10" />
+const DIVIDER = <span aria-hidden className="mx-0.5 hidden h-5 w-px shrink-0 bg-white/10 sm:block" />
 
-/**
- * Under the model: one dock in the middle with how it is seen (its side, a knife's pose) and the view tools, the
- * read-out as a quiet line in the left corner and a hint in the right one.
- */
 export function StageToolbar({ spin, isWeapon, isGlove, firstPerson, palmUp, canInspect, canInspectGloves, attacks, stats, showingBack, onSide, knifePose, onKnifePose, onToggleSpin, onToggleFirstPerson, onTogglePalmUp, onInspect, onInspectGloves, onAttack, onScreenshot }: StageToolbarProps) {
   const inFirstPerson = firstPerson && isWeapon
   const hint = inFirstPerson

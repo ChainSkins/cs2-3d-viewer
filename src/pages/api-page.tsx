@@ -45,7 +45,7 @@ function useActiveSection(ids: string[]): string {
       let current = ids[0]
       for (const id of ids) {
         const el = document.getElementById(id)
-        if (el && el.getBoundingClientRect().top <= 140) current = id
+        if (el && el.getBoundingClientRect().top <= 180) current = id
       }
       setActive(current)
     }
@@ -84,6 +84,11 @@ export function ApiPage() {
           <a href="/embed-example.html" className="docs-tab">Example page</a>
           <span className="ml-auto shrink-0 rounded-md px-2 py-1 text-[12px] font-medium text-muted-foreground shadow-[0_0_0_1px_rgb(255_255_255/0.1)]">v1</span>
         </div>
+        <nav aria-label="Sections" className="flex h-10 items-center gap-1 overflow-x-auto border-t border-white/10 px-4 lg:hidden">
+          {NAV.flatMap((g) => g.items).map((item) => (
+            <a key={item.id} href={`#${item.id}`} aria-current={active === item.id ? 'true' : undefined} className={cn('shrink-0 rounded-md px-2.5 py-1 text-[13px] font-medium transition-colors', active === item.id ? 'bg-white/10 text-white' : 'text-muted-foreground')}>{item.title}</a>
+          ))}
+        </nav>
       </header>
 
       <div className="flex">
@@ -105,7 +110,7 @@ export function ApiPage() {
 
         <div className="flex min-w-0 flex-1 justify-center">
           <article className="docs-prose min-w-0 max-w-216 flex-1 p-5 pb-24 sm:p-8">
-            <header id="overview" className="scroll-mt-28 border-b border-white/10 pb-8">
+            <header id="overview" className="scroll-mt-40 lg:scroll-mt-28 border-b border-white/10 pb-8">
               <h1 className="text-[32px] font-[650] leading-[1.29] tracking-[-0.02em]">Embed API</h1>
               <p className="mt-3 text-[18px] leading-7">Put CS2 skins in 3D on your site with one iframe.</p>
             </header>

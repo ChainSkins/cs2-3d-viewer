@@ -8,13 +8,11 @@ interface DraftSliderProps {
   min: number
   max: number
   step: number
-  /** Shows the value on the right, following the thumb while dragging. */
   format?: (value: number) => string
   className?: string
   onChange: (value: number) => void
 }
 
-/** A single-thumb slider that follows the pointer on its own and pushes its value out at a pace the app can take (useSliderDraft). */
 export function DraftSlider({ label, value, min, max, step, format, className, onChange }: DraftSliderProps) {
   const slider = useSliderDraft(value, onChange)
   return (

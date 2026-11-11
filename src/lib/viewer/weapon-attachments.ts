@@ -268,11 +268,16 @@ export class WeaponAttachments {
     return look
   }
 
-  /** The sticker slab's sticker (charm parts with F_STICKERS), or none. */
+  /** The sticker slab's sticker (charm parts with F_STICKERS) and the label the game prints for it (its name and id), or none. */
   async charmSticker(parts: CharmPart[], id: string | null | undefined): Promise<void> {
     const slab = parts.filter((p) => p.setSticker)
     if (!slab.length) return
-    if (!id) { for (const p of slab) p.setSticker!(null); return }
+    if (!id) {
+      for (const p of slab) { p.setSticker!(null); void p.setLabel?.(null) }
+      return
+    }
+    const entry = (await loadAttachments(this.assetBase)).sticker.get(id)
+    await Promise.all(slab.map((p) => p.setLabel?.({ name: entry?.name ?? '', itemId: entry ? String(entry.index) : '' })))
     const { def, sources } = await this.stickerLook(id)
     const textures = packStickers(this.renderer, [sources])
     this.sink.disposables.push(() => textures.dispose())
