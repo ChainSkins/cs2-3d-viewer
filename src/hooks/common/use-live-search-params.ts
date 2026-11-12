@@ -33,7 +33,7 @@ export function useLiveSearchParams(): [URLSearchParams, (changes: Patch) => voi
         else next.set(key, param)
       }
       return next
-    }, { replace: true })
+    }, { replace: true, preventScrollReset: true })
   }, [setParams])
 
   const patch = useCallback((changes: Patch) => {

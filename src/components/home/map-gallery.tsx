@@ -10,6 +10,7 @@ import { selectionPath } from '@/lib/selection'
 import { cn } from '@/lib/utils'
 
 const FEATURED = 'de_mirage'
+const MAP_COUNT = 15
 
 export function MapGallery() {
   const maps = useInspectMaps()
@@ -27,7 +28,7 @@ export function MapGallery() {
 
   return (
     <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
-      {!maps.length && Array.from({ length: 9 }, (_, i) => <Skeleton key={i} className={cn('aspect-2/1 rounded-xl', i === 0 && 'col-span-2 lg:row-span-2 lg:aspect-auto')} />)}
+      {!maps.length && Array.from({ length: MAP_COUNT },(_, i) => <Skeleton key={i} className={cn('aspect-2/1 rounded-xl', i === 0 && 'col-span-2 lg:row-span-2 lg:aspect-auto')} />)}
       {ordered.map((m, i) => {
         const lead = i === 0
         return (
