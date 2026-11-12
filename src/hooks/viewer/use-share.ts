@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import type { DbImages } from '@/context/db-context'
-import type { ViewerStateApi } from '@/hooks/use-viewer-state'
+import type { ViewerStateApi } from '@/lib/viewer-state'
 import { WEB_ORIGIN } from '@/lib/config'
 import type { AgentIndex } from '@/lib/data/agents'
 import type { AttachmentIndex } from '@/lib/data/attachments'

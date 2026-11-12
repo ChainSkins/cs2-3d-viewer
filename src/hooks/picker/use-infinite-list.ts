@@ -3,9 +3,6 @@ import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 /**
  * Renders a long list a page at a time: `count` grows by `pageSize` whenever the sentinel element comes within
  * `margin` of the scroll container's viewport. Changing `resetKey` starts over from the first page.
- * @param total how many items there are
- * @param resetKey anything that changes the list (filters, search)
- * @param root the scroll container
  */
 export function useInfiniteList(total: number, resetKey: unknown, root: RefObject<HTMLElement | null>, pageSize = 60, margin = '800px') {
   const [count, setCount] = useState(pageSize)

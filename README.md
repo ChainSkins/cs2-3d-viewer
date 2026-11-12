@@ -86,10 +86,14 @@ The **loadout** is kept in `localStorage` (`loadout-v1`). It holds the gloves, t
 src/
   pages/        viewer-page.tsx (wires hooks and components), share-page.tsx, inspect-page.tsx, embed-page.tsx (wires the embed hooks), home-page.tsx
   routes.tsx
-  hooks/        use-viewer (creates the SkinViewer), use-viewer-state (URL state), use-live-search-params,
-                use-loadout, use-skin-loader, use-viewer-sync, use-picker, use-inspect-link, use-inspect-actions,
-                use-loadout-sync, use-catalog, use-lighting, use-viewmodel, use-key-shortcut,
-                use-embed-* (the embed: options, target, commands, status events, frozen frame, viewer setup)
+  hooks/
+    viewer/     use-viewer (creates the SkinViewer), use-viewer-state (URL state), use-viewer-sync, use-skin-loader,
+                use-viewer-settings (lighting, map lighting, render quality, viewmodel), use-loadout, use-loadout-sync,
+                use-inspect-actions, use-attachment-editing, use-share
+    picker/     use-picker, use-inspect-link, use-inspect-history, use-clipboard-inspect-link, use-infinite-list
+    embed/      use-embed-viewer (setup, frozen frame), use-embed-protocol (options, target, status events, commands)
+    data/       use-catalog, use-inspect-maps, use-charm-gradient
+    common/     use-local-storage (and stored settings), use-live-search-params, use-shortcuts, use-slider-draft
   components/   sidebar/, stage/, picker/, inspect/, embed/, home/, common/, ui/ (shadcn)
   context/      db-context.tsx (db.json: market names, images, rarities)
   lib/

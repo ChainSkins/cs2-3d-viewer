@@ -5,7 +5,7 @@ import { AttachmentHeader } from '@/components/sidebar/attachment-header'
 import { Button } from '@/components/ui/button'
 import { CHARM_MOVE_RANGE } from '@/lib/config'
 import type { CharmDef } from '@/lib/data/attachments'
-import type { CharmState } from '@/hooks/use-viewer-state'
+import type { CharmState } from '@/lib/viewer-state'
 
 interface CharmEditorProps {
   charm: CharmState

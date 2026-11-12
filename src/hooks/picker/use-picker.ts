@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { ViewerStateApi } from '@/hooks/use-viewer-state'
+import type { ViewerStateApi } from '@/lib/viewer-state'
 import { STICKER_MAX } from '@/lib/config'
 import { DEFAULT_AGENT } from '@/lib/data/agents'
 import type { Item } from '@/lib/data/items'
@@ -16,9 +16,7 @@ export interface PickerApi {
   picker: PickerTarget | null
   open: (target: PickerTarget) => void
   close: () => void
-  /** Applies a pick to what the picker chooses. */
   pick: (next: Selection) => void
-  /** What the picker shows as chosen. */
   current: Selection | null
   /** The only category it shows (sticker, charm, agent pickers), or the one it opens in (gloves). */
   only: 'Stickers' | 'Charms' | 'Agents' | 'Patches' | undefined

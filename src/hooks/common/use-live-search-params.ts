@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useSearchParams } from 'react-router-dom'
-
-/** Search-param changes: a value of null removes the param. */
-export type Patch = Record<string, string | number | null>
+import type { Patch } from '@/lib/viewer-state'
 
 /** How long the state has to stay still before it is written to the URL (ms). */
 const URL_WRITE_DELAY = 200

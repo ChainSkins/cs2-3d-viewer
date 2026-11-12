@@ -17,7 +17,6 @@ export interface CatalogState {
   error: string
 }
 
-/** Loads the skin catalog, the sticker / charm index, the agents, pins, patches and pets once. */
 export function useCatalog(): CatalogState {
   const [catalog, setCatalog] = useState<CatalogIndex | null>(null)
   const [attachments, setAttachments] = useState<AttachmentIndex | null>(null)

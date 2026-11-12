@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import type { ViewerStateApi } from '@/hooks/use-viewer-state'
+import type { ViewerStateApi } from '@/lib/viewer-state'
 import type { SkinViewer } from '@/lib/viewer/skin-viewer'
 
 /**

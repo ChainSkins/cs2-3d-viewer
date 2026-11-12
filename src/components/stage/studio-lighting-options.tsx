@@ -4,7 +4,7 @@ import { FieldRow } from '@/components/common/field-row'
 import { LabeledSlider } from '@/components/common/labeled-slider'
 import { SwitchField } from '@/components/common/switch-field'
 import { Button } from '@/components/ui/button'
-import { LIGHTING_PRESETS } from '@/hooks/use-lighting'
+import { LIGHTING_PRESETS } from '@/lib/lighting'
 import { cn } from '@/lib/utils'
 import { DEFAULT_LIGHTING, type Lighting } from '@/lib/viewer/viewer-options'
 

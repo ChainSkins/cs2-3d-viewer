@@ -1,7 +1,7 @@
 import type { AgentIndex } from '@/lib/data/agents'
 import type { AttachmentIndex } from '@/lib/data/attachments'
 import type { CatalogIndex } from '@/lib/data/catalog'
-import type { ViewerState } from '@/hooks/use-viewer-state'
+import type { ViewerState } from '@/lib/viewer-state'
 import { STICKER_MAX } from '@/lib/config'
 import { selectionPath, skinKey, parseSkinKey, type Selection } from '@/lib/selection'
 import { agentPatchesFromParam, agentPatchesToParam, PATCH_SLOTS, stickersToParam } from '@/lib/url-state'

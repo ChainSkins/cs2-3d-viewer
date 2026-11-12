@@ -25,8 +25,6 @@ function read<T>(key: string, fallback: T): T {
  * A piece of state kept in localStorage (under "3dviewer:<key>"): a per-browser preference such as the lighting,
  * the viewmodel or which panels are open — not part of the shareable link. Every hook on the same key follows the
  * others, in this tab and in other tabs.
- * @param key the storage key (without the prefix)
- * @param initial the default value
  */
 export function useLocalStorage<T>(key: string, initial: T | (() => T)): [T, (next: Updater<T>) => void] {
   const fallback = useRef(initial)
@@ -57,4 +55,14 @@ export function useLocalStorage<T>(key: string, initial: T | (() => T)): [T, (ne
   }, [key])
 
   return [value, set]
+}
+
+/**
+ * A settings object kept in localStorage, updated by patches: `set({ a: 1 })` changes `a` and keeps the rest.
+ * @param defaults every setting's default (also fills in settings missing from what was stored)
+ */
+export function useStoredSettings<T extends object>(key: string, defaults: T): [T, (changes: Partial<T>) => void] {
+  const [value, setValue] = useLocalStorage<T>(key, defaults)
+  const patch = useCallback((changes: Partial<T>) => setValue((prev) => ({ ...prev, ...changes })), [setValue])
+  return [value, patch]
 }

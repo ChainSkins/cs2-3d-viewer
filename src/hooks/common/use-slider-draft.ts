@@ -12,8 +12,6 @@ const FRAME = 1000 / 60
  * next frame, so it includes the re-render and the viewer's work) — and once more on release. Without it every pointer move
  * rewrote the URL, re-rendered the page and rebuilt stickers / charms in the viewer; when that took longer than a
  * frame the drag stalled.
- * @param value the committed value (from the URL state)
- * @param onChange where the value goes
  */
 export function useSliderDraft(value: number, onChange: (value: number) => void) {
   const [draft, setDraft] = useState<number | null>(null)

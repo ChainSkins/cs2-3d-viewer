@@ -8,7 +8,7 @@ import { STICKER_MAX } from '@/lib/config'
 import type { AttachmentIndex } from '@/lib/data/attachments'
 import { isSlabCharm, type ItemMarkup } from '@/lib/markup'
 import type { PickerTarget } from '@/lib/picker'
-import type { CharmState } from '@/hooks/use-viewer-state'
+import type { CharmState } from '@/lib/viewer-state'
 import type { StickerOptions } from '@/lib/viewer/skin-viewer'
 
 interface AttachmentsSectionProps {

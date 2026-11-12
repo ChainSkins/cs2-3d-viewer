@@ -3,7 +3,6 @@ import { charmGradient } from '@/lib/charm-gradient'
 import { ASSET_BASE } from '@/lib/config'
 import type { CharmDef } from '@/lib/data/attachments'
 
-/** The color bar of a charm's pattern slider; undefined until it is computed. */
 export function useCharmGradient(charm: CharmDef | undefined): string | undefined {
   const [result, setResult] = useState<{ id: string; gradient: string } | null>(null)
   useEffect(() => {

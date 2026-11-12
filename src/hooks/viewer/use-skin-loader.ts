@@ -6,13 +6,10 @@ import { parseSkinKey, type Selection } from '@/lib/selection'
 import { agentPatchesToParam } from '@/lib/url-state'
 import { clampFloat } from '@/lib/wear'
 import type { SkinViewer } from '@/lib/viewer/skin-viewer'
-import type { ViewerStateApi } from '@/hooks/use-viewer-state'
-
-export type LoadStatus = 'loading' | 'ready' | 'error'
+import type { LoadStatus, ViewerStateApi } from '@/lib/viewer-state'
 
 export interface SkinLoad {
   item: Item | null
-  /** On an agent's page: the loadout's weapon it holds. */
   weapon: Item | null
   status: LoadStatus
   error: string
@@ -21,8 +18,6 @@ export interface SkinLoad {
 /**
  * Loads what the selection names into the viewer: a skin (optionally in first person, with the chosen agent's arms),
  * a sticker, charm or pin on its own, or a whole agent.
- * @param viewer the 3D viewer
- * @param selection what to show
  * @param state the URL state, read once per load for the wear and pattern
  */
 export function useSkinLoader(viewer: SkinViewer | null, selection: Selection, state: ViewerStateApi): SkinLoad {

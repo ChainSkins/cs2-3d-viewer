@@ -3,27 +3,12 @@ import { DEFAULT_FLOAT } from '@/lib/config'
 import type { Item } from '@/lib/data/items'
 import type { Selection } from '@/lib/selection'
 import { clampFloat } from '@/lib/wear'
-import type { KnifePose, SkinViewer } from '@/lib/viewer/skin-viewer'
-import type { LoadStatus } from '@/hooks/use-skin-loader'
-import type { ViewerStateApi } from '@/hooks/use-viewer-state'
-
-export interface ViewOptions {
-  spin: boolean
-  palmUp: boolean
-  /** How knives stand (other items ignore it). */
-  knifePose: KnifePose
-  /** The item seen from its other side (a half turn around it). */
-  back: boolean
-}
+import type { SkinViewer } from '@/lib/viewer/skin-viewer'
+import type { LoadStatus, ViewerStateApi, ViewOptions } from '@/lib/viewer-state'
 
 /**
  * Pushes the live state (wear, pattern, stickers, charm, view options) into the viewer without reloading the model.
- * @param viewer the 3D viewer
- * @param selection what is shown
- * @param item the loaded skin, if any
  * @param status the load status: item-level settings wait for it to be ready
- * @param state the URL state
- * @param view the view options
  */
 export function useViewerSync(viewer: SkinViewer | null, selection: Selection, item: Item | null, status: LoadStatus, state: ViewerStateApi, view: ViewOptions): void {
   const ready = status === 'ready'

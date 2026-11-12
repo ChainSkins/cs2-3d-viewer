@@ -1,13 +1,12 @@
 import { useCallback, useEffect } from 'react'
-import { useKeyShortcut } from '@/hooks/use-key-shortcut'
-import type { LoadStatus } from '@/hooks/use-skin-loader'
+import { isOnControl, isTyping, useKeyShortcut } from '@/hooks/common/use-shortcuts'
+import type { LoadStatus } from '@/lib/viewer-state'
 import type { Item } from '@/lib/data/items'
 import type { AttackInfo } from '@/lib/data/attacks'
 import type { Selection } from '@/lib/selection'
 import type { SkinViewer } from '@/lib/viewer/skin-viewer'
 
 export interface InspectActions {
-  /** The first-person weapon has an inspect animation (F). */
   canInspect: boolean
   inspect: () => void
   /** The gloves can be looked at (G): first person with skin gloves, or a glove skin's page. */
@@ -20,7 +19,6 @@ export interface InspectActions {
 
 const EMPTY: AttackInfo[] = []
 
-/** The stage's inspect actions (the weapon's, the gloves' look) and their keys. */
 export function useInspectActions(viewer: SkinViewer | null, selection: Selection, item: Item | null, status: LoadStatus, firstPerson: boolean, agent: string | null): InspectActions {
   const ready = status === 'ready'
   const canInspect = firstPerson && ready && !!viewer?.canInspect
@@ -42,9 +40,8 @@ export function useInspectActions(viewer: SkinViewer | null, selection: Selectio
   const canFire = attacks.length > 0
   useEffect(() => {
     if (!canFire || !viewer) return
-    const typing = (e: KeyboardEvent) => !!(e.target as HTMLElement | null)?.closest('input, textarea, select, button, a, [contenteditable]')
     const down = (e: KeyboardEvent) => {
-      if (e.key !== ' ' || e.ctrlKey || e.metaKey || e.altKey || typing(e)) return
+      if (e.key !== ' ' || e.ctrlKey || e.metaKey || e.altKey || isTyping(e) || isOnControl(e)) return
       e.preventDefault()
       if (!e.repeat) viewer.startFire()
     }

@@ -1,5 +1,5 @@
 import { Stat } from '@/components/common/stat'
-import type { ViewerStateApi } from '@/hooks/use-viewer-state'
+import type { ViewerStateApi } from '@/lib/viewer-state'
 import { DEFAULT_FLOAT } from '@/lib/config'
 import type { AgentIndex } from '@/lib/data/agents'
 import type { Item } from '@/lib/data/items'

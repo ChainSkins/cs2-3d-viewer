@@ -1,6 +1,6 @@
 import { ChevronDown, type LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { useLocalStorage } from '@/hooks/use-local-storage'
+import { useLocalStorage } from '@/hooks/common/use-local-storage'
 import { cn } from '@/lib/utils'
 
 interface SectionProps {

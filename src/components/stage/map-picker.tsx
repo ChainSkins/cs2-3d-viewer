@@ -4,7 +4,7 @@ import { DialogHeading } from '@/components/common/dialog-heading'
 import { MapButton } from '@/components/stage/map-button'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
-import { useInspectMaps } from '@/hooks/use-lighting'
+import { useInspectMaps } from '@/hooks/data/use-inspect-maps'
 import { ASSET_BASE } from '@/lib/config'
 import { VIEWER_DATA } from '@/lib/data/catalog'
 

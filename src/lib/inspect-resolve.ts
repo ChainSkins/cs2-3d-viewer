@@ -4,7 +4,7 @@ import { CHARM_PATTERN_MAX } from '@/lib/data/attachments'
 import type { AgentIndex } from '@/lib/data/agents'
 import type { CatalogIndex } from '@/lib/data/catalog'
 import { inspectKind, type InspectItem } from '@/lib/data/inspect'
-import type { CharmState } from '@/hooks/use-viewer-state'
+import type { CharmState } from '@/lib/viewer-state'
 import type { StickerOptions } from '@/lib/viewer/skin-viewer'
 
 /** An inspect link mapped onto what the viewer can show: a skin with its attachments, or a sticker or charm on its own. */

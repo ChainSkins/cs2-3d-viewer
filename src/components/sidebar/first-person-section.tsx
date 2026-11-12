@@ -7,7 +7,7 @@ import { Segments } from '@/components/common/segments'
 import { SwitchField } from '@/components/common/switch-field'
 import { GloveSettings } from '@/components/sidebar/glove-settings'
 import { WornRow } from '@/components/sidebar/worn-row'
-import { useLocalStorage } from '@/hooks/use-local-storage'
+import { useLocalStorage } from '@/hooks/common/use-local-storage'
 import { cn } from '@/lib/utils'
 import { DEFAULT_VIEWMODEL, type Viewmodel } from '@/lib/viewer/viewer-options'
 

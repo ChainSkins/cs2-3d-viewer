@@ -4,7 +4,7 @@ import { Callout } from '@/components/common/callout'
 import { Spinner } from '@/components/common/spinner'
 import { ShareImageOptions } from '@/components/stage/share-image-options'
 import { Button } from '@/components/ui/button'
-import { useStoredSettings } from '@/hooks/use-stored-settings'
+import { useStoredSettings } from '@/hooks/common/use-local-storage'
 import type { ShareCard } from '@/lib/share-card'
 import { cardBlob, cardSize, DEFAULT_CARD_STYLE, drawShareImage, itemRenderSize, type CardStyle } from '@/lib/share-image'
 

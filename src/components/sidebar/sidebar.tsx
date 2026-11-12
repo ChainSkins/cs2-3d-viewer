@@ -27,7 +27,7 @@ import type { Selection } from '@/lib/selection'
 import { fadeForItem } from '@/lib/fade'
 import { clampFloat } from '@/lib/wear'
 import { DEFAULT_FLOAT } from '@/lib/config'
-import type { ViewerStateApi } from '@/hooks/use-viewer-state'
+import type { ViewerStateApi } from '@/lib/viewer-state'
 import type { Viewmodel } from '@/lib/viewer/skin-viewer'
 
 interface SidebarProps {

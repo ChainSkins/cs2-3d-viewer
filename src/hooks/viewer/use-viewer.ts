@@ -5,8 +5,6 @@ import { SkinViewer } from '@/lib/viewer/skin-viewer'
 /**
  * Creates the 3D viewer inside a container for the lifetime of the component (again when `antialias` changes: a canvas
  * keeps the antialiasing it was made with).
- * @param container the element the canvas is appended to
- * @param antialias multisampled edges
  */
 export function useViewer(container: RefObject<HTMLElement | null>, antialias = true): SkinViewer | null {
   const [viewer, setViewer] = useState<SkinViewer | null>(null)

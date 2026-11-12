@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { useLocalStorage } from '@/hooks/use-local-storage'
+import { useLocalStorage } from '@/hooks/common/use-local-storage'
 
 export interface InspectHistoryEntry {
   link: string

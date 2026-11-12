@@ -1,5 +1,5 @@
 import { Slider as SliderPrimitive } from '@base-ui/react/slider'
-import { useSliderDraft } from '@/hooks/use-slider-draft'
+import { useSliderDraft } from '@/hooks/common/use-slider-draft'
 import { cn } from '@/lib/utils'
 
 interface ColorBarSliderProps {

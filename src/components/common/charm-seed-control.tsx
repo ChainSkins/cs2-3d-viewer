@@ -1,5 +1,5 @@
 import { SeedControl } from '@/components/common/seed-control'
-import { useCharmGradient } from '@/hooks/use-charm-gradient'
+import { useCharmGradient } from '@/hooks/data/use-charm-gradient'
 import { CHARM_PATTERN_MAX, type CharmDef } from '@/lib/data/attachments'
 
 interface CharmSeedControlProps {

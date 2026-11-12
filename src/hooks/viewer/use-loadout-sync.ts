@@ -1,7 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { LoadStatus } from '@/hooks/use-skin-loader'
-import type { ViewerStateApi } from '@/hooks/use-viewer-state'
+import type { LoadStatus, ViewerStateApi } from '@/lib/viewer-state'
 import { DEFAULT_FLOAT } from '@/lib/config'
 import type { CatalogIndex } from '@/lib/data/catalog'
 import type { Item } from '@/lib/data/items'
@@ -11,7 +10,6 @@ import type { SkinViewer } from '@/lib/viewer/skin-viewer'
 import { clampFloat } from '@/lib/wear'
 
 export interface LoadoutView {
-  /** The loadout weapon's display name. */
   weaponName: string | null
   /** On an agent's page: opens the loadout weapon in first person with this agent and the loadout gloves. */
   openFirstPerson: (() => void) | null

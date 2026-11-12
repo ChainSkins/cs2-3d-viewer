@@ -1,5 +1,5 @@
 import { Slider } from '@/components/ui/slider'
-import { useSliderDraft } from '@/hooks/use-slider-draft'
+import { useSliderDraft } from '@/hooks/common/use-slider-draft'
 import { cn } from '@/lib/utils'
 
 interface DraftSliderProps {

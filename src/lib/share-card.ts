@@ -1,5 +1,5 @@
 import type { DbImages } from '@/context/db-context'
-import type { ViewerState } from '@/hooks/use-viewer-state'
+import type { ViewerState } from '@/lib/viewer-state'
 import type { AttachmentIndex } from '@/lib/data/attachments'
 import type { CatalogIndex, CatalogSkin } from '@/lib/data/catalog'
 import type { Item } from '@/lib/data/items'

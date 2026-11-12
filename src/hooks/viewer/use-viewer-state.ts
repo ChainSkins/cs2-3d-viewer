@@ -1,66 +1,10 @@
 import { useCallback, useMemo } from 'react'
-import { useLiveSearchParams, type Patch } from '@/hooks/use-live-search-params'
-import { useLoadout, type Loadout } from '@/hooks/use-loadout'
+import { useLiveSearchParams } from '@/hooks/common/use-live-search-params'
+import { useLoadout } from '@/hooks/viewer/use-loadout'
 import { SEED_MAX } from '@/lib/config'
 import { agentPatchesFromParam, agentPatchesToParam, numberParam, stickersFromParam, stickersToParam } from '@/lib/url-state'
-import type { AgentPatch } from '@/lib/viewer/agent-patches'
-import type { CharmOptions, StickerOptions } from '@/lib/viewer/skin-viewer'
-
-export type { Loadout }
-
-export interface CharmState {
-  id: string | null
-  seed: number
-  offset: [number, number]
-  position: [number, number, number] | null
-  sticker: string | null
-}
-
-export interface ViewerState {
-  float: number | null
-  seed: number
-  firstPerson: boolean
-  gloves: string | null
-  /** The agent whose arms first person shows (an agent item id), or the default. */
-  agent: string | null
-  stickers: StickerOptions[]
-  charm: CharmState
-  stickerWear: number
-  /** A sticker shown on its own: on the game's inspect card (the grey backing it sits on). */
-  stickerCard: boolean
-  /** On an agent's page: the patch worn in each of its slots. */
-  agentPatches: (AgentPatch | null)[]
-  /** On a pet's page: its colour (an index into the model's variants) and the animation clip it plays (null: the default idle). */
-  petVariant: number
-  /** The photo-booth hat a pet wears (its name), or null. */
-  petHat: string | null
-  petClip: string | null
-}
-
-export interface ViewerStateApi extends ViewerState {
-  /** Writes search params in place (a value of null removes the param). */
-  patch: (changes: Patch) => void
-  /** The current search params, including changes not yet written to the URL. */
-  search: string
-  setFloat: (value: number) => void
-  setSeed: (value: number) => void
-  setFirstPerson: (on: boolean) => void
-  setGloves: (key: string | null) => void
-  setAgent: (id: string | null) => void
-  setStickers: (list: StickerOptions[]) => void
-  setCharm: (changes: Partial<CharmState>) => void
-  setStickerWear: (value: number) => void
-  setStickerCard: (on: boolean) => void
-  /** Wears `patch` in `slot` (null: takes it off). */
-  setAgentPatch: (slot: number, patch: AgentPatch | null) => void
-  setPetVariant: (index: number) => void
-  setPetHat: (name: string | null) => void
-  setPetClip: (name: string | null) => void
-  charmOptions: CharmOptions | null
-  /** The shared loadout (agent, gloves, the weapon an agent holds), kept in storage. */
-  loadout: Loadout
-  updateLoadout: (changes: Partial<Loadout>) => void
-}
+import type { CharmOptions } from '@/lib/viewer/skin-viewer'
+import type { CharmState, Patch, ViewerState, ViewerStateApi } from '@/lib/viewer-state'
 
 /**
  * The viewer's state as search params, so every view is a shareable link (and the shared loadout, in storage).
