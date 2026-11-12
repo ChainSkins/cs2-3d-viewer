@@ -37,7 +37,7 @@ export function StageToolbar({ spin, isWeapon, isGlove, firstPerson, palmUp, can
   // Only a weapon, knife or gloves has a side and a pose worth turning to, and not from first person.
   const turnable = (isWeapon || isGlove) && !inFirstPerson
   const hint = inFirstPerson
-    ? (canInspect ? 'Move the mouse to sway · F to inspect' : 'Move the mouse to sway') + (attacks.length ? ' · click or Space to fire' : '')
+    ? [canInspect && 'F to inspect', attacks.length && 'click or Space to fire'].filter(Boolean).join(' · ')
     : 'Drag to rotate · scroll to zoom'
   return (
     <div className="grid w-full grid-cols-1 items-end gap-2 lg:grid-cols-[1fr_auto_1fr]">

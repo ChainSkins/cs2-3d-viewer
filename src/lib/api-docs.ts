@@ -64,7 +64,7 @@ export const OPTION_PARAMS: DocRow[] = [
   { name: 'pet_animation', values: 'a clip name', description: 'A pet shown on its own: the clip it plays in a loop (chick_idle03, chick_trick05 for a dance, chick_walk, chick_egg_reaction01 for the egg…). The names are the file names behind the viewer’s Animation panel; an unknown name plays the default idle.', fallback: 'its first idle' },
   { name: 'loadout_agent', values: 'customplayer_…', description: 'The agent whose arms and sleeves first person shows.', fallback: 'the default CT agent' },
   { name: 'stickers', values: 'id~slot~wear~x~y~rotation~scale,…', description: 'The weapon’s stickers, comma-separated; first load only.', fallback: 'none, or the link’s' },
-  { name: 'viewmodel_sway', values: '0', description: 'First person’s weapon stops swaying with the pointer.', fallback: 'on' },
+  { name: 'viewmodel_sway', values: '1', description: 'First person’s weapon sways with the pointer.', fallback: 'off' },
   { name: 'viewmodel_left_hand', values: '1', description: 'First person holds the weapon in the left hand.', fallback: 'off' },
   { name: 'side', values: 'front · back', description: 'Which side of the item faces the camera: front is the initial view, back a half turn around it (the item’s other side).', fallback: 'front' },
   { name: 'knife_pose', values: 'vertical · horizontal · tilted', description: 'How a knife stands: upright, lying flat or tilted. Other items ignore it; choosing a pose brings the view back to front unless side is given too.', fallback: 'tilted' },

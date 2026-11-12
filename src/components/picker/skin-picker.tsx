@@ -13,6 +13,7 @@ import { useDb } from '@/context/db-context'
 import { useClipboardInspectLink } from '@/hooks/picker/use-clipboard-inspect-link'
 import { useInfiniteList } from '@/hooks/picker/use-infinite-list'
 import { useInspectHistory } from '@/hooks/picker/use-inspect-history'
+import { usePickerShelf } from '@/hooks/picker/use-picker-shelf'
 import { useLocalStorage } from '@/hooks/common/use-local-storage'
 import { focusFirstGridItem, GRID_ITEM, moveGridFocus } from '@/lib/grid-focus'
 import type { PatchIndex } from '@/lib/data/patches'
@@ -24,7 +25,7 @@ import type { CatalogIndex } from '@/lib/data/catalog'
 import type { InspectItem } from '@/lib/data/inspect'
 import { inspectPreview } from '@/lib/inspect-preview'
 import { looksLikeInspectLink, parseInspectQuery } from '@/lib/inspect-query'
-import { arrangeGroups, CATEGORIES, categoryCounts, pickerGroups, raritiesIn, type PickerCard as Card, type PickerSort } from '@/lib/picker'
+import { arrangeGroups, CATEGORIES, categoryCounts, pickerGroups, raritiesIn, SHELVES, type PickerCard as Card, type PickerSort } from '@/lib/picker'
 import type { Selection } from '@/lib/selection'
 
 interface SkinPickerProps {
@@ -45,6 +46,11 @@ interface SkinPickerProps {
 
 const SURFACE = 'var(--surface)'
 
+/** A card as kept on a shelf, where weapons mix: a skin names its weapon. */
+const shelved = (card: Card, group: string): Card => (card.selection.kind === 'skin' && card.subtitle !== group ? { ...card, subtitle: group } : card)
+
+const SCOPE_KIND: Record<NonNullable<SkinPickerProps['only']>, Selection['kind']> = { Stickers: 'sticker', Charms: 'charm', Agents: 'agent', Pins: 'pin', Patches: 'patch', Pets: 'pet' }
+
 const isCurrent = (card: Card, current: Selection | null) => {
   if (!current || current.kind !== card.selection.kind) return false
   if (current.kind === 'skin' && card.selection.kind === 'skin') return current.item === card.selection.item && current.kit === card.selection.kit
@@ -64,6 +70,10 @@ export function SkinPicker({ open, catalog, attachments, agents = null, pins = n
   const categories = only ? CATEGORIES.filter((c) => c.label === only) : CATEGORIES
   const searching = query.trim().length > 0
   const history = useInspectHistory()
+  const shelf = usePickerShelf()
+  const shelfList = category === 'Recent' ? shelf.recent : category === 'Favorites' ? shelf.favorites : null
+  const inScope = (cards: Card[]) => (only ? cards.filter((c) => c.selection.kind === SCOPE_KIND[only]) : cards)
+  const onShelf = !!shelfList && !searching
   const [showHistory, setShowHistory] = useState(false)
   const [sort, setSort] = useLocalStorage<PickerSort>('picker-sort', 'relevance')
   const [rarities, setRarities] = useState<number[]>([])
@@ -99,11 +109,13 @@ export function SkinPicker({ open, catalog, attachments, agents = null, pins = n
   // (rarity scales differ between skins, stickers and agents)
   useEffect(() => { setRarities([]) }, [category, only])
 
-  const counts = useMemo(() => categoryCounts(catalog, attachments, portedOnly, agents, pins, patches, pets), [catalog, attachments, portedOnly, agents, pins, patches, pets])
-  const found = useMemo(
+  const baseCounts = useMemo(() => categoryCounts(catalog, attachments, portedOnly, agents, pins, patches, pets), [catalog, attachments, portedOnly, agents, pins, patches, pets])
+  const counts = { ...baseCounts, Recent: inScope(shelf.recent).length, Favorites: inScope(shelf.favorites).length }
+  const catalogGroups = useMemo(
     () => pickerGroups(catalog, attachments, { category, stickerKind, query, portedOnly, scope: only }, db, agents, pins, patches, pets),
     [catalog, attachments, db, agents, pins, patches, pets, category, stickerKind, query, portedOnly, only],
   )
+  const found = onShelf ? [{ title: category === 'Recent' ? 'Recently opened' : 'Favorites', cards: inScope(shelfList) }].filter((g) => g.cards.length) : catalogGroups
   const available = useMemo(() => raritiesIn(found), [found])
   const groups = useMemo(() => arrangeGroups(found, sort, rarities), [found, sort, rarities])
   const scope = only ?? (searching ? 'All' : category)
@@ -118,7 +130,7 @@ export function SkinPicker({ open, catalog, attachments, agents = null, pins = n
     budget -= cards.length
     return [{ ...group, cards }]
   })
-  const loading = only === 'Agents' ? !agents : only === 'Pins' ? !pins : only === 'Patches' ? !patches : only === 'Pets' ? !pets : only ? !attachments : !catalog
+  const loading = onShelf ? false : only === 'Agents' ? !agents : only === 'Pins' ? !pins : only === 'Patches' ? !patches : only === 'Pets' ? !pets : only ? !attachments : !catalog
   const placeholder = only ? `Search ${only.toLowerCase()}` : onLoadInspect ? 'Search skins, charms and stickers, or paste an inspect link' : 'Search skins, charms and stickers: "die", "m4 howl"…'
 
   return (
@@ -139,6 +151,7 @@ export function SkinPicker({ open, catalog, attachments, agents = null, pins = n
 
         <div className="flex min-h-0 flex-1 flex-col md:flex-row">
         <CategoryNav
+          shelves={SHELVES}
           categories={categories}
           active={searching || historyOn ? null : category}
           counts={counts}
@@ -182,7 +195,7 @@ export function SkinPicker({ open, catalog, attachments, agents = null, pins = n
                 rarities={rarities}
                 naming={naming}
                 stickerKind={category === 'Stickers' && !searching ? stickerKind : undefined}
-                portedOnly={!only && category !== 'Stickers' && category !== 'Charms' ? portedOnly : undefined}
+                portedOnly={!only && !onShelf && category !== 'Stickers' && category !== 'Charms' ? portedOnly : undefined}
                 onSort={setSort}
                 onRarities={setRarities}
                 onStickerKind={setStickerKind}
@@ -198,16 +211,32 @@ export function SkinPicker({ open, catalog, attachments, agents = null, pins = n
                 }}
               >
                 {loading && <div className="py-16 text-center text-muted-foreground">Loading the catalog…</div>}
-                {!loading && !total && <div className="py-16 text-center text-muted-foreground">{rarities.length && !query ? 'Nothing of these rarities here.' : `Nothing matches “${query}”.`}</div>}
+                {!loading && !total && (
+                  <div className="py-16 text-center text-muted-foreground">
+                    {onShelf && !rarities.length
+                      ? category === 'Recent' ? 'What you open from here shows up here.' : 'Hover a card and click the star to keep it here.'
+                      : rarities.length && !query ? 'Nothing of these rarities here.' : `Nothing matches “${query}”.`}
+                  </div>
+                )}
                 {shown.map((group) => (
                   <section key={group.title}>
                     <div className="sticky top-0 z-10 -mx-5 flex items-baseline gap-2 px-5 pb-2.5 pt-4" style={{ background: SURFACE }}>
                       <span className="text-[13px] font-medium">{group.title}</span>
                       <span className="text-[11.5px] tabular-nums text-muted-foreground">{group.cards.length}</span>
+                      {onShelf && category === 'Recent' && (
+                        <button type="button" onClick={shelf.clearRecent} className="ml-auto text-[12px] text-muted-foreground transition-colors hover:text-foreground">Clear</button>
+                      )}
                     </div>
                     <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-2.5">
                       {group.cards.map((card) => (
-                        <PickerCard key={card.key} card={card} current={isCurrent(card, current)} onPick={() => { onPick(card.selection); onClose() }} />
+                        <PickerCard
+                          key={card.key}
+                          card={card}
+                          current={isCurrent(card, current)}
+                          favorite={shelf.isFavorite(card.key)}
+                          onFavorite={() => shelf.toggleFavorite(onShelf ? card : shelved(card, group.title))}
+                          onPick={() => { shelf.addRecent(onShelf ? card : shelved(card, group.title)); onPick(card.selection); onClose() }}
+                        />
                       ))}
                     </div>
                   </section>

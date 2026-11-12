@@ -9,15 +9,19 @@ import { isPorted, styleName, VIEWER_DATA, type CatalogIndex, type CatalogSkin }
 import { rarityColor, rarityOf } from '@/lib/rarity'
 import { skinKey, type Selection } from '@/lib/selection'
 
-export type CategoryIcon = 'grid' | 'rifle' | 'target' | 'pistol' | 'knife' | 'glove' | 'cube' | 'sticker' | 'charm' | 'agent' | 'pin' | 'patch' | 'pet'
+export type CategoryIcon = 'recent' | 'star' | 'grid' | 'rifle' | 'target' | 'pistol' | 'knife' | 'glove' | 'cube' | 'sticker' | 'charm' | 'agent' | 'pin' | 'patch' | 'pet'
 
 export interface PickerCategory {
   label: string
   types?: string[]
   icon: CategoryIcon
-  /** An item image for the category, over the generic icon: a name in public/icons/categories, or a full URL. */
   image?: string
 }
+
+export const SHELVES: PickerCategory[] = [
+  { label: 'Recent', icon: 'recent' },
+  { label: 'Favorites', icon: 'star' },
+]
 
 export const CATEGORIES: PickerCategory[] = [
   { label: 'All', icon: 'grid' },
@@ -37,7 +41,6 @@ export const CATEGORIES: PickerCategory[] = [
   { label: 'Agents', icon: 'agent', image: 'https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXA6Q1NL4kmrAlOA0_FVPCi2t_fUkRxNztUoreaLQVp7OXJYzRD4si02tHSlKatNe-GxzoB68cgiezCrYnwjFbs-hE6amjwIYKSdlM2YV6E_1WggbC4kdowLd4/256fx192f' },
 ]
 
-/** Where a category's image comes from: a full URL as is, a name from public/icons/categories. */
 export const categoryImageUrl = (image: string) => (/^https?:\/\//.test(image) ? image : `${import.meta.env.BASE_URL}icons/categories/${image}.png`)
 
 export const RARITY_COLOR: Record<string, string> = {
@@ -55,7 +58,6 @@ export function stickerKindOf(sticker: { kind: string; name: string }): string {
   return /\(lenticular\)/i.test(sticker.name) ? 'lenticular' : sticker.kind
 }
 
-/** At most this many sticker cards when browsing the category (the picker renders them a page at a time as you scroll). */
 export const STICKER_CAP = Infinity
 
 export interface PickerCard {
@@ -66,10 +68,8 @@ export interface PickerCard {
   color: string
   ported: boolean
   meta: string
-  /** The market image from the db, when it has one. */
   icon?: string
-  /** The in-game rarity (1 Consumer … 7 Contraband), when known: sorting and filtering by it. */
-  rarity: number | null
+rarity: number | null
 }
 
 export interface PickerGroup {
@@ -82,7 +82,6 @@ export interface GroupFilters {
   stickerKind: string | null
   query: string
   portedOnly: boolean
-  /** Choosing a sticker, a charm or the first-person agent: only that kind is searched. */
   scope?: 'Stickers' | 'Charms' | 'Agents' | 'Pins' | 'Patches' | 'Pets'
 }
 

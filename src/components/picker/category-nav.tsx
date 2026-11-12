@@ -3,6 +3,7 @@ import type { PickerCategory } from '@/lib/picker'
 import { cn } from '@/lib/utils'
 
 interface CategoryNavProps {
+  shelves: PickerCategory[]
   categories: PickerCategory[]
   active: string | null
   counts: Record<string, number>
@@ -10,11 +11,14 @@ interface CategoryNavProps {
   loaded: boolean
 }
 
-export function CategoryNav({ categories, active, counts, onSelect, loaded }: CategoryNavProps) {
+export function CategoryNav({ shelves, categories, active, counts, onSelect, loaded }: CategoryNavProps) {
   return (
     <nav aria-label="Categories" className="flex shrink-0 gap-1 overflow-x-auto border-b border-border p-2 md:w-52 md:flex-col md:gap-px md:overflow-y-auto md:border-b-0 md:border-r md:p-2.5">
-      <div className="hidden px-2.5 pb-1.5 pt-2 text-[11.5px] font-medium text-muted-foreground md:block">Categories</div>
-      {categories.map((c) => {
+      {[shelves, categories].map((list, i) => (
+        <div key={i} className="contents">
+          <div className={cn('hidden px-2.5 pb-1.5 pt-2 text-[11.5px] font-medium text-muted-foreground md:block', i > 0 && 'md:mt-2')}>{i === 0 ? 'Yours' : 'Categories'}</div>
+          {i > 0 && <span aria-hidden className="mx-1 my-1.5 w-px shrink-0 bg-border md:hidden" />}
+          {list.map((c) => {
         const isActive = active === c.label
         const empty = loaded && !counts[c.label]
         return (
@@ -35,7 +39,9 @@ export function CategoryNav({ categories, active, counts, onSelect, loaded }: Ca
             <span className="hidden text-[11px] font-normal tabular-nums text-muted-foreground/80 md:inline">{counts[c.label] ?? 0}</span>
           </button>
         )
-      })}
+          })}
+        </div>
+      ))}
     </nav>
   )
 }

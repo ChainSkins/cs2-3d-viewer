@@ -3,18 +3,15 @@ import { useEffect, useState } from 'react'
 import { Spinner } from '@/components/common/spinner'
 import { Button } from '@/components/ui/button'
 
-const SHOW_AFTER = 250
 const SLOW_AFTER = 10_000
 
 export function LoadingCard({ title }: { title: string }) {
-  const [phase, setPhase] = useState<'hidden' | 'shown' | 'slow'>('hidden')
+  const [slow, setSlow] = useState(false)
   useEffect(() => {
-    setPhase('hidden')
-    const show = setTimeout(() => setPhase('shown'), SHOW_AFTER)
-    const slow = setTimeout(() => setPhase('slow'), SLOW_AFTER)
-    return () => { clearTimeout(show); clearTimeout(slow) }
+    setSlow(false)
+    const timer = setTimeout(() => setSlow(true), SLOW_AFTER)
+    return () => clearTimeout(timer)
   }, [title])
-  if (phase === 'hidden') return null
 
   return (
     <div className="pointer-events-none absolute inset-0 grid place-items-center">
@@ -23,7 +20,7 @@ export function LoadingCard({ title }: { title: string }) {
           <Spinner />
           <span className="truncate">Loading {title}…</span>
         </div>
-        {phase === 'slow' && <p className="pl-7 text-[12px] text-muted-foreground">Taking longer than usual. Big models can need a moment on a slow connection.</p>}
+        {slow &&<p className="pl-7 text-[12px] text-muted-foreground">Taking longer than usual. Big models can need a moment on a slow connection.</p>}
       </div>
     </div>
   )

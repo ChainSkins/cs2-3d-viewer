@@ -108,5 +108,5 @@ export interface Viewmodel {
 }
 
 export const DEFAULT_VIEWMODEL: Viewmodel = {
-  fov: 68, offsetX: 2.5, offsetY: 0, offsetZ: -1.5, leftHanded: false, sway: true, gloveFloat: 0.15, gloveSeed: null,
+  fov: 68, offsetX: 2.5, offsetY: 0, offsetZ: -1.5, leftHanded: false, sway: false, gloveFloat: 0.15, gloveSeed: null,
 }
