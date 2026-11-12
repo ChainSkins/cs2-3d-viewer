@@ -58,15 +58,15 @@ export function SettingsButton({ quality, onChange, lighting, lightingPreset, on
               <SwitchField checked={quality.post} label="Map effects (bloom and color grading)" onChange={(post) => onChange({ post })} />
             </div>
             {status && (
-              <div className="flex items-center gap-2 rounded-lg border border-border bg-black/20 px-3 py-2 text-[12px] text-muted-foreground">
+              <div className="flex items-center gap-2 rounded-lg border border-border bg-shade/20 px-3 py-2 text-[12px] text-muted-foreground">
                 <Gauge className="size-4" />
                 Now drawing at <span className="font-mono text-foreground">{status.pixelRatio.toFixed(2)}×</span> · <span className="font-mono text-foreground">{status.fps}</span> fps
               </div>
             )}
-            <div className="border-t border-white/10 pt-4">
+            <div className="border-t border-ink/10 pt-4">
               <StudioLightingOptions lighting={lighting} presetId={lightingPreset} onChange={onLighting} />
             </div>
-            <div className="border-t border-white/10 pt-4">
+            <div className="border-t border-ink/10 pt-4">
               <MapLightingOptions lighting={mapLighting} sources={status?.lights ?? null} onChange={onMapLighting} />
             </div>
           </div>

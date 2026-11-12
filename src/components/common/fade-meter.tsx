@@ -8,7 +8,7 @@ export function FadeMeter({ fade }: { fade: FadeResult }) {
       <span className="text-[11.5px] font-medium text-muted-foreground">Fade</span>
       <span className="font-mono text-[16px] font-medium leading-none tabular-nums" style={{ color }}>{fadeLabel(fade)}</span>
       <span className="relative ml-auto h-1.5 w-24 rounded-full" style={{ background: FADE_GRADIENT }}>
-        <span className="absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-black/60 shadow" style={{ left: `${at * 100}%` }} />
+        <span className="absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-ink bg-shade/60 shadow" style={{ left: `${at * 100}%` }} />
       </span>
     </div>
   )

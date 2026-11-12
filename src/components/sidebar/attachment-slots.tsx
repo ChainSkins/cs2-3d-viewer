@@ -26,8 +26,8 @@ export function Slot({ name, icon, badge, active, disabled, emptyLabel, onClick 
       onClick={onClick}
       className={cn(
         'relative grid aspect-square min-w-0 flex-1 place-items-center rounded-lg border outline-none transition-colors focus-visible:border-foreground/70 disabled:opacity-40',
-        filled ? 'border-border bg-black/25 hover:border-white/25' : 'border-dashed border-white/15 text-muted-foreground hover:border-white/30 hover:bg-white/4 hover:text-foreground',
-        active && 'border-foreground/60 bg-white/8 hover:border-foreground/60',
+        filled ? 'border-border bg-shade/25 hover:border-ink/25' : 'border-dashed border-ink/15 text-muted-foreground hover:border-ink/30 hover:bg-ink/4 hover:text-foreground',
+        active && 'border-foreground/60 bg-ink/8 hover:border-foreground/60',
       )}
     >
       {!filled && <Plus className="size-4" />}

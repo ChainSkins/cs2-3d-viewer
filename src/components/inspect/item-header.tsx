@@ -8,7 +8,7 @@ export function ItemHeader({ preview }: { preview: InspectPreview }) {
   return (
     <div className="tile relative flex gap-4 overflow-hidden p-3.5">
       <span aria-hidden className="absolute inset-y-0 left-0 w-1" style={{ background: preview.color }} />
-      <ItemImage src={preview.image} color={preview.color} className={preview.kind === 'skin' ? 'h-26 w-34.5 bg-black/20' : 'h-33 w-44 bg-black/20'} />
+      <ItemImage src={preview.image} color={preview.color} className={preview.kind === 'skin' ? 'h-26 w-34.5 bg-shade/20' : 'h-33 w-44 bg-shade/20'} />
       <div className="flex min-w-0 flex-1 flex-col justify-center gap-1.5">
         <div className="flex flex-wrap items-center gap-1.5">
           {preview.rarityLabel && (

@@ -36,7 +36,7 @@ export function MapGallery() {
             type="button"
             onClick={() => open(m.id)}
             className={cn(
-              'group relative overflow-hidden rounded-xl border border-border bg-white/[0.03] text-left outline-none transition-colors hover:border-white/25 focus-visible:border-foreground/70',
+              'group relative overflow-hidden rounded-xl border border-border bg-ink/[0.03] text-left outline-none transition-colors hover:border-ink/25 focus-visible:border-foreground/70',
               lead ? 'col-span-2 aspect-2/1 lg:row-span-2 lg:aspect-auto' : 'aspect-2/1',
             )}
           >

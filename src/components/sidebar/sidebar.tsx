@@ -1,5 +1,6 @@
 import { ChevronDown, LayoutGrid, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { BrandMark } from '@/components/common/brand-mark'
+import { RepoLink } from '@/components/common/top-bar-links'
 import { ItemImage } from '@/components/common/item-image'
 import { AttachmentsSection } from '@/components/sidebar/attachments-section'
 import { AgentPatchesSection } from '@/components/sidebar/agent-patches-section'
@@ -77,6 +78,7 @@ export function Sidebar({ viewmodel, onViewmodel, collapsed, onToggleCollapsed, 
     >
       <div className={cn('flex items-center gap-2 border-b border-border px-3.5 py-2', collapsed && 'lg:flex-col lg:px-2.5 lg:py-2.5')}>
         <BrandMark compact={collapsed} className={cn('flex-1', collapsed && 'lg:flex-none')} />
+        <RepoLink className={cn('size-8', collapsed && 'lg:hidden')} />
         <Button variant="ghost" size="icon-sm" className="hidden lg:inline-flex" aria-label={collapsed ? 'Expand panel' : 'Collapse panel'} onClick={onToggleCollapsed}>
           {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
         </Button>
@@ -87,7 +89,7 @@ export function Sidebar({ viewmodel, onViewmodel, collapsed, onToggleCollapsed, 
 
       {collapsed && (
         <div className="hidden flex-col items-center gap-2.5 py-3 lg:flex">
-          <button type="button" aria-label="Change the item" title={`${heading.title} · change`} onClick={() => onOpenPicker({ kind: 'selection' })} className="group relative overflow-hidden rounded-lg border border-border bg-black/20 outline-none transition-colors hover:border-white/25 focus-visible:border-foreground/70">
+          <button type="button" aria-label="Change the item" title={`${heading.title} · change`} onClick={() => onOpenPicker({ kind: 'selection' })} className="group relative overflow-hidden rounded-lg border border-border bg-shade/20 outline-none transition-colors hover:border-ink/25 focus-visible:border-foreground/70">
             <ItemImage src={heading.icon} color={heading.color} fallback={LayoutGrid} className="size-11 rounded-none p-1" imageClassName="transition-transform duration-200 group-hover:scale-108" />
             <span aria-hidden className="absolute inset-x-0 bottom-0 h-0.5" style={{ background: heading.color }} />
           </button>
@@ -99,10 +101,10 @@ export function Sidebar({ viewmodel, onViewmodel, collapsed, onToggleCollapsed, 
         <div className="contents">
 
         {isSkin && item && (
-          <div role="tablist" className="mx-4 my-3 flex gap-0.5 rounded-lg bg-black/25 p-0.5 lg:hidden">
+          <div role="tablist" className="mx-4 my-3 flex gap-0.5 rounded-lg bg-shade/25 p-0.5 lg:hidden">
             {([['finish', 'Finish'], ['stickers', 'Stickers'], ['view', 'View']] as const).filter(([id]) => id !== 'view' || hasView).map(([id, label]) => (
               <button key={id} type="button" role="tab" aria-selected={tab === id} onClick={() => setTab(id)}
-                className={cn('flex-1 rounded-md py-1.5 text-[12.5px] font-medium transition-colors', tab === id ? 'bg-white/12 text-foreground' : 'text-muted-foreground')}>
+                className={cn('flex-1 rounded-md py-1.5 text-[12.5px] font-medium transition-colors', tab === id ? 'bg-ink/12 text-foreground' : 'text-muted-foreground')}>
                 {label}
               </button>
             ))}

@@ -21,7 +21,7 @@ export function ShareLinkPanel({ link }: { link: ShareLink }) {
           value={link.url}
           onFocus={(e) => e.target.select()}
           spellCheck={false}
-          className="h-10 min-w-0 flex-1 rounded-lg border border-border bg-black/25 px-3 font-mono text-[13px] outline-none transition-colors focus:border-white/25"
+          className="h-10 min-w-0 flex-1 rounded-lg border border-border bg-shade/25 px-3 font-mono text-[13px] outline-none transition-colors focus:border-ink/25"
         />
         <Button className="h-10 px-4" onClick={copy}>
           {copied ? <><Check /> Copied</> : <><Copy /> Copy</>}

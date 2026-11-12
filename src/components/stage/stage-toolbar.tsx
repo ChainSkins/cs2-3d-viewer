@@ -30,7 +30,7 @@ export interface StageToolbarProps {
   onScreenshot: () => void
 }
 
-const DIVIDER = <span aria-hidden className="mx-0.5 hidden h-5 w-px shrink-0 bg-white/10 sm:block" />
+const DIVIDER = <span aria-hidden className="mx-0.5 hidden h-5 w-px shrink-0 bg-ink/10 sm:block" />
 
 export function StageToolbar({ spin, isWeapon, isGlove, firstPerson, palmUp, canInspect, canInspectGloves, attacks, stats, showingBack, onSide, knifePose, onKnifePose, onToggleSpin, onToggleFirstPerson, onTogglePalmUp, onInspect, onInspectGloves, onAttack, onScreenshot }: StageToolbarProps) {
   const inFirstPerson = firstPerson && isWeapon

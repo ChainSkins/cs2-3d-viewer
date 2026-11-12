@@ -16,7 +16,7 @@ export function CharmSeedControl({ charm, seed, onChange }: CharmSeedControlProp
       value={seed}
       min={0}
       max={CHARM_PATTERN_MAX}
-      background={gradient ?? 'oklch(1 0 0 / 12%)'}
+      background={gradient ?? 'color-mix(in oklab, var(--ink) 12%, transparent)'}
       fieldClassName="w-20"
       onChange={onChange}
     />

@@ -20,14 +20,14 @@ export function StickerEditor({ sticker, name, slotCount, onChange, onRemove, on
       <AttachmentHeader name={name} removeLabel="Remove sticker" onChange={onReplace} onRemove={onRemove} />
       <div className="flex items-center gap-2">
         <span className="w-14 shrink-0 text-[11px] text-muted-foreground">Position</span>
-        <div className="flex gap-0.5 rounded-md bg-black/25 p-0.5">
+        <div className="flex gap-0.5 rounded-md bg-shade/25 p-0.5">
           {Array.from({ length: slotCount }, (_, i) => (
             <button
               key={i}
               type="button"
               aria-pressed={sticker.slot === i}
               onClick={() => onChange({ slot: i })}
-              className={cn('h-6 w-7 rounded font-mono text-[11.5px] transition-colors', sticker.slot === i ? 'bg-white/14 text-foreground' : 'text-muted-foreground hover:text-foreground')}
+              className={cn('h-6 w-7 rounded font-mono text-[11.5px] transition-colors', sticker.slot === i ? 'bg-ink/14 text-foreground' : 'text-muted-foreground hover:text-foreground')}
             >
               {i + 1}
             </button>

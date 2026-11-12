@@ -7,6 +7,7 @@ import { PillSwitch } from '@/components/stage/pill-switch'
 import { MapPicker } from '@/components/stage/map-picker'
 import { SettingsButton, type RenderStatus } from '@/components/stage/settings-button'
 import { ShareButton } from '@/components/stage/share-button'
+import { ThemeToggle } from '@/components/common/top-bar-links'
 import { StageHeading } from '@/components/stage/stage-heading'
 import { StageToolbar, type StageToolbarProps } from '@/components/stage/stage-toolbar'
 import { ToolButton } from '@/components/stage/tool-button'
@@ -43,7 +44,7 @@ interface StageProps extends StageToolbarProps {
 
 export function Stage({ viewportRef, heading, loading, error, map, onMap, getShare, canEdit, editing, onToggleEditing, quality, onQuality, lighting, lightingPreset, onLighting, mapLighting, onMapLighting, readRenderStatus, gloveGameLight, onGloveGameLight, hideUi, onToggleUi, ...toolbar }: StageProps) {
   return (
-    <main className="relative order-1 min-h-[62dvh] flex-1 overflow-hidden border-white/10 lg:order-2 lg:min-h-0">
+    <main className="relative order-1 min-h-[62dvh] flex-1 overflow-hidden border-ink/10 lg:order-2 lg:min-h-0">
       <StudioBackdrop />
       <div ref={viewportRef} className="absolute inset-0" />
       {!hideUi && <StageHeading heading={heading} />}
@@ -53,8 +54,9 @@ export function Stage({ viewportRef, heading, loading, error, map, onMap, getSha
             <>
               {canEdit && <EditButton editing={editing} onToggle={onToggleEditing} />}
               {!IS_MOBILE_DEVICE && <MapPicker map={map} onChange={onMap} />}
-              {(canEdit || !IS_MOBILE_DEVICE) && <span aria-hidden className="mx-0.5 h-5 w-px bg-white/10" />}
+              {(canEdit || !IS_MOBILE_DEVICE) && <span aria-hidden className="mx-0.5 h-5 w-px bg-ink/10" />}
               <ShareButton getShare={getShare} />
+              <ThemeToggle />
               <SettingsButton quality={quality} onChange={onQuality} lighting={lighting} lightingPreset={lightingPreset} onLighting={onLighting} mapLighting={mapLighting} onMapLighting={onMapLighting} readStatus={readRenderStatus} />
             </>
           )}

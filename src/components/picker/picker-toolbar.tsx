@@ -31,7 +31,7 @@ export function PickerToolbar({ query, placeholder, onQuery, onEnterGrid, onSubm
         className="h-full min-w-0 flex-1 bg-transparent px-2 text-[15px] outline-none placeholder:text-muted-foreground/70"
       />
       {query && (
-        <button type="button" onClick={() => onQuery('')} className="shrink-0 rounded-md px-2 py-1 text-[12px] text-muted-foreground transition hover:bg-white/8 hover:text-foreground">
+        <button type="button" onClick={() => onQuery('')} className="shrink-0 rounded-md px-2 py-1 text-[12px] text-muted-foreground transition hover:bg-ink/8 hover:text-foreground">
           Clear
         </button>
       )}
@@ -41,12 +41,12 @@ export function PickerToolbar({ query, placeholder, onQuery, onEnterGrid, onSubm
           aria-pressed={history}
           title="Inspect links you loaded"
           onClick={() => onHistory?.(!history)}
-          className={cn('flex h-8 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium transition', history ? 'bg-white/12 text-foreground' : 'text-muted-foreground hover:bg-white/6 hover:text-foreground')}
+          className={cn('flex h-8 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium transition', history ? 'bg-ink/12 text-foreground' : 'text-muted-foreground hover:bg-ink/6 hover:text-foreground')}
         >
           <History className="size-4" /> <span className="hidden sm:inline">History</span>
         </button>
       )}
-      <button type="button" aria-label="Close" onClick={onClose} className="flex h-8 shrink-0 items-center gap-1.5 rounded-lg px-2 text-muted-foreground transition hover:bg-white/6 hover:text-foreground">
+      <button type="button" aria-label="Close" onClick={onClose} className="flex h-8 shrink-0 items-center gap-1.5 rounded-lg px-2 text-muted-foreground transition hover:bg-ink/6 hover:text-foreground">
         <Kbd className="hidden sm:inline-flex">Esc</Kbd>
         <X className="size-4 sm:hidden" />
       </button>

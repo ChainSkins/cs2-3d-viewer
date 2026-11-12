@@ -26,7 +26,7 @@ export function EventLog({
 }) {
   return (
     <div className="inset-well flex h-full min-h-0 flex-col overflow-hidden rounded-2xl">
-      <div className="flex shrink-0 items-center gap-2 border-b border-white/6 px-3.5 py-2">
+      <div className="flex shrink-0 items-center gap-2 border-b border-ink/6 px-3.5 py-2">
         <Radio className="size-3.5 text-emerald-300" />
         <span className="text-[11.5px] font-medium text-muted-foreground">
           Messages
@@ -35,7 +35,7 @@ export function EventLog({
         <button
           type="button"
           onClick={onClear}
-          className="ml-auto flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] text-muted-foreground transition hover:bg-white/10 hover:text-foreground"
+          className="ml-auto flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] text-muted-foreground transition hover:bg-ink/10 hover:text-foreground"
         >
           <Trash2 className="size-3.5" /> Clear
         </button>
@@ -54,7 +54,7 @@ export function EventLog({
           return (
             <div
               key={e.id}
-              className="flex gap-2 rounded-md px-1.5 py-1 hover:bg-white/4"
+              className="flex gap-2 rounded-md px-1.5 py-1 hover:bg-ink/4"
             >
               <span className="shrink-0 tabular-nums text-muted-foreground/70">
                 {e.at.toLocaleTimeString([], { hour12: false })}

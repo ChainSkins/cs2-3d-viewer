@@ -32,7 +32,7 @@ export function AttackMenu({ attacks, onAttack }: AttackMenuProps) {
                 type="button"
                 role="menuitem"
                 onClick={() => { onAttack(a.name); setOpen(false) }}
-                className="w-full rounded-lg px-2.5 py-1.5 text-left text-[12px] text-muted-foreground transition hover:bg-white/10 hover:text-foreground"
+                className="w-full rounded-lg px-2.5 py-1.5 text-left text-[12px] text-muted-foreground transition hover:bg-ink/10 hover:text-foreground"
               >
                 {a.label}
               </button>

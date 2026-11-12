@@ -40,7 +40,7 @@ export function HomeHero({ onSearch }: { onSearch: () => void }) {
       </div>
 
       <div className="tile relative mt-14 aspect-video overflow-hidden p-0 lg:mt-20 lg:aspect-[2.2/1]">
-        <div aria-hidden className="absolute inset-0 bg-linear-to-br from-[#222221] to-background" />
+        <div aria-hidden className="absolute inset-0 bg-linear-to-br from-secondary to-background" />
         {!failed && (
           <video
             title="AK-47 | Fire Serpent in 3D on Mirage"

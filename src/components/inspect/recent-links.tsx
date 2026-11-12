@@ -38,7 +38,7 @@ export function RecentLinks({ entries, catalog, attachments, agents, onLoad, lim
           key={entry.link}
           type="button"
           onClick={() => onLoad(item, entry.link)}
-          className="group/recent flex items-center gap-3 rounded-xl bg-black/15 p-1.5 pr-3 text-left transition hover:bg-white/6"
+          className="group/recent flex items-center gap-3 rounded-xl bg-shade/15 p-1.5 pr-3 text-left transition hover:bg-ink/6"
         >
           <ItemImage src={preview.image} color={preview.color} className="h-10 w-14 rounded-lg" imageClassName="transition-transform duration-200 group-hover/recent:scale-110" />
           <span className="min-w-0 flex-1">

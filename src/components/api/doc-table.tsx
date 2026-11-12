@@ -9,7 +9,7 @@ interface DocTableProps {
 export function DocTable({ rows, nameLabel, withValues }: DocTableProps) {
   return (
     <div className="tile overflow-hidden">
-      <div className={`hidden gap-4 border-b border-white/10 bg-white/4 px-4 py-2.5 text-[13px] font-semibold text-foreground md:grid ${withValues ? 'md:grid-cols-[minmax(170px,1fr)_minmax(140px,0.9fr)_2fr_minmax(110px,0.8fr)]' : 'md:grid-cols-[minmax(220px,1fr)_1.6fr]'}`}>
+      <div className={`hidden gap-4 border-b border-ink/10 bg-ink/4 px-4 py-2.5 text-[13px] font-semibold text-foreground md:grid ${withValues ? 'md:grid-cols-[minmax(170px,1fr)_minmax(140px,0.9fr)_2fr_minmax(110px,0.8fr)]' : 'md:grid-cols-[minmax(220px,1fr)_1.6fr]'}`}>
         <span>{nameLabel}</span>
         {withValues && <span>Values</span>}
         <span>What it does</span>
@@ -18,7 +18,7 @@ export function DocTable({ rows, nameLabel, withValues }: DocTableProps) {
       {rows.map((row) => (
         <div
           key={row.name}
-          className={`grid gap-1.5 border-b border-white/10 px-4 py-3 last:border-b-0 md:gap-4 ${withValues ? 'md:grid-cols-[minmax(170px,1fr)_minmax(140px,0.9fr)_2fr_minmax(110px,0.8fr)]' : 'md:grid-cols-[minmax(220px,1fr)_1.6fr]'}`}
+          className={`grid gap-1.5 border-b border-ink/10 px-4 py-3 last:border-b-0 md:gap-4 ${withValues ? 'md:grid-cols-[minmax(170px,1fr)_minmax(140px,0.9fr)_2fr_minmax(110px,0.8fr)]' : 'md:grid-cols-[minmax(220px,1fr)_1.6fr]'}`}
         >
           <code className="justify-self-start self-start wrap-break-word">{row.name}</code>
           {withValues && <span className="break-all font-mono text-[12px] text-foreground/75">{row.values ?? '—'}</span>}

@@ -45,7 +45,7 @@ function SectionFrame({ title, icon: Icon, aside, className, children, open, onT
         )}
         {aside}
         {onToggle && (
-          <button type="button" tabIndex={-1} aria-hidden onClick={onToggle} className="-mr-1 grid size-6 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-white/6 hover:text-foreground">
+          <button type="button" tabIndex={-1} aria-hidden onClick={onToggle} className="-mr-1 grid size-6 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-ink/6 hover:text-foreground">
             <ChevronDown className={cn('size-4 transition-transform duration-200', open && 'rotate-180')} />
           </button>
         )}

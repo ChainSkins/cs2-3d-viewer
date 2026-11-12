@@ -25,14 +25,14 @@ export function PickerArrangeBar({ summary, sort, available, rarities, naming, s
     <div className="flex min-h-12 shrink-0 flex-wrap items-center gap-x-4 gap-y-2 border-b border-border px-5 py-2 text-[12px] text-muted-foreground">
       <span className="mr-auto tabular-nums">{summary}</span>
       {stickerKind !== undefined && (
-        <div className="flex items-center gap-0.5 rounded-lg bg-black/25 p-0.5" role="group" aria-label="Sticker finish">
+        <div className="flex items-center gap-0.5 rounded-lg bg-shade/25 p-0.5" role="group" aria-label="Sticker finish">
           {[null, ...Object.keys(STICKER_KIND)].map((k) => (
             <button
               key={k ?? 'all'}
               type="button"
               aria-pressed={stickerKind === k}
               onClick={() => onStickerKind(k)}
-              className={cn('h-6 rounded-md px-2 text-[11.5px] font-medium transition', stickerKind === k ? 'bg-white/12 text-foreground' : 'hover:text-foreground')}
+              className={cn('h-6 rounded-md px-2 text-[11.5px] font-medium transition', stickerKind === k ? 'bg-ink/12 text-foreground' : 'hover:text-foreground')}
             >
               {k ? STICKER_KIND[k] : 'All'}
             </button>
@@ -51,14 +51,14 @@ export function PickerArrangeBar({ summary, sort, available, rarities, naming, s
                 aria-pressed={on}
                 title={rarityName(r, naming)}
                 onClick={() => toggle(r)}
-                className={cn('grid size-6 place-items-center rounded-md transition', on ? 'bg-white/12' : 'hover:bg-white/8', rarities.length && !on && 'opacity-40')}
+                className={cn('grid size-6 place-items-center rounded-md transition', on ? 'bg-ink/12' : 'hover:bg-ink/8', rarities.length && !on && 'opacity-40')}
               >
                 <span className="size-2.5 rounded-full" style={{ background: color }} />
               </button>
             )
           })}
           {rarities.length > 0 && (
-            <button type="button" aria-label="Show every rarity" title="Show every rarity" onClick={() => onRarities([])} className="grid size-6 place-items-center rounded-md hover:bg-white/8 hover:text-foreground">
+            <button type="button" aria-label="Show every rarity" title="Show every rarity" onClick={() => onRarities([])} className="grid size-6 place-items-center rounded-md hover:bg-ink/8 hover:text-foreground">
               <X className="size-3.5" />
             </button>
           )}

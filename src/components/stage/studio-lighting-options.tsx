@@ -37,12 +37,12 @@ export function StudioLightingOptions({ lighting, presetId, onChange }: StudioLi
             onClick={() => onChange({ ...p.lighting, map: lighting.map })}
             className={cn(
               'flex flex-col items-center gap-1 rounded-lg border px-1 py-1.5 text-[11px] font-medium transition-colors',
-              presetId === p.id ? 'border-foreground/50 bg-white/10 text-foreground' : 'border-border text-muted-foreground hover:bg-white/5 hover:text-foreground',
+              presetId === p.id ? 'border-foreground/50 bg-ink/10 text-foreground' : 'border-border text-muted-foreground hover:bg-ink/5 hover:text-foreground',
             )}
           >
             <span className="flex">
-              <span className="size-3 rounded-full ring-1 ring-black/40" style={{ background: p.swatch[0] }} />
-              <span className="-ml-1 size-3 rounded-full ring-1 ring-black/40" style={{ background: p.swatch[1] }} />
+              <span className="size-3 rounded-full ring-1 ring-shade/40" style={{ background: p.swatch[0] }} />
+              <span className="-ml-1 size-3 rounded-full ring-1 ring-shade/40" style={{ background: p.swatch[1] }} />
             </span>
             {p.label}
           </button>
@@ -63,11 +63,11 @@ export function StudioLightingOptions({ lighting, presetId, onChange }: StudioLi
           </div>
           <FieldRow label="Colors">
             <label className="flex items-center gap-1.5 text-[11px] text-foreground/80">
-              <input type="color" value={lighting.keyColor} onChange={(e) => onChange({ keyColor: e.target.value })} className="size-6 cursor-pointer rounded-md border border-white/15 bg-transparent p-0" />
+              <input type="color" value={lighting.keyColor} onChange={(e) => onChange({ keyColor: e.target.value })} className="size-6 cursor-pointer rounded-md border border-ink/15 bg-transparent p-0" />
               Key
             </label>
             <label className="flex items-center gap-1.5 text-[11px] text-foreground/80">
-              <input type="color" value={lighting.rimColor} onChange={(e) => onChange({ rimColor: e.target.value })} className="size-6 cursor-pointer rounded-md border border-white/15 bg-transparent p-0" />
+              <input type="color" value={lighting.rimColor} onChange={(e) => onChange({ rimColor: e.target.value })} className="size-6 cursor-pointer rounded-md border border-ink/15 bg-transparent p-0" />
               Rim
             </label>
           </FieldRow>

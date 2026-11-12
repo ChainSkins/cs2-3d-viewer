@@ -17,7 +17,7 @@ export function DialogHeading({ icon: Icon, title, description, onClose }: Dialo
         <DialogTitle className="shrink-0 text-[15px] font-medium tracking-tight">{title}</DialogTitle>
         <DialogDescription className="hidden truncate text-[12.5px] text-muted-foreground sm:block">{description}</DialogDescription>
       </div>
-      <button type="button" aria-label="Close" onClick={onClose} className="flex h-8 shrink-0 items-center rounded-lg px-2 text-muted-foreground transition hover:bg-white/6 hover:text-foreground">
+      <button type="button" aria-label="Close" onClick={onClose} className="flex h-8 shrink-0 items-center rounded-lg px-2 text-muted-foreground transition hover:bg-ink/6 hover:text-foreground">
         <Kbd className="hidden sm:inline-flex">Esc</Kbd>
         <X className="size-4 sm:hidden" />
       </button>

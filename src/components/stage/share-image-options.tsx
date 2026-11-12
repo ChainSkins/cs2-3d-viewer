@@ -32,9 +32,9 @@ export function ShareImageOptions({ style, rarityColor, onChange }: ShareImageOp
               title={b.label}
               aria-pressed={style.background === b.id}
               onClick={() => onChange({ background: b.id, ...(b.id === 'transparent' && style.format === 'jpeg' ? { format: 'png' as const } : {}) })}
-              className={cn('flex flex-col items-center gap-1 rounded-lg border p-1 text-[10.5px] font-medium transition-colors', style.background === b.id ? 'border-foreground/50 bg-white/10 text-foreground' : 'border-border text-muted-foreground hover:bg-white/5 hover:text-foreground')}
+              className={cn('flex flex-col items-center gap-1 rounded-lg border p-1 text-[10.5px] font-medium transition-colors', style.background === b.id ? 'border-foreground/50 bg-ink/10 text-foreground' : 'border-border text-muted-foreground hover:bg-ink/5 hover:text-foreground')}
             >
-              <span className="h-7 w-full rounded-lg ring-1 ring-black/40" style={{ background: swatch(b.id, style, rarityColor) }} />
+              <span className="h-7 w-full rounded-lg ring-1 ring-shade/40" style={{ background: swatch(b.id, style, rarityColor) }} />
               {b.label}
             </button>
           ))}
@@ -44,7 +44,7 @@ export function ShareImageOptions({ style, rarityColor, onChange }: ShareImageOp
             <div className="flex gap-3">
               {(['from', 'to'] as const).map((key) => (
                 <label key={key} className="flex items-center gap-1.5 text-[11px] text-foreground/80">
-                  <input type="color" value={style[key]} onChange={(e) => onChange({ [key]: e.target.value })} className="size-7 cursor-pointer rounded-md border border-white/15 bg-transparent p-0" />
+                  <input type="color" value={style[key]} onChange={(e) => onChange({ [key]: e.target.value })} className="size-7 cursor-pointer rounded-md border border-ink/15 bg-transparent p-0" />
                   {key === 'from' ? 'From' : 'To'}
                 </label>
               ))}

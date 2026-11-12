@@ -25,7 +25,7 @@ export function CategoryNav({ categories, active, counts, onSelect, loaded }: Ca
             onClick={() => onSelect(c.label)}
             className={cn(
               'flex h-9 shrink-0 items-center gap-2.5 rounded-lg pl-2 pr-2.5 text-left text-[13.5px] transition-colors',
-              isActive ? 'bg-white/9 font-medium text-foreground' : 'text-muted-foreground hover:bg-white/5 hover:text-foreground',
+              isActive ? 'bg-ink/9 font-medium text-foreground' : 'text-muted-foreground hover:bg-ink/5 hover:text-foreground',
               empty && !isActive && 'opacity-40',
             )}
             title={empty ? `No ${c.label.toLowerCase()} here yet` : undefined}

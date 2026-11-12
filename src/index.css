@@ -26,6 +26,9 @@
     --color-card: var(--card);
     --color-foreground: var(--foreground);
     --color-background: var(--background);
+    --color-ink: var(--ink);
+    --color-shade: var(--shade);
+    --color-surface: var(--surface);
     --radius-sm: 0.25rem;
     --radius-md: 0.375rem;
     --radius-lg: 0.5rem;
@@ -35,8 +38,66 @@
     --radius-4xl: 2rem;
 }
 
-/* Warm near-black neutrals (the Radix "sand" dark scale), one light primary, hairline borders. */
+/* The Radix "sand" scale, light and dark, one strong primary, hairline borders. `--ink` is the color drawn on the
+   page (its tints make hovers and lines), `--shade` the one sunk into it (wells, tracks). */
 :root {
+    --sand-1: #fdfdfc;
+    --sand-2: #f9f9f8;
+    --sand-3: #f1f0ef;
+    --sand-4: #e9e8e6;
+    --sand-5: #e2e1de;
+    --sand-6: #dad9d6;
+    --sand-7: #cfceca;
+    --sand-8: #bcbbb5;
+    --sand-9: #8d8d86;
+    --sand-10: #82827c;
+    --sand-11: #63635e;
+    --sand-12: #21201c;
+    --hairline: rgb(32 16 0 / 6.5%);
+    --ink: #21201c;
+    --shade: #8d8d86;
+    --surface: #fdfdfc;
+
+    --background: var(--sand-3);
+    --foreground: var(--sand-12);
+    --card: var(--sand-1);
+    --card-foreground: var(--sand-12);
+    --popover: var(--sand-1);
+    --popover-foreground: var(--sand-12);
+    --primary: var(--sand-12);
+    --primary-foreground: var(--sand-1);
+    --secondary: var(--sand-4);
+    --secondary-foreground: var(--sand-12);
+    --muted: rgb(32 16 0 / 6%);
+    --muted-foreground: var(--sand-11);
+    --accent: rgb(31 21 0 / 9%);
+    --accent-foreground: var(--sand-12);
+    --destructive: #dc3e42;
+    --border: var(--hairline);
+    --input: rgb(25 19 0 / 16%);
+    --ring: var(--sand-9);
+
+    --edge: inset 0 1px 1px rgb(255 255 255 / 70%), 0 0 0 1px rgb(37 37 0 / 5%);
+    --drop-sm: 0 1px 3px rgb(0 0 0 / 6%), 0 1px 2px -1px rgb(0 0 0 / 4%);
+    --drop-xl: 0 20px 25px -5px rgb(0 0 0 / 6%), 0 8px 10px -6px rgb(0 0 0 / 5%);
+    --drop-menu: 0 25px 50px -12px rgb(0 0 0 / 18%);
+    --glass-top: rgb(253 253 252 / 88%);
+    --glass-bottom: rgb(249 249 248 / 78%);
+    --glass-strong-top: rgb(253 253 252 / 97%);
+    --glass-strong-bottom: rgb(249 249 248 / 97%);
+    --panel: rgb(253 253 252 / 85%);
+    --bevel-top: rgb(255 255 255 / 90%);
+    --bevel-bottom: rgb(255 255 255 / 50%);
+    --bevel-hover-top: rgb(255 255 255 / 100%);
+    --bevel-hover-bottom: rgb(255 255 255 / 70%);
+    --primary-top: rgb(33 32 28 / 80%);
+    --primary-bottom: var(--sand-12);
+    --primary-edge: inset 0 1px 1px rgb(255 255 255 / 20%);
+    --hero-glow: 0.55;
+    color-scheme: light;
+}
+
+.dark {
     --sand-1: #111110;
     --sand-2: #191918;
     --sand-3: #222221;
@@ -50,36 +111,44 @@
     --sand-11: #b5b3ad;
     --sand-12: #eeeeec;
     --hairline: rgb(246 246 245 / 7.5%);
+    --ink: #ffffff;
+    --shade: #000000;
+    --surface: #151514;
 
     --background: var(--sand-1);
-    --foreground: var(--sand-12);
     --card: var(--sand-2);
-    --card-foreground: var(--sand-12);
     --popover: var(--sand-2);
-    --popover-foreground: var(--sand-12);
-    --primary: var(--sand-12);
     --primary-foreground: #000;
-    --secondary: var(--sand-4);
-    --secondary-foreground: var(--sand-12);
     --muted: rgb(246 246 245 / 7.5%);
-    --muted-foreground: var(--sand-11);
     --accent: rgb(254 254 243 / 10.5%);
-    --accent-foreground: var(--sand-12);
     --destructive: #e5484d;
-    --border: var(--hairline);
     --input: rgb(255 250 237 / 17.5%);
     --ring: var(--sand-10);
 
-    /* The raised surface: a 1px light edge on top, a dark ring, a soft drop. */
     --edge: inset 0 1px 1px rgb(255 255 255 / 10%), 0 0 0 1px rgb(0 0 0 / 20%);
     --drop-sm: 0 1px 3px rgb(0 0 0 / 20%), 0 1px 2px -1px rgb(0 0 0 / 20%);
     --drop-xl: 0 20px 25px -5px rgb(0 0 0 / 30%), 0 8px 10px -6px rgb(0 0 0 / 30%);
+    --drop-menu: 0 25px 50px -12px rgb(0 0 0 / 60%);
+    --glass-top: rgb(34 34 33 / 82%);
+    --glass-bottom: rgb(25 25 24 / 72%);
+    --glass-strong-top: rgb(34 34 33 / 96%);
+    --glass-strong-bottom: rgb(25 25 24 / 96%);
+    --panel: rgb(25 25 24 / 80%);
+    --bevel-top: rgb(181 179 173 / 15%);
+    --bevel-bottom: rgb(181 179 173 / 10%);
+    --bevel-hover-top: rgb(181 179 173 / 22%);
+    --bevel-hover-bottom: rgb(181 179 173 / 15%);
+    --primary-top: var(--sand-12);
+    --primary-bottom: var(--sand-11);
+    --primary-edge: inset 0 1px 1px #fff;
+    --hero-glow: 0.4;
+    color-scheme: dark;
 }
 
 
 /* Floating controls over the 3D stage. */
 @utility glass {
-    background: linear-gradient(180deg, rgb(34 34 33 / 82%), rgb(25 25 24 / 72%));
+    background: linear-gradient(180deg, var(--glass-top), var(--glass-bottom));
     border: 1px solid var(--hairline);
     box-shadow: var(--edge), var(--drop-xl);
     backdrop-filter: blur(24px);
@@ -87,34 +156,34 @@
 
 /* Menus, popovers and dialogs. */
 @utility glass-strong {
-    background: linear-gradient(180deg, rgb(34 34 33 / 96%), rgb(25 25 24 / 96%));
+    background: linear-gradient(180deg, var(--glass-strong-top), var(--glass-strong-bottom));
     border: 1px solid var(--hairline);
-    box-shadow: var(--edge), 0 25px 50px -12px rgb(0 0 0 / 60%);
+    box-shadow: var(--edge), var(--drop-menu);
     backdrop-filter: blur(24px);
 }
 
 /* Panels and bars. */
 @utility glass-panel {
-    background: rgb(25 25 24 / 80%);
+    background: var(--panel);
     border: 1px solid var(--hairline);
     box-shadow: var(--edge), var(--drop-sm);
     backdrop-filter: blur(24px);
 }
 
 @utility bevel {
-    background: linear-gradient(180deg, rgb(181 179 173 / 15%), rgb(181 179 173 / 10%));
+    background: linear-gradient(180deg, var(--bevel-top), var(--bevel-bottom));
     border: 1px solid transparent;
     box-shadow: var(--edge), var(--drop-sm);
     transition: background 150ms ease, filter 150ms ease, transform 120ms ease;
-    &:hover { background: linear-gradient(180deg, rgb(181 179 173 / 22%), rgb(181 179 173 / 15%)); }
+    &:hover { background: linear-gradient(180deg, var(--bevel-hover-top), var(--bevel-hover-bottom)); }
     &:active:not(:disabled) { transform: scale(0.98); }
 }
 
-/* The primary button: light on dark. */
+/* The primary button: the page's strongest color. */
 @utility bevel-primary {
-    background: linear-gradient(180deg, var(--sand-12), var(--sand-11));
+    background: linear-gradient(180deg, var(--primary-top), var(--primary-bottom));
     border: 1px solid #000;
-    box-shadow: inset 0 1px 1px #fff, var(--drop-sm);
+    box-shadow: var(--primary-edge), var(--drop-sm);
     transition: filter 150ms ease, transform 120ms ease;
     &:hover { filter: brightness(1.08); }
     &:active:not(:disabled) { transform: scale(0.98); }
@@ -123,11 +192,11 @@
 @utility tile {
     border-radius: var(--radius-xl);
     border: 1px solid var(--hairline);
-    background: rgb(255 255 255 / 3%);
+    background: color-mix(in oklab, var(--ink) 3%, transparent);
 }
 
 @utility inset-well {
-    background: rgb(0 0 0 / 25%);
+    background: color-mix(in oklab, var(--shade) 25%, transparent);
     border: 1px solid var(--hairline);
 }
 
@@ -163,7 +232,7 @@
         content: '';
         position: absolute;
         inset: 0;
-        background: linear-gradient(105deg, transparent 30%, rgb(255 255 255 / 7%) 50%, transparent 70%);
+        background: linear-gradient(105deg, transparent 30%, color-mix(in oklab, var(--ink) 7%, transparent) 50%, transparent 70%);
         transform: translateX(-100%);
         animation: shimmer-sweep 1.4s ease-in-out infinite;
         pointer-events: none;
@@ -177,7 +246,7 @@
 
 * {
     scrollbar-width: thin;
-    scrollbar-color: oklch(1 0 0 / 18%) transparent;
+    scrollbar-color: color-mix(in oklab, var(--ink) 18%, transparent) transparent;
 }
 
 ::-webkit-scrollbar {
@@ -193,16 +262,15 @@
     border: 3px solid transparent;
     border-radius: 999px;
     background-clip: padding-box;
-    background-color: oklch(1 0 0 / 16%);
-    box-shadow: inset 0 1px 0 oklch(1 0 0 / 12%);
+    background-color: color-mix(in oklab, var(--ink) 16%, transparent);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background-color: oklch(1 0 0 / 30%);
+    background-color: color-mix(in oklab, var(--ink) 30%, transparent);
 }
 
 ::-webkit-scrollbar-thumb:active {
-    background-color: rgb(255 255 255 / 45%);
+    background-color: color-mix(in oklab, var(--ink) 45%, transparent);
 }
 
 ::-webkit-scrollbar-corner {
@@ -226,11 +294,23 @@
 
 /* The documentation page (/api): a flat, cooler reading layout of its own. */
 .docs {
+    --background: #fff;
+    --foreground: #1d1f24;
+    --muted-foreground: #5c6070;
+    --border: rgb(0 0 0 / 10%);
+    --docs-strong: #111216;
+    --docs-wash: rgb(17 18 22 / 5%);
+    --docs-wash-strong: rgb(17 18 22 / 7%);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+}
+.dark .docs {
     --background: #0b0c0d;
     --foreground: #fff;
     --muted-foreground: #aeb2bd;
     --border: rgb(255 255 255 / 10%);
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    --docs-strong: #f7f8fe;
+    --docs-wash: rgb(247 248 254 / 6%);
+    --docs-wash-strong: rgb(247 248 254 / 9%);
 }
 
 .docs-toplink,
@@ -247,12 +327,12 @@
     white-space: nowrap;
     color: var(--muted-foreground);
     transition: color 150ms ease, background 150ms ease;
-    &:hover { color: #f7f8fe; background: rgb(247 248 254 / 6%); }
+    &:hover { color: var(--docs-strong); background: var(--docs-wash); }
 }
 .docs-toplink.hidden { display: none; }
 @media (min-width: 640px) { .docs-toplink.hidden { display: inline-flex; } }
 .docs-tab { padding: 0 12px; border-radius: 9999px; gap: 8px; }
-.docs-tab-active { color: #f7f8fe; background: rgb(247 248 254 / 9%); }
+.docs-tab-active { color: var(--docs-strong); background: var(--docs-wash-strong); }
 
 .docs-sidelink {
     display: flex;
@@ -266,15 +346,15 @@
     line-height: 20px;
     color: var(--muted-foreground);
     transition: color 150ms ease, background 150ms ease;
-    &:hover { color: #f7f8fe; background: rgb(247 248 254 / 5%); }
+    &:hover { color: var(--docs-strong); background: var(--docs-wash); }
 }
-.docs-sidelink-active { color: #f7f8fe; background: rgb(247 248 254 / 9%); }
+.docs-sidelink-active { color: var(--docs-strong); background: var(--docs-wash-strong); }
 
 .docs-card {
     padding: 22px;
-    border: 1px solid rgb(255 255 255 / 10%);
+    border: 1px solid var(--border);
     border-radius: 8px;
-    background: rgb(255 255 255 / 5%);
+    background: var(--docs-wash, color-mix(in oklab, var(--ink) 4%, transparent));
 }
 
 .docs-prose {
@@ -283,11 +363,11 @@
     & :not(pre) > code {
         padding: 2px 5px;
         border-radius: 4px;
-        background: rgb(255 255 255 / 8%);
+        background: var(--docs-wash-strong);
         font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
         font-size: 0.87em;
     }
-    & p a, & li > a { color: #f7f8fe; text-decoration: underline; text-decoration-color: rgb(255 255 255 / 30%); text-underline-offset: 3px; }
+    & p a, & li > a { color: var(--docs-strong); text-decoration: underline; text-decoration-color: color-mix(in oklab, var(--docs-strong) 30%, transparent); text-underline-offset: 3px; }
     & p a:hover, & li > a:hover { text-decoration-color: currentColor; }
 }
 
@@ -298,10 +378,10 @@
 .docs [data-slot='button'] { border-radius: 6px; }
 .docs .bevel {
     background: transparent;
-    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 10%);
-    &:hover { background: rgb(255 255 255 / 5%); }
+    box-shadow: inset 0 0 0 1px var(--border);
+    &:hover { background: var(--docs-wash); }
 }
-.docs .bevel-primary { box-shadow: none; background: #f7f8fe; }
+.docs .bevel-primary { box-shadow: none; background: var(--docs-strong); }
 
 
 /* A flat panel: its sections are rows between hairlines, not cards. */
@@ -329,6 +409,6 @@
     width: 1024px;
     height: 1024px;
     border-radius: 9999px;
-    opacity: 0.4;
+    opacity: var(--hero-glow);
 }
 :root:has(.home-page) body { background-image: none; }

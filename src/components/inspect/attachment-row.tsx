@@ -15,7 +15,7 @@ interface AttachmentRowProps {
 
 export function AttachmentRow({ name, image, color, icon, detail, known, aside }: AttachmentRowProps) {
   return (
-    <div className={cn('flex items-center gap-3 rounded-lg border border-border bg-black/15 p-1.5 pr-3', !known && 'opacity-60')}>
+    <div className={cn('flex items-center gap-3 rounded-lg border border-border bg-shade/15 p-1.5 pr-3', !known && 'opacity-60')}>
       <ItemImage src={image} color={color} fallback={icon} className="size-10" />
       <div className="min-w-0 flex-1">
         <div className="truncate text-[13px] font-medium">{name}</div>

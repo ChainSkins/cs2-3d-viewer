@@ -23,7 +23,7 @@ interface PetSectionProps {
   onDefaultAgent: () => void
 }
 
-const chip = (on: boolean) => cn('rounded-md border px-2.5 py-1 text-[12px] font-medium transition-colors', on ? 'border-foreground/50 bg-white/10 text-foreground' : 'border-border text-muted-foreground hover:bg-white/5 hover:text-foreground')
+const chip = (on: boolean) => cn('rounded-md border px-2.5 py-1 text-[12px] font-medium transition-colors', on ? 'border-foreground/50 bg-ink/10 text-foreground' : 'border-border text-muted-foreground hover:bg-ink/5 hover:text-foreground')
 
 export function PetSection({ pet, pets, variant, clip, onVariant, onClip, hat, onHat, agentName, agentImage, onChooseAgent, onDefaultAgent }: PetSectionProps) {
   const model = pet && pets?.models[pet.model]
@@ -79,7 +79,7 @@ export function PetSection({ pet, pets, variant, clip, onVariant, onClip, hat, o
       )}
       {clips.length > 0 && (
         <Section title="Animation" collapsible={{ id: 'pet-animation' }} aside={<span className="section-value">{clips.length}</span>}>
-          <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search: dance, sit, sleep…" aria-label="Search the animations" className="mb-2.5 h-8 w-full rounded-md border border-border bg-black/25 px-2.5 text-[13px] outline-none transition-colors placeholder:text-muted-foreground/70 focus-visible:border-white/25" />
+          <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search: dance, sit, sleep…" aria-label="Search the animations" className="mb-2.5 h-8 w-full rounded-md border border-border bg-shade/25 px-2.5 text-[13px] outline-none transition-colors placeholder:text-muted-foreground/70 focus-visible:border-ink/25" />
           <div className="flex max-h-80 flex-col gap-1 overflow-y-auto pr-1">
             {folders.length === 0 && <p className="px-1 py-2 text-[12px] text-muted-foreground">No animation matches “{query}”.</p>}
             {folders.map(([title, list]) => {
@@ -90,7 +90,7 @@ export function PetSection({ pet, pets, variant, clip, onVariant, onClip, hat, o
                     type="button"
                     aria-expanded={open}
                     onClick={() => setToggled((t) => ({ ...t, [title]: !open }))}
-                    className="flex w-full items-center gap-2 rounded-lg px-1.5 py-1.5 text-left transition-colors hover:bg-white/4"
+                    className="flex w-full items-center gap-2 rounded-lg px-1.5 py-1.5 text-left transition-colors hover:bg-ink/4"
                   >
                     <span className="text-[11.5px] font-medium text-muted-foreground">{title}</span>
                     <span className="text-[11px] tabular-nums text-muted-foreground/70">{list.length}</span>

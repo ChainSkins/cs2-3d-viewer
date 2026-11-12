@@ -44,7 +44,7 @@ export function SelectMenu<T extends string>({ label, icon: Icon, options, value
         aria-expanded={open}
         aria-label={`${label}: ${current.label}`}
         onClick={() => { setHover(Math.max(0, options.indexOf(current))); setOpen((o) => !o) }}
-        className={cn('flex h-7 items-center gap-1.5 rounded-lg px-2.5 text-[11.5px] text-foreground/90 transition', open ? 'bg-white/10' : 'hover:bg-white/[0.06]')}
+        className={cn('flex h-7 items-center gap-1.5 rounded-lg px-2.5 text-[11.5px] text-foreground/90 transition', open ? 'bg-ink/10' : 'hover:bg-ink/[0.06]')}
       >
         {Icon && <Icon className="size-3.5 text-muted-foreground" />}
         <span className="text-muted-foreground">{label}:</span> {current.label}
@@ -60,7 +60,7 @@ export function SelectMenu<T extends string>({ label, icon: Icon, options, value
               aria-selected={o.value === value}
               onPointerEnter={() => setHover(i)}
               onClick={() => choose(o.value)}
-              className={cn('flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[12px]', i === hover ? 'bg-white/10 text-foreground' : 'text-foreground/80')}
+              className={cn('flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[12px]', i === hover ? 'bg-ink/10 text-foreground' : 'text-foreground/80')}
             >
               <Check className={cn('size-3.5', o.value === value ? 'text-foreground' : 'opacity-0')} />
               {o.label}

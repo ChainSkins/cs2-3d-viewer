@@ -19,10 +19,10 @@ export function PickerCard({ card, current, onPick }: PickerCardProps) {
       style={{ '--rarity': card.color } as CSSProperties}
       className={cn(
         // No backdrop-filter or shadows: there can be hundreds of these on screen.
-        'group/card relative flex flex-col overflow-hidden rounded-xl border border-border bg-white/[0.03] text-left outline-none transition-colors',
-        'hover:border-[color-mix(in_oklch,var(--rarity),transparent_50%)] hover:bg-white/[0.06]',
-        'focus-visible:border-foreground/70 focus-visible:bg-white/[0.06]',
-        current && 'border-foreground/60 bg-white/[0.06]',
+        'group/card relative flex flex-col overflow-hidden rounded-xl border border-border bg-ink/[0.03] text-left outline-none transition-colors',
+        'hover:border-[color-mix(in_oklch,var(--rarity),transparent_50%)] hover:bg-ink/[0.06]',
+        'focus-visible:border-foreground/70 focus-visible:bg-ink/[0.06]',
+        current && 'border-foreground/60 bg-ink/[0.06]',
         card.ported === false && 'opacity-55',
       )}
       onClick={onPick}

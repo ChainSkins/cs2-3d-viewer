@@ -43,7 +43,7 @@ interface SkinPickerProps {
   onClose: () => void
 }
 
-const SURFACE = '#151514'
+const SURFACE = 'var(--surface)'
 
 const isCurrent = (card: Card, current: Selection | null) => {
   if (!current || current.kind !== card.selection.kind) return false

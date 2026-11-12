@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ApiSection } from '@/components/api/api-section'
 import { BrandMark } from '@/components/common/brand-mark'
+import { RepoLink, ThemeToggle } from '@/components/common/top-bar-links'
 import { Callout } from '@/components/api/docs-callout'
 import { CodeBlock } from '@/components/api/code-block'
 import { DocTable } from '@/components/api/doc-table'
@@ -70,29 +71,31 @@ export function ApiPage() {
 
   return (
     <div className="docs min-h-dvh bg-background text-foreground">
-      <header className="sticky top-0 z-40 bg-background shadow-[0_1px_0_rgb(255_255_255/0.1)]">
+      <header className="sticky top-0 z-40 bg-background shadow-[0_1px_0_var(--border)]">
         <div className="flex h-12.5 items-center gap-1 px-5">
           <BrandMark className="mr-3" />
           <Link to="/" className="docs-toplink hidden sm:inline-flex">Home</Link>
           <Link to={viewer} className="docs-toplink hidden sm:inline-flex">Viewer</Link>
           <a href="https://chainskins.net" className="docs-toplink hidden sm:inline-flex">Marketplace</a>
-          <Link to={viewer} className="docs-toplink ml-auto">Open the viewer <ArrowUpRight className="size-3.5" /></Link>
+          <RepoLink className="ml-auto" />
+          <ThemeToggle />
+          <Link to={viewer} className="docs-toplink">Open the viewer <ArrowUpRight className="size-3.5" /></Link>
         </div>
         <div className="flex h-10.5 items-center gap-1 overflow-x-auto px-5">
           <a href="#overview" className="docs-tab docs-tab-active"><BookOpen className="size-3.5" /> Embed API</a>
           <a href="#playground" className="docs-tab"><FlaskConical className="size-3.5" /> Playground</a>
           <a href="/embed-example.html" className="docs-tab">Example page</a>
-          <span className="ml-auto shrink-0 rounded-md px-2 py-1 text-[12px] font-medium text-muted-foreground shadow-[0_0_0_1px_rgb(255_255_255/0.1)]">v1</span>
+          <span className="ml-auto shrink-0 rounded-md px-2 py-1 text-[12px] font-medium text-muted-foreground shadow-[0_0_0_1px_var(--border)]">v1</span>
         </div>
-        <nav aria-label="Sections" className="flex h-10 items-center gap-1 overflow-x-auto border-t border-white/10 px-4 lg:hidden">
+        <nav aria-label="Sections" className="flex h-10 items-center gap-1 overflow-x-auto border-t border-border px-4 lg:hidden">
           {NAV.flatMap((g) => g.items).map((item) => (
-            <a key={item.id} href={`#${item.id}`} aria-current={active === item.id ? 'true' : undefined} className={cn('shrink-0 rounded-md px-2.5 py-1 text-[13px] font-medium transition-colors', active === item.id ? 'bg-white/10 text-white' : 'text-muted-foreground')}>{item.title}</a>
+            <a key={item.id} href={`#${item.id}`} aria-current={active === item.id ? 'true' : undefined} className={cn('shrink-0 rounded-md px-2.5 py-1 text-[13px] font-medium transition-colors', active === item.id ? 'bg-ink/10 text-foreground' : 'text-muted-foreground')}>{item.title}</a>
           ))}
         </nav>
       </header>
 
       <div className="flex">
-        <nav aria-label="Sections" className="sticky top-23 hidden h-[calc(100dvh-92px)] w-72 shrink-0 overflow-y-auto px-3.75 py-7 shadow-[1px_0_0_rgb(255_255_255/0.1)] lg:block">
+        <nav aria-label="Sections" className="sticky top-23 hidden h-[calc(100dvh-92px)] w-72 shrink-0 overflow-y-auto px-3.75 py-7 shadow-[1px_0_0_var(--border)] lg:block">
           {NAV.map((group) => (
             <div key={group.heading} className="mb-6">
               <h2 className="my-2 pl-2.5 text-[11px] font-[650] uppercase leading-3.75 tracking-[0.5px] text-muted-foreground">{group.heading}</h2>
@@ -110,7 +113,7 @@ export function ApiPage() {
 
         <div className="flex min-w-0 flex-1 justify-center">
           <article className="docs-prose min-w-0 max-w-216 flex-1 p-5 pb-24 sm:p-8">
-            <header id="overview" className="scroll-mt-40 lg:scroll-mt-28 border-b border-white/10 pb-8">
+            <header id="overview" className="scroll-mt-40 lg:scroll-mt-28 border-b border-border pb-8">
               <h1 className="text-[32px] font-[650] leading-[1.29] tracking-[-0.02em]">Embed API</h1>
               <p className="mt-3 text-[18px] leading-7">Put CS2 skins in 3D on your site with one iframe.</p>
             </header>
@@ -169,7 +172,7 @@ export function ApiPage() {
               </ul>
             </ApiSection>
 
-            <hr className="mt-12 border-white/10" />
+            <hr className="mt-12 border-border" />
             <div className="py-5">
               <h3 className="text-[15px] font-bold tracking-normal">What’s next</h3>
               <ul className="mt-1 flex flex-col gap-1">
@@ -180,13 +183,13 @@ export function ApiPage() {
           </article>
 
           <aside className="sticky top-23 hidden h-fit w-70 shrink-0 py-7.5 pl-10 pr-5 xl:block">
-            <button type="button" onClick={copy} className="mb-4 ml-5.75 mt-2 flex h-8 items-center gap-1.5 rounded-md border border-white/10 px-3 text-[14px] font-medium text-[#c9ccd4] transition hover:bg-white/5">
+            <button type="button" onClick={copy} className="mb-4 ml-5.75 mt-2 flex h-8 items-center gap-1.5 rounded-md border border-border px-3 text-[14px] font-medium text-foreground/80 transition hover:bg-ink/5">
               {copied ? <><Check className="size-3.5" /> Copied</> : <><Copy className="size-3.5" /> Copy iframe</>}
             </button>
             <ul className="ml-5.75 flex flex-col gap-2 text-[13px] leading-[19.5px]">
               {NAV.flatMap((g) => g.items).slice(1).map((item) => (
                 <li key={item.id}>
-                  <a href={`#${item.id}`} className={cn('block border-l pl-3 transition-colors', active === item.id ? 'border-white text-white' : 'border-transparent text-muted-foreground hover:text-white')}>{item.title}</a>
+                  <a href={`#${item.id}`} className={cn('block border-l pl-3 transition-colors', active === item.id ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground')}>{item.title}</a>
                 </li>
               ))}
             </ul>

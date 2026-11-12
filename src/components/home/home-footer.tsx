@@ -25,7 +25,7 @@ export function HomeFooter() {
           <a href="https://hub.chainskins.net/legal/privacy-policy/" target="_blank" rel="noopener" className={LINK}>Privacy</a>
         </nav>
       </div>
-      <div className="mt-8 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-white/5 py-5 text-[11.5px]">
+      <div className="mt-8 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-ink/5 py-5 text-[11.5px]">
         <span>© {new Date().getFullYear()} chainskins</span>
         <span>Not affiliated with Valve Corporation. Counter-Strike 2 and its items are trademarks of Valve.</span>
       </div>

@@ -55,7 +55,7 @@ export function LoadoutSection({
           onClear={onNoWeapon}
         />
         {weapon && weaponOpen && (
-          <div className="flex flex-col gap-2.5 rounded-lg border border-border bg-black/15 p-3">
+          <div className="flex flex-col gap-2.5 rounded-lg border border-border bg-shade/15 p-3">
             <div className="flex items-baseline justify-between text-[11.5px] text-muted-foreground">
               Float <span className="font-medium" style={{ color: wear.color }}>{wear.name}</span>
             </div>
@@ -83,7 +83,7 @@ export function LoadoutSection({
         {glovesName && glovesOpen && <GloveSettings viewmodel={viewmodel} onViewmodel={onViewmodel} />}
 
         {onFirstPerson && (
-          <button type="button" onClick={onFirstPerson} className="flex h-9 items-center justify-center gap-2 rounded-lg border border-border text-[13px] font-medium text-foreground/90 transition-colors hover:border-white/20 hover:bg-white/4">
+          <button type="button" onClick={onFirstPerson} className="flex h-9 items-center justify-center gap-2 rounded-lg border border-border text-[13px] font-medium text-foreground/90 transition-colors hover:border-ink/20 hover:bg-ink/4">
             <Eye className="size-4 text-muted-foreground" /> See in first person
           </button>
         )}

@@ -69,10 +69,10 @@ export function FirstPersonSection({ agentName, agentImage, glovesName, glovesIm
               <span className="text-[12.5px] font-medium">Viewmodel</span>
             </button>
             <span className="section-value">{preset?.label ?? 'Custom'}{viewmodel.leftHanded ? ' · left hand' : ''}</span>
-            <button type="button" aria-label="Reset viewmodel" title="Reset viewmodel" disabled={isDefault} onClick={resetViewmodel} className="grid size-6 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-white/6 hover:text-foreground disabled:pointer-events-none disabled:opacity-35">
+            <button type="button" aria-label="Reset viewmodel" title="Reset viewmodel" disabled={isDefault} onClick={resetViewmodel} className="grid size-6 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-ink/6 hover:text-foreground disabled:pointer-events-none disabled:opacity-35">
               <RotateCcw className="size-3.5" />
             </button>
-            <button type="button" tabIndex={-1} aria-hidden onClick={() => setTuning(!tuning)} className="-mr-1 grid size-6 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-white/6 hover:text-foreground">
+            <button type="button" tabIndex={-1} aria-hidden onClick={() => setTuning(!tuning)} className="-mr-1 grid size-6 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-ink/6 hover:text-foreground">
               <ChevronDown className={cn('size-4 transition-transform duration-200', tuning && 'rotate-180')} />
             </button>
           </div>

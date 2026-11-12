@@ -22,11 +22,11 @@ export function FloatBar({ float, wear, min, max }: FloatBarProps) {
       <div className="relative pt-2">
         <div className="relative flex h-2 overflow-hidden rounded-full">
           {bands.map((b) => <span key={b.short} className="h-full" style={{ width: pct(b.to - b.from), background: b.color, opacity: 0.75 }} />)}
-          <span className="absolute inset-y-0 left-0 bg-black/65" style={{ width: pct(min) }} />
-          <span className="absolute inset-y-0 right-0 bg-black/65" style={{ width: pct(1 - max) }} />
+          <span className="absolute inset-y-0 left-0 bg-shade/65" style={{ width: pct(min) }} />
+          <span className="absolute inset-y-0 right-0 bg-shade/65" style={{ width: pct(1 - max) }} />
         </div>
         <span
-          className="absolute top-0 size-0 -translate-x-1/2 border-x-[5px] border-t-[7px] border-x-transparent border-t-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]"
+          className="absolute top-0 size-0 -translate-x-1/2 border-x-[5px] border-t-[7px] border-x-transparent border-t-ink drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]"
           style={{ left: pct(float) }}
         />
       </div>
