@@ -1,6 +1,8 @@
 import { ChevronDown, LayoutGrid, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { BrandMark } from '@/components/common/brand-mark'
 import { RepoLink, ThemeToggle } from '@/components/common/top-bar-links'
+import { IS_MOBILE_DEVICE } from '@/lib/device'
+import { ShortcutsButton } from '@/components/stage/shortcuts-button'
 import { ItemImage } from '@/components/common/item-image'
 import { AttachmentsSection } from '@/components/sidebar/attachments-section'
 import { AgentPatchesSection } from '@/components/sidebar/agent-patches-section'
@@ -81,6 +83,7 @@ export function Sidebar({ viewmodel, onViewmodel, collapsed, onToggleCollapsed, 
     >
       <div className={cn('flex items-center gap-2 border-b border-border px-3.5 py-2', collapsed && 'lg:flex-col lg:px-2.5 lg:py-2.5')}>
         <BrandMark compact={collapsed} className={cn('flex-1', collapsed && 'lg:flex-none')} />
+        {!IS_MOBILE_DEVICE && <ShortcutsButton className={cn('size-8', collapsed && 'lg:hidden')} />}
         <ThemeToggle className={cn('size-8', collapsed && 'lg:hidden')} />
         <RepoLink className={cn('size-8', collapsed && 'lg:hidden')} />
         <Button variant="ghost" size="icon-sm" className="hidden lg:inline-flex" aria-label={collapsed ? 'Expand panel' : 'Collapse panel'} onClick={onToggleCollapsed}>

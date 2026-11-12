@@ -1,7 +1,8 @@
 import { Maximize2, Minimize2 } from 'lucide-react'
 import type { RefObject } from 'react'
 import { Callout } from '@/components/common/callout'
-import { Spinner } from '@/components/common/spinner'
+import { ControlsHint } from '@/components/stage/controls-hint'
+import { LoadErrorCard, LoadingCard } from '@/components/stage/load-overlay'
 import { EditButton } from '@/components/stage/edit-button'
 import { PillSwitch } from '@/components/stage/pill-switch'
 import { MapPicker } from '@/components/stage/map-picker'
@@ -20,7 +21,10 @@ interface StageProps extends StageToolbarProps {
   viewportRef: RefObject<HTMLDivElement | null>
   heading: Heading
   loading: boolean
+  ready: boolean
   error: string
+  loadError: string
+  onRetry: () => void
   map: string | null
   onMap: (map: string | null) => void
   getShare: () => ShareSource
@@ -41,7 +45,7 @@ interface StageProps extends StageToolbarProps {
   onToggleUi: () => void
 }
 
-export function Stage({ viewportRef, heading, loading, error, map, onMap, getShare, canEdit, editing, onToggleEditing, quality, onQuality, lighting, lightingPreset, onLighting, mapLighting, onMapLighting, readRenderStatus, gloveGameLight, onGloveGameLight, hideUi, onToggleUi, ...toolbar }: StageProps) {
+export function Stage({ viewportRef, heading, loading, ready, error, loadError, onRetry, map, onMap, getShare, canEdit, editing, onToggleEditing, quality, onQuality, lighting, lightingPreset, onLighting, mapLighting, onMapLighting, readRenderStatus, gloveGameLight, onGloveGameLight, hideUi, onToggleUi, ...toolbar }: StageProps) {
   return (
     <main className="relative order-1 min-h-[62dvh] flex-1 overflow-hidden border-ink/10 lg:order-2 lg:min-h-0">
       <StudioBackdrop />
@@ -74,6 +78,7 @@ export function Stage({ viewportRef, heading, loading, error, map, onMap, getSha
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col items-center gap-2 p-4 lg:p-5">
         {error && <Callout tone="error" pill className="pointer-events-auto">{error}</Callout>}
+        <ControlsHint viewportRef={viewportRef} show={ready && !hideUi && !toolbar.firstPerson && !editing} />
         {!hideUi && canEdit && editing && (
           <div className="glass flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[12px] text-foreground/85">
             <span className="size-1.5 animate-pulse rounded-full bg-foreground/70" />
@@ -83,14 +88,8 @@ export function Stage({ viewportRef, heading, loading, error, map, onMap, getSha
         {!hideUi && <StageToolbar {...toolbar} />}
       </div>
 
-      {loading && (
-        <div className="absolute inset-0 grid place-items-center">
-          <div className="glass-strong flex items-center gap-3 rounded-2xl px-4 py-3">
-            <Spinner />
-            Loading {heading.title}…
-          </div>
-        </div>
-      )}
+      {loading && <LoadingCard title={heading.title} />}
+      {loadError && <LoadErrorCard title={heading.title} message={loadError} onRetry={onRetry} />}
     </main>
   )
 }

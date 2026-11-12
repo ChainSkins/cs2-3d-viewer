@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ASSET_BASE, DEFAULT_FLOAT } from '@/lib/config'
 import { catalogItem, loadItemData, loadKitData } from '@/lib/data/catalog'
 import type { GloveItem, Item } from '@/lib/data/items'
@@ -13,6 +13,8 @@ export interface SkinLoad {
   weapon: Item | null
   status: LoadStatus
   error: string
+  /** Loads the same thing again (after an error). */
+  retry: () => void
 }
 
 /**
@@ -21,7 +23,9 @@ export interface SkinLoad {
  * @param state the URL state, read once per load for the wear and pattern
  */
 export function useSkinLoader(viewer: SkinViewer | null, selection: Selection, state: ViewerStateApi): SkinLoad {
-  const [load, setLoad] = useState<SkinLoad>({ item: null, weapon: null, status: 'loading', error: '' })
+  const [attempt, setAttempt] = useState(0)
+  const retry = useCallback(() => setAttempt((n) => n + 1), [])
+  const [load, setLoad] = useState<Omit<SkinLoad, 'retry'>>({ item: null, weapon: null, status: 'loading', error: '' })
   const latest = useRef(state)
   latest.current = state
 
@@ -96,7 +100,7 @@ export function useSkinLoader(viewer: SkinViewer | null, selection: Selection, s
         if (!cancelled) setLoad((prev) => ({ ...prev, status: 'error', error: e.message }))
       })
     return () => { cancelled = true }
-  }, [viewer, key, firstPerson, gloves, agent, selection, loadoutWeapon])
+  }, [viewer, key, firstPerson, gloves, agent, selection, loadoutWeapon, attempt])
 
   // A pet's colour and animation change in place too.
   const { petVariant, petClip, petHat } = state
@@ -115,7 +119,7 @@ export function useSkinLoader(viewer: SkinViewer | null, selection: Selection, s
     if (viewer && (selection.kind === 'agent' || firstPerson)) void viewer.setAgentPatches(latest.current.agentPatches)
   }, [viewer, selection.kind, firstPerson, patchParam])
 
-  return load
+  return { ...load, retry }
 }
 
 /** The weapon skin an agent holds: the last one seen (item|kit), or none. */

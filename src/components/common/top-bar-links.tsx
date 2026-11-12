@@ -3,7 +3,7 @@ import { useTheme } from '@/hooks/common/use-theme'
 import { REPO_URL } from '@/lib/config'
 import { cn } from '@/lib/utils'
 
-const ICON_BUTTON = 'grid size-9 shrink-0 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-ink/6 hover:text-foreground'
+export const ICON_BUTTON = 'grid size-9 shrink-0 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-ink/6 hover:text-foreground'
 
 export function ThemeToggle({ className }: { className?: string }) {
   const { dark, toggle } = useTheme()

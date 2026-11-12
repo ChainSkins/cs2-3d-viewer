@@ -45,7 +45,7 @@ export function ViewerPage({ selection }: ViewerPageProps) {
   const { mapLighting, setMapLighting } = useMapLighting()
   useEffect(() => { viewer?.setMapLighting(mapLighting) }, [viewer, mapLighting])
   const readRenderStatus = useCallback(() => (viewer ? { pixelRatio: viewer.pixelRatio, fps: viewer.fps, lights: viewer.lightSources } : null), [viewer])
-  const { item, weapon: heldWeapon, status, error } = useSkinLoader(viewer, selection, state)
+  const { item, weapon: heldWeapon, status, error, retry } = useSkinLoader(viewer, selection, state)
   const [view, setView] = useState<ViewOptions>({ spin: false, palmUp: false, knifePose: 'tilted', back: false })
   const [activeSticker, setActiveSticker] = useState(0)
   const [panelCollapsed, setPanelCollapsed] = useLocalStorage('panel-collapsed', false)
@@ -155,7 +155,10 @@ export function ViewerPage({ selection }: ViewerPageProps) {
           viewportRef={viewportRef}
           heading={heading}
           loading={status === 'loading'}
-          error={error || catalogError}
+          loadError={status === 'error' ? error || 'The model could not be loaded.' : ''}
+          onRetry={retry}
+          error={catalogError}
+          ready={status === 'ready'}
           map={IS_MOBILE_DEVICE ? null : lighting.map}
           onMap={(map) => setLighting({ map })}
           getShare={getShare}
