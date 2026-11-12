@@ -3,20 +3,17 @@ import { DEFAULT_LIGHTING, type Lighting } from '@/lib/viewer/viewer-options'
 export interface LightingPreset {
   id: string
   label: string
-  /** Swatch colors for the preset button (key, rim). */
   swatch: [string, string]
   lighting: Lighting
 }
 
-/** An inspect map (build_vanity.py): its panorama and thumbnail. */
-export interface InspectMap { id: string; name: string; hdr: string; thumb: string }
+export interface InspectMap { id: string; name: string; hdr: string; thumb: string; view?: string }
 
 const preset = (id: string, label: string, changes: Partial<Lighting>): LightingPreset => {
   const lighting = { ...DEFAULT_LIGHTING, ...changes }
   return { id, label, swatch: [lighting.keyColor, lighting.rimColor], lighting }
 }
 
-/** Presets set the lights; the map stays as it is (it's chosen apart, and the preset's own `map` is ignored). */
 export const LIGHTING_PRESETS: LightingPreset[] = [
   preset('studio', 'Studio', {}),
   preset('daylight', 'Daylight', { exposure: 1.1, key: 2.6, keyColor: '#fff4e0', rim: 0.4, ambient: 0.75 }),
@@ -27,7 +24,6 @@ export const LIGHTING_PRESETS: LightingPreset[] = [
   preset('showroom', 'Showroom', { exposure: 1.1, key: 2.6, rim: 1.4, ambient: 0.35, orbit: true }),
 ]
 
-/** The preset these lights match (the map aside), or null when they are custom. */
 export function lightingPresetId(lighting: Lighting): string | null {
   return LIGHTING_PRESETS.find((p) => (Object.keys(p.lighting) as (keyof Lighting)[]).every((k) => k === 'map' || p.lighting[k] === lighting[k]))?.id ?? null
 }

@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 
-const within = (e: KeyboardEvent, selector: string) => !!(e.target as HTMLElement | null)?.closest(selector)
+const within = (e: KeyboardEvent, selector: string) => e.target instanceof Element && !!e.target.closest(selector)
 
 /** The key is being typed into a field: no shortcut should take it. */
 export const isTyping = (e: KeyboardEvent) => within(e, 'input, textarea, select, [contenteditable]')

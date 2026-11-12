@@ -35,7 +35,7 @@ export function MapPicker({ map, onChange }: MapPickerProps) {
           <div className="grid grid-cols-2 gap-3 overflow-y-auto p-5 sm:grid-cols-3">
             <MapButton label="Studio" active={!map} onClick={() => choose(null)} />
             {maps.map((m) => (
-              <MapButton key={m.id} label={m.name} thumb={ASSET_BASE + VIEWER_DATA + m.thumb} active={map === m.id} onClick={() => choose(m.id)} />
+              <MapButton key={m.id} label={m.name} thumb={ASSET_BASE + VIEWER_DATA + (m.view ?? m.thumb)} active={map === m.id} onClick={() => choose(m.id)} />
             ))}
           </div>
         </DialogContent>

@@ -34,6 +34,8 @@ const DIVIDER = <span aria-hidden className="mx-0.5 hidden h-5 w-px shrink-0 bg-
 
 export function StageToolbar({ spin, isWeapon, isGlove, firstPerson, palmUp, canInspect, canInspectGloves, attacks, stats, showingBack, onSide, knifePose, onKnifePose, onToggleSpin, onToggleFirstPerson, onTogglePalmUp, onInspect, onInspectGloves, onAttack, onScreenshot }: StageToolbarProps) {
   const inFirstPerson = firstPerson && isWeapon
+  // Only a weapon, knife or gloves has a side and a pose worth turning to, and not from first person.
+  const turnable = (isWeapon || isGlove) && !inFirstPerson
   const hint = inFirstPerson
     ? (canInspect ? 'Move the mouse to sway · F to inspect' : 'Move the mouse to sway') + (attacks.length ? ' · click or Space to fire' : '')
     : 'Drag to rotate · scroll to zoom'
@@ -42,21 +44,25 @@ export function StageToolbar({ spin, isWeapon, isGlove, firstPerson, palmUp, can
       <div className="hidden min-w-0 flex-wrap items-center gap-x-4 gap-y-1 lg:flex">{stats}</div>
 
       <div className="glass-panel pointer-events-auto flex max-w-full flex-wrap items-center justify-center gap-1 justify-self-center rounded-xl p-1">
-        <PillSwitch
-          label="Front / Back"
-          options={[{ value: 'front', label: 'Front' }, { value: 'back', label: 'Back' }]}
-          value={showingBack ? 'back' : 'front'}
-          onChange={(v) => onSide(v === 'back')}
-        />
-        {knifePose && (
-          <PillSwitch
-            label="Knife pose"
-            options={[{ value: 'vertical', label: 'Vertical' }, { value: 'horizontal', label: 'Flat' }, { value: 'tilted', label: 'Tilted' }]}
-            value={knifePose}
-            onChange={onKnifePose}
-          />
+        {turnable && (
+          <>
+            <PillSwitch
+              label="Front / Back"
+              options={[{ value: 'front', label: 'Front' }, { value: 'back', label: 'Back' }]}
+              value={showingBack ? 'back' : 'front'}
+              onChange={(v) => onSide(v === 'back')}
+            />
+            {knifePose && (
+              <PillSwitch
+                label="Knife pose"
+                options={[{ value: 'vertical', label: 'Vertical' }, { value: 'horizontal', label: 'Flat' }, { value: 'tilted', label: 'Tilted' }]}
+                value={knifePose}
+                onChange={onKnifePose}
+              />
+            )}
+            {DIVIDER}
+          </>
         )}
-        {DIVIDER}
         <ToolButton icon={RotateCw} label="Auto-rotate" pressed={spin} disabled={inFirstPerson} iconClassName={cn(spin && !inFirstPerson && 'animate-spin [animation-duration:3s]')} onClick={onToggleSpin} />
         {isWeapon && <ToolButton icon={Eye} label="First person (V)" pressed={firstPerson} onClick={onToggleFirstPerson} />}
         {inFirstPerson && canInspect && <ToolButton icon={ScanSearch} label="Inspect (F)" onClick={onInspect} />}

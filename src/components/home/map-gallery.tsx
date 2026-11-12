@@ -40,7 +40,7 @@ export function MapGallery() {
               lead ? 'col-span-2 aspect-2/1 lg:row-span-2 lg:aspect-auto' : 'aspect-2/1',
             )}
           >
-            <img src={ASSET_BASE + VIEWER_DATA + m.thumb} alt="" loading="lazy" className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-105" />
+            <img src={ASSET_BASE + VIEWER_DATA + (m.view ?? m.thumb)} alt="" loading="lazy" className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-105" />
             <span aria-hidden className="absolute inset-0 bg-linear-to-t from-black/80 via-black/10 to-transparent" />
             <span className={cn('absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 font-medium text-white', lead ? 'p-4 text-[18px] lg:p-5 lg:text-[22px]' : 'px-3 pb-2.5 text-[13px]')}>
               <span className="min-w-0 truncate">{m.name}</span>
