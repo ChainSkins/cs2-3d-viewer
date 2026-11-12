@@ -27,7 +27,8 @@ type Drag = { kind: 'sticker'; index: number; grab: THREE.Vector2 } | { kind: 'c
 
 /**
  * Edit mode: the weapon's stickers and charm are dragged with the pointer. A press on a sticker or the charm grabs it
- * (the orbit, or the fixed inspect's turning on a map, doesn't get that press); a press anywhere else still turns it. A sticker slides over the weapon's
+ * (the orbit, or the fixed inspect's turning on a map, doesn't get that press); the view stays still meanwhile: a press
+ * elsewhere and the wheel do nothing. A sticker slides over the weapon's
  * surface (in its sticker UVs, as the shader places it); the charm follows the pointer to the nearest keychain point.
  */
 export class AttachmentEditor {
@@ -41,6 +42,7 @@ export class AttachmentEditor {
   constructor(private readonly host: EditorHost) {
     // (capture, on the container: before the orbit controls, which listen on the canvas)
     host.container.addEventListener('pointerdown', this.down, { capture: true })
+    host.container.addEventListener('wheel', this.wheel, { capture: true, passive: false })
     host.container.addEventListener('pointermove', this.move)
     host.container.addEventListener('pointerup', this.up)
     host.container.addEventListener('pointercancel', this.up)
@@ -56,6 +58,7 @@ export class AttachmentEditor {
   dispose(): void {
     const c = this.host.container
     c.removeEventListener('pointerdown', this.down, { capture: true })
+    c.removeEventListener('wheel', this.wheel, { capture: true })
     c.removeEventListener('pointermove', this.move)
     c.removeEventListener('pointerup', this.up)
     c.removeEventListener('pointercancel', this.up)
@@ -110,16 +113,22 @@ export class AttachmentEditor {
   private down = (e: PointerEvent) => {
     if (e.button !== 0 || !this.active || e.target !== this.host.canvas) return
     const drag = this.pick(e)
-    if (!drag) return
-    // Grabbed: the orbit controls must not see this press.
+    // Grabbed or not, the orbit controls (and the fixed inspect's turning) must not see this press.
     e.stopPropagation()
     e.preventDefault()
+    if (!drag) return
     this.drag = drag
     this.orbitWas = this.host.controls.enabled
     this.host.controls.enabled = false
     this.host.canvas.setPointerCapture(e.pointerId)
     this.host.canvas.style.cursor = 'grabbing'
     if (drag.kind === 'sticker') this.events!.onStickerPick(drag.index)
+  }
+
+  private wheel = (e: WheelEvent) => {
+    if (!this.active || e.target !== this.host.canvas) return
+    e.stopPropagation()
+    e.preventDefault()
   }
 
   private move = (e: PointerEvent) => {

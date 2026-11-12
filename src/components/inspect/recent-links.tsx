@@ -1,7 +1,7 @@
 import { History } from 'lucide-react'
 import { useMemo } from 'react'
 import { ItemImage } from '@/components/common/item-image'
-import { useDbImages } from '@/context/db-context'
+import { useDb } from '@/context/db-context'
 import type { InspectHistoryEntry } from '@/hooks/picker/use-inspect-history'
 import type { AgentIndex } from '@/lib/data/agents'
 import type { AttachmentIndex } from '@/lib/data/attachments'
@@ -21,13 +21,13 @@ interface RecentLinksProps {
 
 export function RecentLinks({ entries, catalog, attachments, agents, onLoad, limit = 3 }: RecentLinksProps) {
   
-  const images = useDbImages()
+  const db = useDb()
   const rows = useMemo(() => entries.slice(0, limit).flatMap((entry) => {
     try {
       const item = decodeInspectLink(entry.link)
-      return [{ entry, item, preview: inspectPreview(item, catalog, attachments, images, agents) }]
+      return [{ entry, item, preview: inspectPreview(item, catalog, attachments, db, agents) }]
     } catch { return [] }
-  }), [entries, catalog, attachments, images, agents, limit])
+  }), [entries, catalog, attachments, db, agents, limit])
   if (!rows.length) return null
 
   return (

@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useDbImages } from '@/context/db-context'
+import { useDb } from '@/context/db-context'
 import type { AgentIndex } from '@/lib/data/agents'
 import type { AttachmentIndex } from '@/lib/data/attachments'
 import type { CatalogIndex } from '@/lib/data/catalog'
@@ -18,10 +18,10 @@ import { agentPatchesFromParam, agentPatchesToParam, PATCH_SLOTS, stickersToPara
  */
 export function useInspectLink(catalog: CatalogIndex | null, attachments: AttachmentIndex | null, agents: AgentIndex | null, search: string, onSkin: () => void): (link: InspectItem) => string | null {
   const navigate = useNavigate()
-  const images = useDbImages()
+  const db = useDb()
   return useCallback((link: InspectItem): string | null => {
     if (!catalog || !attachments) return 'The catalog is still loading.'
-    if (!agents && images.agentName(link.defindex)) return 'The agents are still loading.'
+    if (!agents && db.agent(link.defindex).name) return 'The agents are still loading.'
     const resolved = resolveInspect(link, catalog, attachments, agents)
     if (typeof resolved === 'string') return resolved
     if (resolved.kind === 'sticker') {
@@ -65,5 +65,5 @@ export function useInspectLink(catalog: CatalogIndex | null, attachments: Attach
     navigate(`${selectionPath({ kind: 'skin', item: resolved.item, kit: resolved.kit })}?${params}`)
     if (resolved.unknownStickers.length) console.warn('Inspect link: unknown sticker ids', resolved.unknownStickers)
     return null
-  }, [catalog, attachments, agents, images, search, navigate, onSkin])
+  }, [catalog, attachments, agents, db, search, navigate, onSkin])
 }

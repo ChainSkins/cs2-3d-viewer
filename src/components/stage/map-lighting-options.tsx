@@ -1,4 +1,4 @@
-import { Lamp, RotateCcw, Sparkles, Sun, SunDim, Waves } from 'lucide-react'
+import { Droplets, Lamp, RotateCcw, Sparkles, Sun, SunDim, Waves } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { LabeledSlider } from '@/components/common/labeled-slider'
 import { Button } from '@/components/ui/button'
@@ -11,7 +11,7 @@ interface MapLightingOptionsProps {
   onChange: (changes: Partial<MapLighting>) => void
 }
 
-const LIGHTS: { key: keyof MapLighting; label: string; icon: LucideIcon; hint: string }[] = [
+const LIGHTS: { key: Exclude<LightSource, 'studio'>; label: string; icon: LucideIcon; hint: string }[] = [
   { key: 'sun', label: 'Sun', icon: Sun, hint: 'The map’s sun' },
   { key: 'item', label: 'Item light', icon: Lamp, hint: 'The spot lights the game aims at a weapon, gloves or agent' },
   { key: 'scene', label: 'Map lights', icon: SunDim, hint: 'The map’s own lights around the inspect spot' },
@@ -39,6 +39,12 @@ export function MapLightingOptions({ lighting, sources, onChange }: MapLightingO
             ? <>This item is lit by: <span className="text-foreground/85">{sources.map((s) => NAMES[s]).join(' · ')}</span>.</>
             : 'Each kind of item gets the game’s own lights on a map.'}
       </p>
+      <div className="flex items-center gap-2" title="Blurs the map behind the item, so the item stands out">
+        <Droplets className="size-3.5 shrink-0 text-muted-foreground" />
+        <div className="min-w-0 flex-1">
+          <LabeledSlider label="Blur" value={lighting.blur} min={0} max={12} step={0.5} format={(v) => (v === 0 ? 'off' : v.toFixed(1) + 'px')} onChange={(blur) => onChange({ blur })} />
+        </div>
+      </div>
       <div className="flex flex-col gap-2">
         {LIGHTS.map(({ key, label, icon: Icon, hint }) => {
           const used = !sources || studio || sources.includes(key)

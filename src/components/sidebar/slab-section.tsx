@@ -1,7 +1,7 @@
 import { Sticker } from 'lucide-react'
 import { Section } from '@/components/common/section'
 import { WornRow } from '@/components/sidebar/worn-row'
-import { useDbImages } from '@/context/db-context'
+import { useDb } from '@/context/db-context'
 import type { StickerEntry } from '@/lib/data/attachments'
 
 interface SlabSectionProps {
@@ -12,7 +12,7 @@ interface SlabSectionProps {
 }
 
 export function SlabSection({ sticker, stickerId, onChooseSticker, onClearSticker }: SlabSectionProps) {
-  const images = useDbImages()
+  const db = useDb()
   return (
     <Section title="Sticker slab" collapsible={{ id: 'sticker-slab' }} aside={<span className="section-value">{stickerId ? 'Sealed' : 'Empty'}</span>}>
       <div className="flex flex-col gap-3">
@@ -20,7 +20,7 @@ export function SlabSection({ sticker, stickerId, onChooseSticker, onClearSticke
           kind="Sealed sticker"
           name={stickerId ? sticker?.name ?? stickerId : null}
           placeholder="No sticker"
-          image={sticker ? images.sticker(sticker.index) : undefined}
+          image={sticker ? db.sticker(sticker.index).image : undefined}
           icon={Sticker}
           clearLabel="Remove the sticker"
           onChoose={onChooseSticker}

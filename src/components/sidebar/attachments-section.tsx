@@ -3,7 +3,10 @@ import { Section } from '@/components/common/section'
 import { AttachmentSlots } from '@/components/sidebar/attachment-slots'
 import { CharmEditor } from '@/components/sidebar/charm-editor'
 import { StickerEditor } from '@/components/sidebar/sticker-editor'
-import { useDbImages } from '@/context/db-context'
+import { useDb } from '@/context/db-context'
+import { Kbd } from '@/components/common/kbd'
+import { cn } from '@/lib/utils'
+import { Move } from 'lucide-react'
 import { STICKER_MAX } from '@/lib/config'
 import type { AttachmentIndex } from '@/lib/data/attachments'
 import { isSlabCharm, type ItemMarkup } from '@/lib/markup'
@@ -18,13 +21,15 @@ interface AttachmentsSectionProps {
   activeSticker: number
   charm: CharmState
   onActiveSticker: (index: number) => void
+  editing?: boolean
+  onToggleEditing: () => void
   onStickers: (list: StickerOptions[]) => void
   onCharm: (changes: Partial<CharmState>) => void
   onOpenPicker: (target: PickerTarget) => void
 }
 
-export function AttachmentsSection({ markup, attachments, stickers, activeSticker, charm, onActiveSticker, onStickers, onCharm, onOpenPicker }: AttachmentsSectionProps) {
-  const images = useDbImages()
+export function AttachmentsSection({ markup, attachments, stickers, activeSticker, charm, onActiveSticker, editing, onToggleEditing, onStickers, onCharm, onOpenPicker }: AttachmentsSectionProps) {
+  const db = useDb()
   const stickerDef = (id: string | null) => (id ? attachments?.sticker.get(id) : undefined)
   const stickerName = (id: string | null) => (id ? stickerDef(id)?.name ?? id : '')
   const charmDef = charm.id ? attachments?.charm.get(charm.id) : undefined
@@ -41,10 +46,11 @@ export function AttachmentsSection({ markup, attachments, stickers, activeSticke
     <Section title="Attachments" collapsible={{ id: 'attachments' }} aside={markup && <span className="section-value">{summary}</span>}>
       {markup ? (
         <div className="flex flex-col gap-3.5">
+          {editing !== undefined && <EditHint editing={editing} onToggle={onToggleEditing} />}
           <AttachmentSlots
-            stickers={stickers.map((s) => ({ name: stickerName(s.id), icon: stickerDef(s.id) ? images.sticker(stickerDef(s.id)!.index) : undefined, slot: s.slot + 1 }))}
+            stickers={stickers.map((s) => ({ name: stickerName(s.id), icon: stickerDef(s.id) ? db.sticker(stickerDef(s.id)!.index).image : undefined, slot: s.slot + 1 }))}
             max={STICKER_MAX}
-            charm={charm.id ? { name: charmName, icon: charmDef ? images.charm(charmDef.index) : undefined } : null}
+            charm={charm.id ? { name: charmName, icon: charmDef ? db.charm(charmDef.index).image : undefined } : null}
             hasCharmPoint={markup.charm}
             focus={kind === 'sticker' ? { kind, index: active } : kind === 'charm' ? { kind } : null}
             onSticker={(index) => { onActiveSticker(index); setWanted('sticker') }}
@@ -78,5 +84,22 @@ export function AttachmentsSection({ markup, attachments, stickers, activeSticke
         <div className="text-[12px] text-muted-foreground">No sticker slots or charm point on this item.</div>
       )}
     </Section>
+  )
+}
+
+function EditHint({ editing, onToggle }: { editing: boolean; onToggle: () => void }) {
+  return (
+    <div className={cn('flex items-center gap-2.5 rounded-lg border px-3 py-2 text-[12px] transition-colors', editing ? 'border-foreground/40 bg-ink/6 text-foreground' : 'border-border text-muted-foreground')}>
+      <Move className="size-3.5 shrink-0" />
+      <span className="min-w-0 flex-1 leading-snug">{editing ? 'Drag the stickers and the charm on the weapon' : 'Move them on the weapon with the mouse'}</span>
+      <button
+        type="button"
+        aria-pressed={editing}
+        onClick={onToggle}
+        className={cn('flex h-7 shrink-0 items-center gap-1.5 rounded-md border px-2 font-medium transition-colors', editing ? 'border-foreground/40 bg-ink/10 text-foreground' : 'border-border text-foreground hover:border-ink/20')}
+      >
+        {editing ? 'Done' : 'Edit'} <Kbd className="hidden sm:inline-flex">E</Kbd>
+      </button>
+    </div>
   )
 }

@@ -5,7 +5,7 @@ import { Sidebar } from '@/components/sidebar/sidebar'
 import { Button } from '@/components/ui/button'
 import { Stage } from '@/components/stage/stage'
 import { ViewerStats } from '@/components/stage/viewer-stats'
-import { useDbImages } from '@/context/db-context'
+import { useDb } from '@/context/db-context'
 import { useAttachmentEditing } from '@/hooks/viewer/use-attachment-editing'
 import { useCatalog } from '@/hooks/data/use-catalog'
 import { useInspectActions } from '@/hooks/viewer/use-inspect-actions'
@@ -27,7 +27,7 @@ import { useViewer } from '@/hooks/viewer/use-viewer'
 import { useViewerState } from '@/hooks/viewer/use-viewer-state'
 import { useViewerSync } from '@/hooks/viewer/use-viewer-sync'
 import type { ViewOptions } from '@/lib/viewer-state'
-import { headingFor } from '@/lib/heading'
+import { headingFor, petThumb } from '@/lib/heading'
 import { skinDisplayName } from '@/lib/picker'
 import { selectionPath, skinKey, type Selection } from '@/lib/selection'
 
@@ -68,21 +68,26 @@ export function ViewerPage({ selection }: ViewerPageProps) {
     () => (selection.kind === 'skin' ? catalog?.skins.find((s) => s.item === selection.item && s.kit === selection.kit) : undefined),
     [catalog, selection],
   )
-  const images = useDbImages()
-  const heading = headingFor(selection, item, skin, attachments, catalog, images, agents, pins, patches, pets)
+  const db = useDb()
+  const named = headingFor(selection, item, skin, attachments, catalog, db, agents, pins, patches, pets)
+  // (a pet shows the colour picked in the panel)
+  const heading = selection.kind === 'pet' ? { ...named, icon: petThumb(selection.id, state.petVariant) } : named
   const glovesName = useMemo(() => skinDisplayName(catalog, state.gloves), [catalog, state.gloves])
   const skinImage = useCallback((key: string | null) => {
     const worn = key ? catalog?.skins.find((s) => skinKey(s) === key) : undefined
-    return worn ? images.skin(catalog!.items[worn.item]?.defindex, worn.paintIndex) : undefined
-  }, [catalog, images])
+    return worn ? db.skin(catalog!.items[worn.item]?.defindex, worn.paintIndex).image : undefined
+  }, [catalog, db])
   const glovesImage = useMemo(() => skinImage(state.gloves), [skinImage, state.gloves])
   const loadoutWeaponImage = useMemo(() => skinImage(state.loadout.weapon), [skinImage, state.loadout.weapon])
   const wornAgent = state.agent ? agents?.agent.get(state.agent) : undefined
 
   const picker = usePicker(selection, item, state, setActiveSticker)
   const [editing, setEditing] = useState(false)
-  const canEdit = selection.kind === 'skin' && !!item && item.style !== 'glove' && !state.firstPerson && (state.stickers.length > 0 || !!state.charm.id)
+  // Guns only (knives and gloves carry no stickers or charm), and not from first person.
+  const canEdit = selection.kind === 'skin' && !!item && item.style !== 'glove' && !/knife|bayonet/.test(item.id.split('|')[0]) && !state.firstPerson
   useAttachmentEditing(viewer, editing && canEdit, state, setActiveSticker)
+  // (the view holds still while editing: no auto-rotate either)
+  useEffect(() => { if (editing && canEdit) setView((prev) => (prev.spin ? { ...prev, spin: false } : prev)) }, [editing, canEdit, view.spin])
   const noDialog = picker.picker === null
   const isWeapon = selection.kind === 'skin' && !!item && item.style !== 'glove'
   useKeyShortcut('e', noDialog && canEdit, useCallback(() => setEditing((on) => !on), []))
@@ -94,7 +99,7 @@ export function ViewerPage({ selection }: ViewerPageProps) {
   const loadInspect = useInspectLink(catalog, attachments, agents, state.search, useCallback(() => setActiveSticker(0), []))
   const actions = useInspectActions(viewer, selection, item, status, state.firstPerson, state.agent)
   const loadout = useLoadoutSync(viewer, selection, item, heldWeapon, status, state, catalog)
-  const getShare = useShare({ viewer, selection, state, heading, item, skin, catalog, attachments, agents, images })
+  const getShare = useShare({ viewer, selection, state, heading, item, skin, catalog, attachments, agents, db })
 
   const screenshot = async () => {
     const raw = viewer?.screenshot()
@@ -131,13 +136,15 @@ export function ViewerPage({ selection }: ViewerPageProps) {
           glovesName={glovesName}
           glovesImage={glovesImage}
           agentName={state.agent ? wornAgent?.name ?? state.agent : null}
-          agentImage={wornAgent ? images.agent(wornAgent.index) : undefined}
+          agentImage={wornAgent ? db.agent(wornAgent.index).image : undefined}
           loadoutWeapon={heldWeapon}
           loadoutWeaponName={loadout.weaponName}
           loadoutWeaponImage={loadoutWeaponImage}
           onLoadoutFirstPerson={loadout.openFirstPerson}
           activeSticker={activeSticker}
           onActiveSticker={setActiveSticker}
+          editing={canEdit ? editing : undefined}
+          onToggleEditing={() => setEditing((on) => !on)}
           onOpenPicker={picker.open}
           loading={status === 'loading'}
           sheetOpen={sheetOpen}

@@ -2,7 +2,7 @@ import { ClipboardPaste } from 'lucide-react'
 import { useMemo } from 'react'
 import { ItemImage } from '@/components/common/item-image'
 import { Button } from '@/components/ui/button'
-import { useDbImages } from '@/context/db-context'
+import { useDb } from '@/context/db-context'
 import type { AgentIndex } from '@/lib/data/agents'
 import type { AttachmentIndex } from '@/lib/data/attachments'
 import type { CatalogIndex } from '@/lib/data/catalog'
@@ -18,8 +18,8 @@ interface ClipboardOfferProps {
 }
 
 export function ClipboardOffer({ link, catalog, attachments, agents, onUse }: ClipboardOfferProps) {
-  const images = useDbImages()
-  const preview = useMemo(() => inspectPreview(decodeInspectLink(link), catalog, attachments, images, agents), [link, catalog, attachments, images, agents])
+  const db = useDb()
+  const preview = useMemo(() => inspectPreview(decodeInspectLink(link), catalog, attachments, db, agents), [link, catalog, attachments, db, agents])
   return (
     <div className="flex items-center gap-3 rounded-lg border border-border bg-ink/[0.03] p-1.5 pr-2">
       <ItemImage src={preview.image} color={preview.color} className="h-10 w-14 rounded-lg" />

@@ -7,7 +7,6 @@ import { PillSwitch } from '@/components/stage/pill-switch'
 import { MapPicker } from '@/components/stage/map-picker'
 import { SettingsButton, type RenderStatus } from '@/components/stage/settings-button'
 import { ShareButton } from '@/components/stage/share-button'
-import { ThemeToggle } from '@/components/common/top-bar-links'
 import { StageHeading } from '@/components/stage/stage-heading'
 import { StageToolbar, type StageToolbarProps } from '@/components/stage/stage-toolbar'
 import { ToolButton } from '@/components/stage/tool-button'
@@ -56,7 +55,6 @@ export function Stage({ viewportRef, heading, loading, error, map, onMap, getSha
               {!IS_MOBILE_DEVICE && <MapPicker map={map} onChange={onMap} />}
               {(canEdit || !IS_MOBILE_DEVICE) && <span aria-hidden className="mx-0.5 h-5 w-px bg-ink/10" />}
               <ShareButton getShare={getShare} />
-              <ThemeToggle />
               <SettingsButton quality={quality} onChange={onQuality} lighting={lighting} lightingPreset={lightingPreset} onLighting={onLighting} mapLighting={mapLighting} onMapLighting={onMapLighting} readStatus={readRenderStatus} />
             </>
           )}
@@ -79,7 +77,7 @@ export function Stage({ viewportRef, heading, loading, error, map, onMap, getSha
         {!hideUi && canEdit && editing && (
           <div className="glass flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[12px] text-foreground/85">
             <span className="size-1.5 animate-pulse rounded-full bg-foreground/70" />
-            Edit mode · drag a sticker or the charm · drag elsewhere to turn the view
+            Edit mode · drag a sticker or the charm · the view stays still until you're done (E)
           </div>
         )}
         {!hideUi && <StageToolbar {...toolbar} />}

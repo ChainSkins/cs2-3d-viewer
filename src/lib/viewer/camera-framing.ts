@@ -155,9 +155,13 @@ export function setKnifePose(v: SkinViewer, pose: KnifePose): void {
   const root = v.weaponRoot
   const from = root?.userData.framedFrom as { position: THREE.Vector3; rotation: THREE.Euler } | undefined
   if (!root || !from || !v.isKnife() || v.firstPerson) return
+  // The framing measures the model as it stands: turned by a drag, it would be framed off center once the turn is undone.
+  v.resetView()
+  if (v.fixed.active) v.fixed.step()
   root.position.copy(from.position)
   root.rotation.copy(from.rotation)
-  root.updateMatrixWorld(true)
+  // (from the holder down: the model's world matrix is built on the holder's, which the reset just turned back)
+  v.holder.updateMatrixWorld(true)
   v.frame(root, true)
   v.resetView()
 }

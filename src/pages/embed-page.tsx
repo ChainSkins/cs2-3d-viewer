@@ -5,7 +5,7 @@ import { EmbedStatus } from '@/components/embed/embed-status'
 import { FrozenFrame } from '@/components/embed/frozen-frame'
 import { ShareDialog } from '@/components/stage/share-button'
 import { StudioBackdrop } from '@/components/stage/studio-backdrop'
-import { useDbImages } from '@/context/db-context'
+import { useDb } from '@/context/db-context'
 import { useCatalog } from '@/hooks/data/use-catalog'
 import { useEmbedCommands } from '@/hooks/embed/use-embed-protocol'
 import { useEmbedFreeze } from '@/hooks/embed/use-embed-viewer'
@@ -65,9 +65,9 @@ export function EmbedPage() {
   useEffect(() => { viewer?.setViewmodel(viewmodel) }, [viewer, viewmodel])
 
   const skin = useMemo(() => (shown.kind === 'skin' ? catalog?.skins.find((s) => s.item === shown.item && s.kit === shown.kit) : undefined), [catalog, shown])
-  const images = useDbImages()
-  const heading = headingFor(shown, item, skin, attachments, catalog, images, agents)
-  const getShare = useShare({ viewer, selection: shown, state, heading, item, skin, catalog, attachments, agents, images })
+  const db = useDb()
+  const heading = headingFor(shown, item, skin, attachments, catalog, db, agents)
+  const getShare = useShare({ viewer, selection: shown, state, heading, item, skin, catalog, attachments, agents, db })
   const shareUrl = () => (selection ? getShare().link.url : null)
   const openShare = () => { if (selection) setShareOpen(getShare()) }
 

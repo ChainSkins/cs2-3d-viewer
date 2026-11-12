@@ -12,7 +12,7 @@ interface DialogHeadingProps {
 export function DialogHeading({ icon: Icon, title, description, onClose }: DialogHeadingProps) {
   return (
     <div className="flex h-14 shrink-0 items-center gap-3 border-b border-border pl-5 pr-3">
-      <Icon className="size-[18px] shrink-0 text-muted-foreground" />
+      <Icon className="size-4.5 shrink-0 text-muted-foreground" />
       <div className="flex min-w-0 flex-1 items-baseline gap-2.5">
         <DialogTitle className="shrink-0 text-[15px] font-medium tracking-tight">{title}</DialogTitle>
         <DialogDescription className="hidden truncate text-[12.5px] text-muted-foreground sm:block">{description}</DialogDescription>

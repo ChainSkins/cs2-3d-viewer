@@ -1,6 +1,6 @@
 import { ChevronDown, LayoutGrid, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { BrandMark } from '@/components/common/brand-mark'
-import { RepoLink } from '@/components/common/top-bar-links'
+import { RepoLink, ThemeToggle } from '@/components/common/top-bar-links'
 import { ItemImage } from '@/components/common/item-image'
 import { AttachmentsSection } from '@/components/sidebar/attachments-section'
 import { AgentPatchesSection } from '@/components/sidebar/agent-patches-section'
@@ -53,13 +53,16 @@ interface SidebarProps {
   onLoadoutFirstPerson: (() => void) | null
   activeSticker: number
   onActiveSticker: (index: number) => void
+  /** Edit mode (dragging the stickers and the charm on the weapon): on or off, undefined where it doesn't apply. */
+  editing?: boolean
+  onToggleEditing: () => void
   onOpenPicker: (target: PickerTarget) => void
   loading: boolean
   sheetOpen: boolean
   onCloseSheet: () => void
 }
 
-export function Sidebar({ viewmodel, onViewmodel, collapsed, onToggleCollapsed, selection, heading, item, attachments, patches, pets, state, glovesName, glovesImage, agentName, agentImage, loadoutWeapon, loadoutWeaponName, loadoutWeaponImage, onLoadoutFirstPerson, activeSticker, onActiveSticker, onOpenPicker, loading, sheetOpen, onCloseSheet }: SidebarProps) {
+export function Sidebar({ viewmodel, onViewmodel, collapsed, onToggleCollapsed, selection, heading, item, attachments, patches, pets, state, glovesName, glovesImage, agentName, agentImage, loadoutWeapon, loadoutWeaponName, loadoutWeaponImage, onLoadoutFirstPerson, activeSticker, onActiveSticker, editing, onToggleEditing, onOpenPicker, loading, sheetOpen, onCloseSheet }: SidebarProps) {
   const isSkin = selection.kind === 'skin'
   const [wantedTab, setTab] = useState<'finish' | 'stickers' | 'view'>('finish')
   const hasView = isSkin && !!item && item.style !== 'glove' && state.firstPerson
@@ -78,6 +81,7 @@ export function Sidebar({ viewmodel, onViewmodel, collapsed, onToggleCollapsed, 
     >
       <div className={cn('flex items-center gap-2 border-b border-border px-3.5 py-2', collapsed && 'lg:flex-col lg:px-2.5 lg:py-2.5')}>
         <BrandMark compact={collapsed} className={cn('flex-1', collapsed && 'lg:flex-none')} />
+        <ThemeToggle className={cn('size-8', collapsed && 'lg:hidden')} />
         <RepoLink className={cn('size-8', collapsed && 'lg:hidden')} />
         <Button variant="ghost" size="icon-sm" className="hidden lg:inline-flex" aria-label={collapsed ? 'Expand panel' : 'Collapse panel'} onClick={onToggleCollapsed}>
           {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
@@ -127,6 +131,8 @@ export function Sidebar({ viewmodel, onViewmodel, collapsed, onToggleCollapsed, 
               activeSticker={activeSticker}
               charm={state.charm}
               onActiveSticker={onActiveSticker}
+              editing={editing}
+              onToggleEditing={onToggleEditing}
               onStickers={state.setStickers}
               onCharm={state.setCharm}
               onOpenPicker={onOpenPicker}

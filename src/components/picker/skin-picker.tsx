@@ -9,7 +9,7 @@ import { LinkPanel } from '@/components/picker/link-panel'
 import { PickerCard } from '@/components/picker/picker-card'
 import { PickerToolbar } from '@/components/picker/picker-toolbar'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
-import { useDbImages } from '@/context/db-context'
+import { useDb } from '@/context/db-context'
 import { useClipboardInspectLink } from '@/hooks/picker/use-clipboard-inspect-link'
 import { useInfiniteList } from '@/hooks/picker/use-infinite-list'
 import { useInspectHistory } from '@/hooks/picker/use-inspect-history'
@@ -59,7 +59,7 @@ export function SkinPicker({ open, catalog, attachments, agents = null, pins = n
   const [stickerKind, setStickerKind] = useState<string | null>(null)
   const [query, setQuery] = useState('')
   const [portedOnly, setPortedOnly] = useState(true)
-  const images = useDbImages()
+  const db = useDb()
   const body = useRef<HTMLDivElement>(null)
   const categories = only ? CATEGORIES.filter((c) => c.label === only) : CATEGORIES
   const searching = query.trim().length > 0
@@ -72,7 +72,7 @@ export function SkinPicker({ open, catalog, attachments, agents = null, pins = n
   const linkText = !only && onLoadInspect ? query.trim() : ''
   const linkMode = !historyOn && looksLikeInspectLink(linkText)
   const decoded = useMemo(() => (linkMode ? parseInspectQuery(linkText) : null), [linkMode, linkText])
-  const preview = useMemo(() => (decoded?.item ? inspectPreview(decoded.item, catalog, attachments, images, agents) : null), [decoded, catalog, attachments, images, agents])
+  const preview = useMemo(() => (decoded?.item ? inspectPreview(decoded.item, catalog, attachments, db, agents) : null), [decoded, catalog, attachments, db, agents])
   const linkError = loadError || decoded?.error || ''
   const canLoadLink = !!decoded?.item && !preview?.problem
   const clipboardLink = useClipboardInspectLink(open && !!onLoadInspect && !only)
@@ -101,8 +101,8 @@ export function SkinPicker({ open, catalog, attachments, agents = null, pins = n
 
   const counts = useMemo(() => categoryCounts(catalog, attachments, portedOnly, agents, pins, patches, pets), [catalog, attachments, portedOnly, agents, pins, patches, pets])
   const found = useMemo(
-    () => pickerGroups(catalog, attachments, { category, stickerKind, query, portedOnly, scope: only }, images, agents, pins, patches, pets),
-    [catalog, attachments, images, agents, pins, patches, pets, category, stickerKind, query, portedOnly, only],
+    () => pickerGroups(catalog, attachments, { category, stickerKind, query, portedOnly, scope: only }, db, agents, pins, patches, pets),
+    [catalog, attachments, db, agents, pins, patches, pets, category, stickerKind, query, portedOnly, only],
   )
   const available = useMemo(() => raritiesIn(found), [found])
   const groups = useMemo(() => arrangeGroups(found, sort, rarities), [found, sort, rarities])

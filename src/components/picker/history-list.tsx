@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react'
 import { Callout } from '@/components/common/callout'
 import { HistoryRow } from '@/components/picker/history-row'
 import { Button } from '@/components/ui/button'
-import { useDbImages } from '@/context/db-context'
+import { useDb } from '@/context/db-context'
 import type { InspectHistoryEntry } from '@/hooks/picker/use-inspect-history'
 import type { AgentIndex } from '@/lib/data/agents'
 import type { AttachmentIndex } from '@/lib/data/attachments'
@@ -23,13 +23,13 @@ interface HistoryListProps {
 }
 
 export function HistoryList({ entries, query, catalog, attachments, agents, onLoad, onRemove, onClear }: HistoryListProps) {
-  const images = useDbImages()
+  const db = useDb()
   const [error, setError] = useState('')
   const rows = useMemo(() => entries.flatMap((entry) => {
     let item: InspectItem
     try { item = decodeInspectLink(entry.link) } catch { return [] }
-    return [{ entry, item, preview: inspectPreview(item, catalog, attachments, images, agents) }]
-  }), [entries, catalog, attachments, images, agents])
+    return [{ entry, item, preview: inspectPreview(item, catalog, attachments, db, agents) }]
+  }), [entries, catalog, attachments, db, agents])
   const needle = query.trim().toLowerCase()
   const shown = needle ? rows.filter((r) => r.preview.title.toLowerCase().includes(needle)) : rows
 

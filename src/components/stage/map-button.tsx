@@ -1,4 +1,9 @@
+import { ASSET_BASE } from '@/lib/config'
+import { VIEWER_DATA } from '@/lib/data/catalog'
 import { cn } from '@/lib/utils'
+
+const studioLight = `${ASSET_BASE}${VIEWER_DATA}maps/studio_light.jpg`
+const studioDark = `${ASSET_BASE}${VIEWER_DATA}maps/studio_dark.jpg`
 
 interface MapButtonProps {
   label: string
@@ -18,7 +23,12 @@ export function MapButton({ label, thumb, active, onClick }: MapButtonProps) {
     >
       {thumb
         ? <img src={thumb} alt="" loading="lazy" className="aspect-[2/1] w-full rounded-lg object-cover" />
-        : <span className="aspect-[2/1] w-full rounded-lg bg-gradient-to-b from-secondary to-card" />}
+        : (
+          <span className="aspect-[2/1] w-full overflow-hidden rounded-lg">
+            <img src={studioLight} alt="" className="size-full object-cover dark:hidden" />
+            <img src={studioDark} alt="" className="hidden size-full object-cover dark:block" />
+          </span>
+        )}
       <span className="truncate px-1 pb-0.5">{label}</span>
     </button>
   )

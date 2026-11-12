@@ -65,6 +65,21 @@ export class MapStage {
     return this.map?.video ?? null
   }
 
+  private blur = 0
+
+  /** Blurs the map's background video (px), zoomed in a little so its blurred edges stay out of the frame. */
+  setBlur(px: number): void {
+    this.blur = px
+    this.applyBlur()
+  }
+
+  private applyBlur(): void {
+    const video = this.map?.video
+    if (!video) return
+    video.style.filter = this.blur > 0 ? `blur(${this.blur}px)` : ''
+    video.style.scale = this.blur > 0 ? String(1 + this.blur * 0.012) : ''
+  }
+
   /** Puts an inspect map around the model, or back to the studio with null. */
   async load(id: string | null): Promise<void> {
     const { scene, renderer, container } = this.host
@@ -116,6 +131,7 @@ export class MapStage {
     if (getComputedStyle(container).position === 'static') container.style.position = 'relative'
     canvas.style.position = 'relative'
     container.insertBefore(video, canvas)
+    this.applyBlur()
     void video.play().catch(() => {})
     if (scene3d) scene.add(scene3d.lights, scene3d.sceneLights)
     if (scene3d?.data.post) {

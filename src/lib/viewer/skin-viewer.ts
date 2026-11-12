@@ -446,6 +446,7 @@ export class SkinViewer {
   setMapLighting(lighting: MapLighting): void {
     this.mapLighting = { ...lighting }
     this.map.scene3d?.setLightScales(lighting)
+    this.map.setBlur(lighting.blur)
     this.fixed.setAmbientScale(lighting.ambient)
     this.setLighting({})
   }

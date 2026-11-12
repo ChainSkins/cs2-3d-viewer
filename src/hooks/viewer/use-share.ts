@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import type { DbImages } from '@/context/db-context'
+import type { Db } from '@/lib/db'
 import type { ViewerStateApi } from '@/lib/viewer-state'
 import { WEB_ORIGIN } from '@/lib/config'
 import type { AgentIndex } from '@/lib/data/agents'
@@ -22,14 +22,14 @@ interface ShareInputs {
   catalog: CatalogIndex | null
   attachments: AttachmentIndex | null
   agents: AgentIndex | null
-  images: DbImages
+  db: Db
 }
 
 /**
  * What the share dialog shows for the current view: its link (`<site>/share/<code>` when the view packs into a code,
  * or else the full path and search params on the site), what its image says, and the viewer's render of the item.
  */
-export function useShare({ viewer, selection, state, heading, item, skin, catalog, attachments, agents, images }: ShareInputs) {
+export function useShare({ viewer, selection, state, heading, item, skin, catalog, attachments, agents, db }: ShareInputs) {
   return useCallback((): ShareSource => {
     const code = catalog && attachments && agents ? encodeShare(selection, state, { catalog, attachments, agents }) : null
     const link = code
@@ -37,8 +37,8 @@ export function useShare({ viewer, selection, state, heading, item, skin, catalo
       : { url: WEB_ORIGIN + selectionPath(selection) + (state.search ? '?' + state.search : ''), short: false }
     return {
       link,
-      card: shareCardFor(selection, state, heading, item, skin, catalog, attachments, images),
+      card: shareCardFor(selection, state, heading, item, skin, catalog, attachments, db),
       renderItem: (longSide) => viewer?.renderItem(longSide) ?? null,
     }
-  }, [viewer, selection, state, heading, item, skin, catalog, attachments, agents, images])
+  }, [viewer, selection, state, heading, item, skin, catalog, attachments, agents, db])
 }
