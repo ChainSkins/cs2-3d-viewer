@@ -6,7 +6,8 @@ import { GRID_ITEM } from '@/lib/grid-focus'
 import { cn } from '@/lib/utils'
 
 interface PickerCardProps {
-  card: Pick<Card, 'title' | 'subtitle' | 'color' | 'icon'> & { ported?: boolean }
+  /** extras: small pictures over the image (what a dressed weapon carries). */
+  card: Pick<Card, 'title' | 'subtitle' | 'color' | 'icon'> & { ported?: boolean; extras?: string[] }
   current: boolean
   onPick: () => void
   favorite?: boolean
@@ -37,6 +38,13 @@ export function PickerCard({ card, current, onPick, favorite, onFavorite }: Pick
           className="aspect-[4/3] w-full rounded-none p-2"
           imageClassName="transition-transform duration-200 group-hover/card:scale-108"
         />
+        {!!card.extras?.length && (
+          <span className="absolute bottom-[calc(theme(spacing.14)+2px)] right-2 flex -space-x-1.5">
+            {card.extras.map((src, i) => (
+              <img key={i} src={src} alt="" loading="lazy" className="size-7 rounded-md border border-border bg-background/80 object-contain p-0.5" />
+            ))}
+          </span>
+        )}
         {current && (
           <span className="absolute right-2 top-2 grid size-5 place-items-center rounded-full bg-foreground text-background" title="Shown now"><Check className="size-3" strokeWidth={3} /></span>
         )}

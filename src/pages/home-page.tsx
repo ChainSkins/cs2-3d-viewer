@@ -71,8 +71,8 @@ export function HomePage() {
         <Band id="maps" eyebrow="Maps" title="The game’s maps" sub="Pick an inspect map and see a skin lit as in the game.">
           <MapGallery />
         </Band>
-        <Band id="skins" eyebrow="Skins" title="Featured skins" sub="A few well-known ones — or press / to search any item.">
-          <FeaturedSkins catalog={catalog} />
+        <Band id="skins" eyebrow="Skins" title="Featured items" sub="Skins, a dressed-up AWP, a sticker, a charm, a pin and an agent — or press / to search any item.">
+          <FeaturedSkins catalog={catalog} attachments={attachments} pins={pins} agents={agents} />
         </Band>
         <Band id="developers" eyebrow="For developers" title="The same viewer, in your own page" sub="One iframe, driven by postMessage.">
           <ApiTeaser />
