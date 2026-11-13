@@ -1,4 +1,4 @@
-import type { DbImages } from '@/context/db-context'
+import type { Db } from '@/lib/db'
 import type { AttachmentIndex } from '@/lib/data/attachments'
 import type { AgentIndex } from '@/lib/data/agents'
 import type { CatalogIndex } from '@/lib/data/catalog'
@@ -64,18 +64,18 @@ const GREY = '#71717a'
 
 /**
  * Everything an inspect link says about its item, in names: the weapon and finish, rarity, float and wear,
- * pattern, StatTrak and name tag, each sticker and the charm, with their market images when the db has them.
+ * pattern, StatTrak and name tag, each sticker and the charm, with their market db when the db has them.
  * @param link the decoded link
  * @param catalog the catalog index (null while it loads: names fall back to ids)
  * @param attachments the sticker and charm index (likewise)
- * @param images market names and images (db.json)
+ * @param db market names and db (db.json)
  * @param agents the agents index (likewise)
  */
-export function inspectPreview(link: InspectItem, catalog: CatalogIndex | null, attachments: AttachmentIndex | null, images: DbImages, agents: AgentIndex | null = null): InspectPreview {
+export function inspectPreview(link: InspectItem, catalog: CatalogIndex | null, attachments: AttachmentIndex | null, db: Db, agents: AgentIndex | null = null): InspectPreview {
   const agent = agents?.agents.find((a) => a.index === link.defindex)
-  const kind = inspectKind(link, (defindex) => !!agent || !!images.agentName(defindex))
-  if (kind === 'agent') return agentPreview(link, agents, agent, images)
-  if (kind !== 'skin') return attachmentPreview(kind, link, attachments, images)
+  const kind = inspectKind(link, (defindex) => !!agent || !!db.agent(defindex).name)
+  if (kind === 'agent') return agentPreview(link, agents, agent, db)
+  if (kind !== 'skin') return attachmentPreview(kind, link, attachments, db)
 
   const itemKey = catalog ? Object.keys(catalog.items).find((key) => catalog.items[key].defindex === link.defindex) : undefined
   const itemInfo = itemKey ? catalog!.items[itemKey] : undefined
@@ -88,19 +88,19 @@ export function inspectPreview(link: InspectItem, catalog: CatalogIndex | null, 
       : !skin ? (link.paintindex ? `No skin with paint kit ${link.paintindex} in the catalog.` : 'Vanilla items aren’t supported yet.')
         : undefined
 
-  const stickers = [...link.stickers].sort((a, b) => a.slot - b.slot).map((s) => previewSticker(s, attachments, images))
+  const stickers = [...link.stickers].sort((a, b) => a.slot - b.slot).map((s) => previewSticker(s, attachments, db))
 
   const keychain = link.keychains[0]
-  const charm = keychain ? previewCharm(keychain, attachments, images) : null
+  const charm = keychain ? previewCharm(keychain, attachments, db) : null
 
   // The link carries the item's own rarity; then the db's, then the catalog's.
-  const rarity = rarityOf(link.rarity || images.skinRarity(link.defindex, link.paintindex), skin?.rarity) ?? null
+  const rarity = rarityOf(link.rarity || db.skin(link.defindex, link.paintindex).rarity, skin?.rarity) ?? null
   return {
     kind,
     title: `${weapon} | ${finish}`,
     weapon,
     finish,
-    image: images.skin(link.defindex, link.paintindex),
+    image: db.skin(link.defindex, link.paintindex).image,
     rarity,
     rarityLabel: rarity ? rarityName(rarity, 'skin') : null,
     color: getColorByRarity(rarity) ?? GREY,
@@ -118,19 +118,19 @@ export function inspectPreview(link: InspectItem, catalog: CatalogIndex | null, 
   }
 }
 
-const previewSticker = (s: InspectSticker, attachments: AttachmentIndex | null, images: DbImages): PreviewSticker => {
+const previewSticker = (s: InspectSticker, attachments: AttachmentIndex | null, db: Db): PreviewSticker => {
   const entry = attachments?.stickerByIndex.get(s.id)
-  return { slot: s.slot, name: entry?.name ?? `Sticker #${s.id}`, image: images.sticker(s.id), wear: Math.max(0, Math.min(1, s.wear ?? 0)), known: !!entry }
+  return { slot: s.slot, name: entry?.name ?? `Sticker #${s.id}`, image: db.sticker(s.id).image, wear: Math.max(0, Math.min(1, s.wear ?? 0)), known: !!entry }
 }
 
-function previewCharm(keychain: InspectSticker, attachments: AttachmentIndex | null, images: DbImages): PreviewCharm {
+function previewCharm(keychain: InspectSticker, attachments: AttachmentIndex | null, db: Db): PreviewCharm {
   const def = attachments?.charmByIndex.get(keychain.id)
   return {
     name: def?.name ?? `Charm #${keychain.id}`,
-    image: images.charm(keychain.id),
+    image: db.charm(keychain.id).image,
     pattern: keychain.pattern ?? 0,
     known: !!def,
-    slabSticker: keychain.wrappedSticker ? previewSticker({ slot: 0, id: keychain.wrappedSticker }, attachments, images) : null,
+    slabSticker: keychain.wrappedSticker ? previewSticker({ slot: 0, id: keychain.wrappedSticker }, attachments, db) : null,
   }
 }
 
@@ -138,7 +138,7 @@ function previewCharm(keychain: InspectSticker, attachments: AttachmentIndex | n
  * A sticker item (definition 1209: its kit in stickers[0]) or a charm item (1355: in keychains[0]) on its own: its
  * name, image, rarity and its wear or pattern.
  */
-function attachmentPreview(kind: 'sticker' | 'charm', link: InspectItem, attachments: AttachmentIndex | null, images: DbImages): InspectPreview {
+function attachmentPreview(kind: 'sticker' | 'charm', link: InspectItem, attachments: AttachmentIndex | null, db: Db): InspectPreview {
   const sticker = kind === 'sticker' ? link.stickers[0] : undefined
   const keychain = kind === 'charm' ? link.keychains[0] : undefined
   const stickerEntry = sticker ? attachments?.stickerByIndex.get(sticker.id) : undefined
@@ -147,7 +147,7 @@ function attachmentPreview(kind: 'sticker' | 'charm', link: InspectItem, attachm
   const ref = sticker ?? keychain
   const label = kind === 'sticker' ? 'Sticker' : 'Charm'
   const name = stickerEntry?.name ?? charmDef?.name ?? (ref ? `${label} #${ref.id}` : label)
-  const dbRarity = ref ? (kind === 'sticker' ? images.stickerRarity(ref.id) : images.charmRarity(ref.id)) : undefined
+  const dbRarity = ref ? (kind === 'sticker' ? db.sticker(ref.id).rarity : db.charm(ref.id).rarity) : undefined
   const rarity = rarityOf(link.rarity || dbRarity, stickerEntry?.rarity ?? charmDef?.rarity) ?? null
   const known = kind === 'sticker' ? !!stickerEntry : !!charmDef
   const problem = !attachments ? undefined
@@ -160,14 +160,14 @@ function attachmentPreview(kind: 'sticker' | 'charm', link: InspectItem, attachm
     title: name,
     weapon: label,
     finish: name,
-    image: ref ? (kind === 'sticker' ? images.sticker(ref.id) : images.charm(ref.id)) : undefined,
+    image: ref ? (kind === 'sticker' ? db.sticker(ref.id).image : db.charm(ref.id).image) : undefined,
     rarity,
     rarityLabel: rarity ? rarityName(rarity, 'other') : null,
     color: getColorByRarity(rarity) ?? GREY,
     ...EMPTY_DETAILS,
     problem,
     nameTag: link.customname || undefined,
-    charm: keychain ? previewCharm(keychain, attachments, images) : null,
+    charm: keychain ? previewCharm(keychain, attachments, db) : null,
   }
 }
 
@@ -175,13 +175,13 @@ function attachmentPreview(kind: 'sticker' | 'charm', link: InspectItem, attachm
  * An agent (its item definition index is the db's agents key): its name and faction, image, rarity and patches (the
  * link's `stickers`, named and pictured from the db's patches).
  */
-function agentPreview(link: InspectItem, agents: AgentIndex | null, agent: AgentIndex['agents'][number] | undefined, images: DbImages): InspectPreview {
-  const fullName = images.agentName(link.defindex) ?? agent?.name ?? `Agent #${link.defindex}`
+function agentPreview(link: InspectItem, agents: AgentIndex | null, agent: AgentIndex['agents'][number] | undefined, db: Db): InspectPreview {
+  const fullName = db.agent(link.defindex).name ?? agent?.name ?? `Agent #${link.defindex}`
   const [name, faction] = fullName.split(' | ')
-  const rarity = rarityOf(link.rarity || images.agentRarity(link.defindex), agent?.rarity) ?? null
+  const rarity = rarityOf(link.rarity || db.agent(link.defindex).rarity, agent?.rarity) ?? null
   const patches = [...link.stickers].sort((a, b) => a.slot - b.slot).map((s): PreviewSticker => {
-    const patchName = images.patchName(s.id)
-    return { slot: s.slot, name: patchName?.replace(/^Patch \| /, '') ?? `Patch #${s.id}`, image: images.patch(s.id), wear: 0, known: !!patchName }
+    const patchName = db.patch(s.id).name
+    return { slot: s.slot, name: patchName?.replace(/^Patch \| /, '') ?? `Patch #${s.id}`, image: db.patch(s.id).image, wear: 0, known: !!patchName }
   })
   return {
     ...EMPTY_DETAILS,
@@ -189,7 +189,7 @@ function agentPreview(link: InspectItem, agents: AgentIndex | null, agent: Agent
     title: fullName,
     weapon: faction ?? 'Agent',
     finish: name,
-    image: images.agent(link.defindex),
+    image: db.agent(link.defindex).image,
     rarity,
     rarityLabel: rarity ? rarityName(rarity, 'agent') : null,
     color: getColorByRarity(rarity) ?? GREY,

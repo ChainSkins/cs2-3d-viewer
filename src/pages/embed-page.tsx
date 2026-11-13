@@ -5,20 +5,21 @@ import { EmbedStatus } from '@/components/embed/embed-status'
 import { FrozenFrame } from '@/components/embed/frozen-frame'
 import { ShareDialog } from '@/components/stage/share-button'
 import { StudioBackdrop } from '@/components/stage/studio-backdrop'
-import { useDbImages } from '@/context/db-context'
-import { useCatalog } from '@/hooks/use-catalog'
-import { useEmbedCommands } from '@/hooks/use-embed-commands'
-import { useEmbedFreeze } from '@/hooks/use-embed-freeze'
-import { useEmbedOptions } from '@/hooks/use-embed-options'
-import { useEmbedInfo, useEmbedStatusEvents } from '@/hooks/use-embed-status'
-import { useEmbedTarget } from '@/hooks/use-embed-target'
-import { useEmbedViewerSetup } from '@/hooks/use-embed-viewer-setup'
-import { useInspectActions } from '@/hooks/use-inspect-actions'
-import { useShare } from '@/hooks/use-share'
-import { useSkinLoader } from '@/hooks/use-skin-loader'
-import { useViewer } from '@/hooks/use-viewer'
-import { useViewerState } from '@/hooks/use-viewer-state'
-import { useViewerSync, type ViewOptions } from '@/hooks/use-viewer-sync'
+import { useDb } from '@/context/db-context'
+import { useCatalog } from '@/hooks/data/use-catalog'
+import { useEmbedCommands } from '@/hooks/embed/use-embed-protocol'
+import { useEmbedFreeze } from '@/hooks/embed/use-embed-viewer'
+import { useEmbedOptions } from '@/hooks/embed/use-embed-protocol'
+import { useEmbedInfo, useEmbedStatusEvents } from '@/hooks/embed/use-embed-protocol'
+import { useEmbedTarget } from '@/hooks/embed/use-embed-protocol'
+import { useEmbedViewerSetup } from '@/hooks/embed/use-embed-viewer'
+import { useInspectActions } from '@/hooks/viewer/use-inspect-actions'
+import { useShare } from '@/hooks/viewer/use-share'
+import { useSkinLoader } from '@/hooks/viewer/use-skin-loader'
+import { useViewer } from '@/hooks/viewer/use-viewer'
+import { useViewerState } from '@/hooks/viewer/use-viewer-state'
+import { useViewerSync } from '@/hooks/viewer/use-viewer-sync'
+import type { ViewOptions } from '@/lib/viewer-state'
 import { DEFAULT_FLOAT } from '@/lib/config'
 import { parseEmbedParams, type EmbedOptions } from '@/lib/embed'
 import { headingFor } from '@/lib/heading'
@@ -64,9 +65,9 @@ export function EmbedPage() {
   useEffect(() => { viewer?.setViewmodel(viewmodel) }, [viewer, viewmodel])
 
   const skin = useMemo(() => (shown.kind === 'skin' ? catalog?.skins.find((s) => s.item === shown.item && s.kit === shown.kit) : undefined), [catalog, shown])
-  const images = useDbImages()
-  const heading = headingFor(shown, item, skin, attachments, catalog, images, agents)
-  const getShare = useShare({ viewer, selection: shown, state, heading, item, skin, catalog, attachments, agents, images })
+  const db = useDb()
+  const heading = headingFor(shown, item, skin, attachments, catalog, db, agents)
+  const getShare = useShare({ viewer, selection: shown, state, heading, item, skin, catalog, attachments, agents, db })
   const shareUrl = () => (selection ? getShare().link.url : null)
   const openShare = () => { if (selection) setShareOpen(getShare()) }
 

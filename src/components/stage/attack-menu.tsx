@@ -8,7 +8,6 @@ interface AttackMenuProps {
   onAttack: (name: string) => void
 }
 
-/** A toolbar button that opens a small list of the weapon's attacks over the bar; a pick plays it and closes the list. */
 export function AttackMenu({ attacks, onAttack }: AttackMenuProps) {
   const [open, setOpen] = useState(false)
   const root = useRef<HTMLDivElement>(null)
@@ -26,14 +25,14 @@ export function AttackMenu({ attacks, onAttack }: AttackMenuProps) {
     <div ref={root} className="relative">
       <ToolButton icon={Swords} label="Attacks" pressed={open} onClick={() => setOpen((on) => !on)} />
       {open && (
-        <ul className="glass-panel absolute bottom-full left-1/2 z-20 mb-2 w-44 -translate-x-1/2 rounded-2xl bg-zinc-950/90 p-1.5" role="menu" aria-label="Attacks">
+        <ul className="glass-strong absolute bottom-full left-1/2 z-20 mb-2 w-44 -translate-x-1/2 rounded-xl p-1" role="menu" aria-label="Attacks">
           {attacks.map((a) => (
             <li key={a.name} role="none">
               <button
                 type="button"
                 role="menuitem"
                 onClick={() => { onAttack(a.name); setOpen(false) }}
-                className="w-full rounded-lg px-2.5 py-1.5 text-left text-[12px] text-muted-foreground transition hover:bg-white/10 hover:text-foreground"
+                className="w-full rounded-lg px-2.5 py-1.5 text-left text-[12px] text-muted-foreground transition hover:bg-ink/10 hover:text-foreground"
               >
                 {a.label}
               </button>

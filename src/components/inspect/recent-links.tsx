@@ -1,8 +1,8 @@
 import { History } from 'lucide-react'
 import { useMemo } from 'react'
 import { ItemImage } from '@/components/common/item-image'
-import { useDbImages } from '@/context/db-context'
-import type { InspectHistoryEntry } from '@/hooks/use-inspect-history'
+import { useDb } from '@/context/db-context'
+import type { InspectHistoryEntry } from '@/hooks/picker/use-inspect-history'
 import type { AgentIndex } from '@/lib/data/agents'
 import type { AttachmentIndex } from '@/lib/data/attachments'
 import type { CatalogIndex } from '@/lib/data/catalog'
@@ -16,20 +16,18 @@ interface RecentLinksProps {
   attachments: AttachmentIndex | null
   agents: AgentIndex | null
   onLoad: (item: InspectItem, link: string) => void
-  /** How many of the latest links are offered (default 3). */
   limit?: number
 }
 
-
-/** The last inspect links loaded, one per line: a click loads one again. */
 export function RecentLinks({ entries, catalog, attachments, agents, onLoad, limit = 3 }: RecentLinksProps) {
-  const images = useDbImages()
+  
+  const db = useDb()
   const rows = useMemo(() => entries.slice(0, limit).flatMap((entry) => {
     try {
       const item = decodeInspectLink(entry.link)
-      return [{ entry, item, preview: inspectPreview(item, catalog, attachments, images, agents) }]
+      return [{ entry, item, preview: inspectPreview(item, catalog, attachments, db, agents) }]
     } catch { return [] }
-  }), [entries, catalog, attachments, images, agents, limit])
+  }), [entries, catalog, attachments, db, agents, limit])
   if (!rows.length) return null
 
   return (
@@ -40,7 +38,7 @@ export function RecentLinks({ entries, catalog, attachments, agents, onLoad, lim
           key={entry.link}
           type="button"
           onClick={() => onLoad(item, entry.link)}
-          className="group/recent flex items-center gap-3 rounded-xl bg-black/15 p-1.5 pr-3 text-left transition hover:bg-white/[0.06]"
+          className="group/recent flex items-center gap-3 rounded-xl bg-shade/15 p-1.5 pr-3 text-left transition hover:bg-ink/6"
         >
           <ItemImage src={preview.image} color={preview.color} className="h-10 w-14 rounded-lg" imageClassName="transition-transform duration-200 group-hover/recent:scale-110" />
           <span className="min-w-0 flex-1">

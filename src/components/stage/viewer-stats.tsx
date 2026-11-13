@@ -1,5 +1,5 @@
 import { Stat } from '@/components/common/stat'
-import type { ViewerStateApi } from '@/hooks/use-viewer-state'
+import type { ViewerStateApi } from '@/lib/viewer-state'
 import { DEFAULT_FLOAT } from '@/lib/config'
 import type { AgentIndex } from '@/lib/data/agents'
 import type { Item } from '@/lib/data/items'
@@ -14,7 +14,6 @@ interface ViewerStatsProps {
   agents: AgentIndex | null
 }
 
-/** The stage bar's read-out: a skin's wear, float and pattern; a sticker's wear; an agent's team; a charm's pattern. */
 export function ViewerStats({ selection, item, state, agents }: ViewerStatsProps) {
   if (selection.kind === 'skin') {
     if (!item) return null

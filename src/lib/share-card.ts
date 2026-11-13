@@ -1,5 +1,5 @@
-import type { DbImages } from '@/context/db-context'
-import type { ViewerState } from '@/hooks/use-viewer-state'
+import type { Db } from '@/lib/db'
+import type { ViewerState } from '@/lib/viewer-state'
 import type { AttachmentIndex } from '@/lib/data/attachments'
 import type { CatalogIndex, CatalogSkin } from '@/lib/data/catalog'
 import type { Item } from '@/lib/data/items'
@@ -43,30 +43,30 @@ export interface ShareCard {
  * @param skin the selection's catalog entry, if any
  * @param catalog the catalog index (the skin's definition index)
  * @param attachments the sticker and charm index
- * @param images the db: market images and rarities
+ * @param db the db: market db and rarities
  */
 export function shareCardFor(selection: Selection, state: ViewerState, heading: Heading, item: Item | null, skin: CatalogSkin | undefined,
-  catalog: CatalogIndex | null, attachments: AttachmentIndex | null, images: DbImages): ShareCard {
+  catalog: CatalogIndex | null, attachments: AttachmentIndex | null, db: Db): ShareCard {
   const card: ShareCard = { over: heading.over, title: heading.title, color: heading.color, rarity: null, facts: [], float: null, stickers: [], charm: null }
   const stickerOf = (id: string) => {
     const entry = attachments?.sticker.get(id)
-    return { name: entry?.name ?? id, image: entry ? images.sticker(entry.index) : undefined }
+    return { name: entry?.name ?? id, image: entry ? db.sticker(entry.index).image : undefined }
   }
   const charmOf = (id: string, pattern: number) => {
     const def = attachments?.charm.get(id)
-    return { name: def?.name ?? id, image: def ? images.charm(def.index) : undefined, pattern }
+    return { name: def?.name ?? id, image: def ? db.charm(def.index).image : undefined, pattern }
   }
 
   if (selection.kind === 'sticker') {
     const entry = attachments?.sticker.get(selection.id)
-    const rarity = entry ? rarityOf(images.stickerRarity(entry.index), entry.rarity) : undefined
+    const rarity = entry ? rarityOf(db.sticker(entry.index).rarity, entry.rarity) : undefined
     card.rarity = rarity ? rarityName(rarity, 'other') : null
     if (state.stickerWear) card.facts.push({ label: 'Wear', value: `${Math.round(state.stickerWear * 100)}%` })
     return card
   }
   if (selection.kind === 'charm') {
     const def = attachments?.charm.get(selection.id)
-    const rarity = def ? rarityOf(images.charmRarity(def.index), def.rarity) : undefined
+    const rarity = def ? rarityOf(db.charm(def.index).rarity, def.rarity) : undefined
     card.rarity = rarity ? rarityName(rarity, 'other') : null
     card.facts.push({ label: 'Pattern', value: `#${state.charm.seed}` })
     if (state.charm.sticker) card.stickers.push(stickerOf(state.charm.sticker))
@@ -74,7 +74,7 @@ export function shareCardFor(selection: Selection, state: ViewerState, heading: 
   }
   if (selection.kind === 'agent') return card
 
-  const rarity = skin ? rarityOf(images.skinRarity(catalog?.items[skin.item]?.defindex, skin.paintIndex), skin.rarity) : undefined
+  const rarity = skin ? rarityOf(db.skin(catalog?.items[skin.item]?.defindex, skin.paintIndex).rarity, skin.rarity) : undefined
   card.rarity = rarity ? rarityName(rarity, 'skin') : null
   if (item) {
     const float = clampFloat(item, state.float ?? DEFAULT_FLOAT)

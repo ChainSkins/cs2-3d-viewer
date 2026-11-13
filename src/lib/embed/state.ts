@@ -1,5 +1,4 @@
-import type { ViewerStateApi } from '@/hooks/use-viewer-state'
-import type { ViewOptions } from '@/hooks/use-viewer-sync'
+import type { ViewerStateApi, ViewOptions } from '@/lib/viewer-state'
 import { agentPatchesToParam } from '@/lib/url-state'
 import type { Lighting, Viewmodel } from '@/lib/viewer/viewer-options'
 import type { EmbedItemInfo, EmbedState } from './types'

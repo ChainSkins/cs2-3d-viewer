@@ -5,30 +5,31 @@ import { Sidebar } from '@/components/sidebar/sidebar'
 import { Button } from '@/components/ui/button'
 import { Stage } from '@/components/stage/stage'
 import { ViewerStats } from '@/components/stage/viewer-stats'
-import { useDbImages } from '@/context/db-context'
-import { useAttachmentEditing } from '@/hooks/use-attachment-editing'
-import { useCatalog } from '@/hooks/use-catalog'
-import { useInspectActions } from '@/hooks/use-inspect-actions'
-import { useInspectLink } from '@/hooks/use-inspect-link'
-import { useLighting } from '@/hooks/use-lighting'
-import { useLoadoutSync } from '@/hooks/use-loadout-sync'
-import { useLocalStorage } from '@/hooks/use-local-storage'
-import { useKeyShortcut } from '@/hooks/use-key-shortcut'
-import { useOpenPickerShortcut } from '@/hooks/use-open-picker-shortcut'
+import { useDb } from '@/context/db-context'
+import { useAttachmentEditing } from '@/hooks/viewer/use-attachment-editing'
+import { useCatalog } from '@/hooks/data/use-catalog'
+import { useInspectActions } from '@/hooks/viewer/use-inspect-actions'
+import { useInspectLink } from '@/hooks/picker/use-inspect-link'
+import { useLighting } from '@/hooks/viewer/use-viewer-settings'
+import { useLoadoutSync } from '@/hooks/viewer/use-loadout-sync'
+import { useLocalStorage } from '@/hooks/common/use-local-storage'
+import { useKeyShortcut } from '@/hooks/common/use-shortcuts'
+import { useOpenPickerShortcut } from '@/hooks/common/use-shortcuts'
 import { IS_MOBILE_DEVICE } from '@/lib/device'
 import { watermarkScreenshot } from '@/lib/watermark'
-import { useMapLighting } from '@/hooks/use-map-lighting'
-import { useRenderQuality } from '@/hooks/use-render-quality'
-import { usePicker } from '@/hooks/use-picker'
-import { useShare } from '@/hooks/use-share'
-import { useViewmodel } from '@/hooks/use-viewmodel'
-import { useSkinLoader } from '@/hooks/use-skin-loader'
-import { useViewer } from '@/hooks/use-viewer'
-import { useViewerState } from '@/hooks/use-viewer-state'
-import { useViewerSync, type ViewOptions } from '@/hooks/use-viewer-sync'
-import { headingFor } from '@/lib/heading'
+import { useMapLighting } from '@/hooks/viewer/use-viewer-settings'
+import { useRenderQuality } from '@/hooks/viewer/use-viewer-settings'
+import { usePicker } from '@/hooks/picker/use-picker'
+import { useShare } from '@/hooks/viewer/use-share'
+import { useViewmodel } from '@/hooks/viewer/use-viewer-settings'
+import { useSkinLoader } from '@/hooks/viewer/use-skin-loader'
+import { useViewer } from '@/hooks/viewer/use-viewer'
+import { useViewerState } from '@/hooks/viewer/use-viewer-state'
+import { useViewerSync } from '@/hooks/viewer/use-viewer-sync'
+import type { ViewOptions } from '@/lib/viewer-state'
+import { headingFor, petThumb } from '@/lib/heading'
 import { skinDisplayName } from '@/lib/picker'
-import { selectionPath, type Selection } from '@/lib/selection'
+import { selectionPath, skinKey, type Selection } from '@/lib/selection'
 
 interface ViewerPageProps {
   selection: Selection
@@ -44,12 +45,11 @@ export function ViewerPage({ selection }: ViewerPageProps) {
   const { mapLighting, setMapLighting } = useMapLighting()
   useEffect(() => { viewer?.setMapLighting(mapLighting) }, [viewer, mapLighting])
   const readRenderStatus = useCallback(() => (viewer ? { pixelRatio: viewer.pixelRatio, fps: viewer.fps, lights: viewer.lightSources } : null), [viewer])
-  const { item, weapon: heldWeapon, status, error } = useSkinLoader(viewer, selection, state)
+  const { item, weapon: heldWeapon, status, error, retry } = useSkinLoader(viewer, selection, state)
   const [view, setView] = useState<ViewOptions>({ spin: false, palmUp: false, knifePose: 'tilted', back: false })
   const [activeSticker, setActiveSticker] = useState(0)
   const [panelCollapsed, setPanelCollapsed] = useLocalStorage('panel-collapsed', false)
   const [hideUi, setHideUi] = useState(false)
-  /** On a phone the panel stays closed until the button is pressed, and closes again when another item is picked. */
   const [sheetOpen, setSheetOpen] = useState(false)
   const selectionKey = selectionPath(selection)
   useEffect(() => { setSheetOpen(false) }, [selectionKey])
@@ -68,14 +68,26 @@ export function ViewerPage({ selection }: ViewerPageProps) {
     () => (selection.kind === 'skin' ? catalog?.skins.find((s) => s.item === selection.item && s.kit === selection.kit) : undefined),
     [catalog, selection],
   )
-  const images = useDbImages()
-  const heading = headingFor(selection, item, skin, attachments, catalog, images, agents, pins, patches, pets)
+  const db = useDb()
+  const named = headingFor(selection, item, skin, attachments, catalog, db, agents, pins, patches, pets)
+  // (a pet shows the colour picked in the panel)
+  const heading = selection.kind === 'pet' ? { ...named, icon: petThumb(selection.id, state.petVariant) } : named
   const glovesName = useMemo(() => skinDisplayName(catalog, state.gloves), [catalog, state.gloves])
+  const skinImage = useCallback((key: string | null) => {
+    const worn = key ? catalog?.skins.find((s) => skinKey(s) === key) : undefined
+    return worn ? db.skin(catalog!.items[worn.item]?.defindex, worn.paintIndex).image : undefined
+  }, [catalog, db])
+  const glovesImage = useMemo(() => skinImage(state.gloves), [skinImage, state.gloves])
+  const loadoutWeaponImage = useMemo(() => skinImage(state.loadout.weapon), [skinImage, state.loadout.weapon])
+  const wornAgent = state.agent ? agents?.agent.get(state.agent) : undefined
 
   const picker = usePicker(selection, item, state, setActiveSticker)
   const [editing, setEditing] = useState(false)
-  const canEdit = selection.kind === 'skin' && !!item && item.style !== 'glove' && !state.firstPerson && (state.stickers.length > 0 || !!state.charm.id)
+  // Guns only (knives and gloves carry no stickers or charm), and not from first person.
+  const canEdit = selection.kind === 'skin' && !!item && item.style !== 'glove' && !/knife|bayonet/.test(item.id.split('|')[0]) && !state.firstPerson
   useAttachmentEditing(viewer, editing && canEdit, state, setActiveSticker)
+  // (the view holds still while editing: no auto-rotate either)
+  useEffect(() => { if (editing && canEdit) setView((prev) => (prev.spin ? { ...prev, spin: false } : prev)) }, [editing, canEdit, view.spin])
   const noDialog = picker.picker === null
   const isWeapon = selection.kind === 'skin' && !!item && item.style !== 'glove'
   useKeyShortcut('e', noDialog && canEdit, useCallback(() => setEditing((on) => !on), []))
@@ -87,7 +99,7 @@ export function ViewerPage({ selection }: ViewerPageProps) {
   const loadInspect = useInspectLink(catalog, attachments, agents, state.search, useCallback(() => setActiveSticker(0), []))
   const actions = useInspectActions(viewer, selection, item, status, state.firstPerson, state.agent)
   const loadout = useLoadoutSync(viewer, selection, item, heldWeapon, status, state, catalog)
-  const getShare = useShare({ viewer, selection, state, heading, item, skin, catalog, attachments, agents, images })
+  const getShare = useShare({ viewer, selection, state, heading, item, skin, catalog, attachments, agents, db })
 
   const screenshot = async () => {
     const raw = viewer?.screenshot()
@@ -110,9 +122,6 @@ export function ViewerPage({ selection }: ViewerPageProps) {
       )}
       <div className={hideUi ? 'hidden' : 'contents'}>
       <Sidebar
-          lighting={lighting}
-          lightingPreset={presetId}
-          onLighting={setLighting}
           viewmodel={viewmodel}
           onViewmodel={setViewmodel}
           collapsed={panelCollapsed}
@@ -125,12 +134,17 @@ export function ViewerPage({ selection }: ViewerPageProps) {
           pets={pets}
           state={state}
           glovesName={glovesName}
-          agentName={state.agent ? agents?.agent.get(state.agent)?.name ?? state.agent : null}
+          glovesImage={glovesImage}
+          agentName={state.agent ? wornAgent?.name ?? state.agent : null}
+          agentImage={wornAgent ? db.agent(wornAgent.index).image : undefined}
           loadoutWeapon={heldWeapon}
           loadoutWeaponName={loadout.weaponName}
+          loadoutWeaponImage={loadoutWeaponImage}
           onLoadoutFirstPerson={loadout.openFirstPerson}
           activeSticker={activeSticker}
           onActiveSticker={setActiveSticker}
+          editing={canEdit ? editing : undefined}
+          onToggleEditing={() => setEditing((on) => !on)}
           onOpenPicker={picker.open}
           loading={status === 'loading'}
           sheetOpen={sheetOpen}
@@ -141,7 +155,10 @@ export function ViewerPage({ selection }: ViewerPageProps) {
           viewportRef={viewportRef}
           heading={heading}
           loading={status === 'loading'}
-          error={error || catalogError}
+          loadError={status === 'error' ? error || 'The model could not be loaded.' : ''}
+          onRetry={retry}
+          error={catalogError}
+          ready={status === 'ready'}
           map={IS_MOBILE_DEVICE ? null : lighting.map}
           onMap={(map) => setLighting({ map })}
           getShare={getShare}
@@ -150,6 +167,9 @@ export function ViewerPage({ selection }: ViewerPageProps) {
           onToggleEditing={() => setEditing((on) => !on)}
           quality={quality}
           onQuality={setQuality}
+          lighting={lighting}
+          lightingPreset={presetId}
+          onLighting={setLighting}
           mapLighting={mapLighting}
           onMapLighting={setMapLighting}
           readRenderStatus={readRenderStatus}

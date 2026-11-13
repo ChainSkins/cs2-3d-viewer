@@ -1,4 +1,4 @@
-import { Lamp, RotateCcw, Sparkles, Sun, SunDim, Waves } from 'lucide-react'
+import { Droplets, Lamp, RotateCcw, Sparkles, Sun, SunDim, Waves } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { LabeledSlider } from '@/components/common/labeled-slider'
 import { Button } from '@/components/ui/button'
@@ -7,12 +7,11 @@ import { DEFAULT_MAP_LIGHTING, type LightSource, type MapLighting } from '@/lib/
 
 interface MapLightingOptionsProps {
   lighting: MapLighting
-  /** What lights the current view (null: unknown yet). */
   sources: LightSource[] | null
   onChange: (changes: Partial<MapLighting>) => void
 }
 
-const LIGHTS: { key: keyof MapLighting; label: string; icon: LucideIcon; hint: string }[] = [
+const LIGHTS: { key: Exclude<LightSource, 'studio'>; label: string; icon: LucideIcon; hint: string }[] = [
   { key: 'sun', label: 'Sun', icon: Sun, hint: 'The map’s sun' },
   { key: 'item', label: 'Item light', icon: Lamp, hint: 'The spot lights the game aims at a weapon, gloves or agent' },
   { key: 'scene', label: 'Map lights', icon: SunDim, hint: 'The map’s own lights around the inspect spot' },
@@ -22,29 +21,30 @@ const LIGHTS: { key: keyof MapLighting; label: string; icon: LucideIcon; hint: s
 
 const NAMES: Record<LightSource, string> = { sun: 'sun', item: 'item light', scene: 'map lights', ambient: 'ambient', reflections: 'reflections', studio: 'studio key and rim' }
 
-/**
- * The map lights' strengths, as the game's inspect rig lights each kind of item (a weapon: sun, its item light, the
- * map's lights and ambient; a charm or sticker alone and first person: sun and ambient). The sources the current view
- * doesn't use are dimmed; in the studio the left panel's Lighting applies.
- */
 export function MapLightingOptions({ lighting, sources, onChange }: MapLightingOptionsProps) {
   const studio = sources?.length === 1 && sources[0] === 'studio'
   const changed = (Object.keys(DEFAULT_MAP_LIGHTING) as (keyof MapLighting)[]).some((k) => lighting[k] !== DEFAULT_MAP_LIGHTING[k])
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
-        <span className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Lighting on maps</span>
+        <span className="text-[13px] font-medium">Lighting on maps</span>
         <Button variant="ghost" size="xs" className="ml-auto text-muted-foreground" disabled={!changed} onClick={() => onChange(DEFAULT_MAP_LIGHTING)}>
           <RotateCcw /> Game’s
         </Button>
       </div>
       <p className="text-[12px] leading-relaxed text-muted-foreground">
         {studio
-          ? 'In the studio the item is lit by the Lighting panel on the left. These apply on a map, where each kind of item gets the game’s own lights.'
+          ? 'In the studio the item is lit by the studio lighting above. These apply on a map, where each kind of item gets the game’s own lights.'
           : sources
             ? <>This item is lit by: <span className="text-foreground/85">{sources.map((s) => NAMES[s]).join(' · ')}</span>.</>
             : 'Each kind of item gets the game’s own lights on a map.'}
       </p>
+      <div className="flex items-center gap-2" title="Blurs the map behind the item, so the item stands out">
+        <Droplets className="size-3.5 shrink-0 text-muted-foreground" />
+        <div className="min-w-0 flex-1">
+          <LabeledSlider label="Blur" value={lighting.blur} min={0} max={12} step={0.5} format={(v) => (v === 0 ? 'off' : v.toFixed(1) + 'px')} onChange={(blur) => onChange({ blur })} />
+        </div>
+      </div>
       <div className="flex flex-col gap-2">
         {LIGHTS.map(({ key, label, icon: Icon, hint }) => {
           const used = !sources || studio || sources.includes(key)

@@ -6,16 +6,11 @@ import { timeAgo } from '@/lib/time'
 
 interface HistoryRowProps {
   preview: InspectPreview
-  /** When it was loaded (ms since the epoch). */
   at: number
   onLoad: () => void
   onRemove: () => void
 }
 
-/**
- * One inspect link of the history, on a line: the item's image, its name and tags, its float and pattern (or what
- * kind of item it is), its stickers and charm, and when it was loaded. A click loads it again.
- */
 export function HistoryRow({ preview, at, onLoad, onRemove }: HistoryRowProps) {
   const facts: [string, string, string?][] = preview.kind === 'skin'
     ? [['Float', preview.float.toFixed(6)], ['Wear', preview.wear.name, preview.wear.color], ['Pattern', `#${preview.seed}`]]
@@ -27,7 +22,7 @@ export function HistoryRow({ preview, at, onLoad, onRemove }: HistoryRowProps) {
       <button
         type="button"
         onClick={onLoad}
-        className="tile flex w-full items-center gap-4 p-2.5 pr-12 text-left transition hover:border-white/20 hover:bg-white/[0.04]"
+        className="tile flex w-full items-center gap-4 p-2.5 pr-12 text-left transition-colors hover:border-ink/20 hover:bg-ink/[0.06]"
       >
         <ItemImage src={preview.image} color={preview.color} className="h-20 w-28 rounded-lg" imageClassName="transition-transform duration-200 group-hover/row:scale-110" />
 
@@ -43,7 +38,7 @@ export function HistoryRow({ preview, at, onLoad, onRemove }: HistoryRowProps) {
           <div className="flex flex-wrap gap-x-5 gap-y-0.5 text-[12px]">
             {facts.map(([label, value, color]) => (
               <span key={label} className="flex items-baseline gap-1.5">
-                <span className="text-[10.5px] uppercase tracking-wide text-muted-foreground">{label}</span>
+                <span className="text-[11px] text-muted-foreground">{label}</span>
                 <span className="font-mono tabular-nums" style={color ? { color } : undefined}>{value}</span>
               </span>
             ))}
@@ -54,11 +49,11 @@ export function HistoryRow({ preview, at, onLoad, onRemove }: HistoryRowProps) {
             <div className="flex items-center gap-1.5">
               {attachments.map((s) => (
                 <span key={s.slot} title={s.name}>
-                  <ItemImage src={s.image} color={preview.color} className="size-8 rounded-md bg-black/20" lazy />
+                  <ItemImage src={s.image} color={preview.color} className="size-8 rounded-md bg-shade/20" lazy />
                 </span>
               ))}
               {preview.charm && preview.kind === 'skin' && (
-                <span className="ml-1 flex items-center gap-1 rounded-md bg-black/20 pr-2 text-[11px] text-muted-foreground" title={preview.charm.name}>
+                <span className="ml-1 flex items-center gap-1 rounded-md bg-shade/20 pr-2 text-[11px] text-muted-foreground" title={preview.charm.name}>
                   <ItemImage src={preview.charm.image} color={preview.color} fallback={Link2} className="size-8 rounded-md" lazy />
                   #{preview.charm.pattern}
                 </span>
@@ -74,7 +69,7 @@ export function HistoryRow({ preview, at, onLoad, onRemove }: HistoryRowProps) {
         aria-label="Remove from history"
         title="Remove from history"
         onClick={onRemove}
-        className="absolute right-2.5 top-1/2 grid size-7 -translate-y-1/2 place-items-center rounded-full text-muted-foreground opacity-0 transition hover:bg-white/10 hover:text-foreground focus-visible:opacity-100 group-hover/row:opacity-100"
+        className="absolute right-2.5 top-1/2 grid size-7 -translate-y-1/2 place-items-center rounded-md text-muted-foreground opacity-0 transition hover:bg-ink/10 hover:text-foreground focus-visible:opacity-100 group-hover/row:opacity-100"
       >
         <X className="size-4" />
       </button>

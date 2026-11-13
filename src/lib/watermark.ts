@@ -39,7 +39,7 @@ export async function watermarkScreenshot(dataUrl: string, title?: string): Prom
   const w = pad + logoSize + pad * 0.8 + textWidth + pad * 1.2
   const h = logoSize + pad * 1.2
 
-  ctx.fillStyle = 'rgba(10, 8, 18, 0.55)'
+  ctx.fillStyle = 'rgba(17, 17, 16, 0.55)'
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.14)'
   ctx.lineWidth = Math.max(1, unit / 14)
   ctx.beginPath()

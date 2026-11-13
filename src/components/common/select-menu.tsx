@@ -8,14 +8,9 @@ interface SelectMenuProps<T extends string> {
   options: { value: T; label: string }[]
   value: T
   onChange: (value: T) => void
-  /** Which edge of the button the menu lines up with. Default right. */
   align?: 'left' | 'right'
 }
 
-/**
- * A compact choice: a button with the current option, opening a glass menu under it (arrow keys and Enter, Escape or
- * a click outside closes it).
- */
 export function SelectMenu<T extends string>({ label, icon: Icon, options, value, onChange, align = 'right' }: SelectMenuProps<T>) {
   const [open, setOpen] = useState(false)
   const [hover, setHover] = useState(0)
@@ -49,7 +44,7 @@ export function SelectMenu<T extends string>({ label, icon: Icon, options, value
         aria-expanded={open}
         aria-label={`${label}: ${current.label}`}
         onClick={() => { setHover(Math.max(0, options.indexOf(current))); setOpen((o) => !o) }}
-        className={cn('flex h-7 items-center gap-1.5 rounded-lg px-2.5 text-[11.5px] text-foreground/90 transition', open ? 'bg-white/10' : 'hover:bg-white/[0.06]')}
+        className={cn('flex h-7 items-center gap-1.5 rounded-lg px-2.5 text-[11.5px] text-foreground/90 transition', open ? 'bg-ink/10' : 'hover:bg-ink/[0.06]')}
       >
         {Icon && <Icon className="size-3.5 text-muted-foreground" />}
         <span className="text-muted-foreground">{label}:</span> {current.label}
@@ -65,9 +60,9 @@ export function SelectMenu<T extends string>({ label, icon: Icon, options, value
               aria-selected={o.value === value}
               onPointerEnter={() => setHover(i)}
               onClick={() => choose(o.value)}
-              className={cn('flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[12px]', i === hover ? 'bg-white/10 text-foreground' : 'text-foreground/80')}
+              className={cn('flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[12px]', i === hover ? 'bg-ink/10 text-foreground' : 'text-foreground/80')}
             >
-              <Check className={cn('size-3.5', o.value === value ? 'text-violet-300' : 'opacity-0')} />
+              <Check className={cn('size-3.5', o.value === value ? 'text-foreground' : 'opacity-0')} />
               {o.label}
             </button>
           ))}

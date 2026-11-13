@@ -1,74 +1,59 @@
-import { lazy, Suspense, useMemo } from 'react'
-import { Navigate, Route, Routes, useParams } from 'react-router-dom'
+import { useMemo } from 'react'
+import { createBrowserRouter, Outlet, redirect, ScrollRestoration, useParams, type Location as RouterLocation, type RouteObject } from 'react-router-dom'
 import { Spinner } from '@/components/common/spinner'
 import { HomePage } from '@/pages/home-page'
+import type { Selection } from '@/lib/selection'
 
-const EmbedPage = lazy(() => import('@/pages/embed-page').then((m) => ({ default: m.EmbedPage })))
-const ApiPage = lazy(() => import('@/pages/api-page').then((m) => ({ default: m.ApiPage })))
-const SharePage = lazy(() => import('@/pages/share-page').then((m) => ({ default: m.SharePage })))
-const InspectPage = lazy(() => import('@/pages/inspect-page').then((m) => ({ default: m.InspectPage })))
-const ViewerPage = lazy(() => import('@/pages/viewer-page').then((m) => ({ default: m.ViewerPage })))
+const scrollKey = (location: RouterLocation) => (location.key === 'default' ? location.pathname + location.search + location.hash : location.key)
 
-function SkinRoute() {
-  const { item = '', kit = '' } = useParams()
-  const selection = useMemo(() => ({ kind: 'skin' as const, item, kit }), [item, kit])
-  return <ViewerPage selection={selection} />
-}
-
-function StickerRoute() {
-  const { id = '' } = useParams()
-  const selection = useMemo(() => ({ kind: 'sticker' as const, id }), [id])
-  return <ViewerPage selection={selection} />
-}
-
-function CharmRoute() {
-  const { id = '' } = useParams()
-  const selection = useMemo(() => ({ kind: 'charm' as const, id }), [id])
-  return <ViewerPage selection={selection} />
-}
-
-function PinRoute() {
-  const { id = '' } = useParams()
-  const selection = useMemo(() => ({ kind: 'pin' as const, id }), [id])
-  return <ViewerPage selection={selection} />
-}
-
-function PatchRoute() {
-  const { id = '' } = useParams()
-  const selection = useMemo(() => ({ kind: 'patch' as const, id }), [id])
-  return <ViewerPage selection={selection} />
-}
-
-function PetRoute() {
-  const { id = '' } = useParams()
-  const selection = useMemo(() => ({ kind: 'pet' as const, id }), [id])
-  return <ViewerPage selection={selection} />
-}
-
-function AgentRoute() {
-  const { id = '' } = useParams()
-  const selection = useMemo(() => ({ kind: 'agent' as const, id }), [id])
-  return <ViewerPage selection={selection} />
-}
-
-export function AppRoutes() {
+function Root() {
   return (
-    <Suspense fallback={<div className="grid h-dvh place-items-center"><Spinner /></div>}>
-    <Routes>
-      <Route path="/skin/:item/:kit" element={<SkinRoute />} />
-      <Route path="/sticker/:id" element={<StickerRoute />} />
-      <Route path="/charm/:id" element={<CharmRoute />} />
-      <Route path="/agent/:id" element={<AgentRoute />} />
-      <Route path="/pin/:id" element={<PinRoute />} />
-      <Route path="/patch/:id" element={<PatchRoute />} />
-      <Route path="/pet/:id" element={<PetRoute />} />
-      <Route path="/inspect/*" element={<InspectPage />} />
-      <Route path="/share/:code" element={<SharePage />} />
-      <Route path="/embed" element={<EmbedPage />} />
-      <Route path="/api" element={<ApiPage />} />
-      <Route path="/" element={<HomePage />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-    </Suspense>
+    <>
+      <ScrollRestoration getKey={scrollKey} />
+      <Outlet />
+    </>
   )
 }
+
+function PageSpinner() {
+  return <div className="grid h-dvh place-items-center"><Spinner /></div>
+}
+
+function viewerRoute(path: string, kind: Selection['kind']): RouteObject {
+  return {
+    path,
+    lazy: async () => {
+      const { ViewerPage } = await import('@/pages/viewer-page')
+      function SelectionRoute() {
+        const { item = '', kit = '', id = '' } = useParams()
+        const selection = useMemo<Selection>(() => (kind === 'skin' ? { kind, item, kit } : { kind, id } as Selection), [item, kit, id])
+        return <ViewerPage selection={selection} />
+      }
+      return { Component: SelectionRoute }
+    },
+  }
+}
+
+const routes: RouteObject[] = [
+  {
+    element: <Root />,
+    HydrateFallback: PageSpinner,
+    children: [
+      { path: '/', Component: HomePage },
+      viewerRoute('/skin/:item/:kit', 'skin'),
+      viewerRoute('/sticker/:id', 'sticker'),
+      viewerRoute('/charm/:id', 'charm'),
+      viewerRoute('/agent/:id', 'agent'),
+      viewerRoute('/pin/:id', 'pin'),
+      viewerRoute('/patch/:id', 'patch'),
+      viewerRoute('/pet/:id', 'pet'),
+      { path: '/inspect/*', lazy: async () => ({ Component: (await import('@/pages/inspect-page')).InspectPage }) },
+      { path: '/share/:code', lazy: async () => ({ Component: (await import('@/pages/share-page')).SharePage }) },
+      { path: '/embed', lazy: async () => ({ Component: (await import('@/pages/embed-page')).EmbedPage }) },
+      { path: '/api', lazy: async () => ({ Component: (await import('@/pages/api-page')).ApiPage }) },
+      { path: '*', loader: () => redirect('/') },
+    ],
+  },
+]
+
+export const router = createBrowserRouter(routes)

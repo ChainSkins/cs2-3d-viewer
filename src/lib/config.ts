@@ -1,3 +1,6 @@
+export const REPO_URL = 'https://github.com/ChainSkins/cs2-3d-viewer'
+
+
 export const ASSET_BASE: string = import.meta.env.VITE_ASSET_BASE ?? '/assets/'
 
 

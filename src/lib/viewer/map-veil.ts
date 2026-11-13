@@ -17,7 +17,7 @@ export class MapVeil {
   constructor(container: HTMLElement) {
     Object.assign(this.el.style, {
       position: 'absolute', inset: '0', zIndex: '1', pointerEvents: 'none', opacity: '0', visibility: 'hidden',
-      background: 'radial-gradient(ellipse at 50% 60%, rgb(24 22 36 / 0.55), rgb(6 6 10 / 0.92) 75%)',
+      background: 'radial-gradient(ellipse at 50% 60%, rgb(25 25 24 / 0.55), rgb(8 8 8 / 0.92) 75%)',
       backdropFilter: 'blur(18px) saturate(1.2)',
       transition: `opacity ${COVER_MS}ms ease-out`,
     })

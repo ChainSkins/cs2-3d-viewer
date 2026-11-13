@@ -4,17 +4,11 @@ interface StatProps {
   color?: string
 }
 
-/** A small label over a monospaced value, for the stage's read-out. */
 export function Stat({ label, value, color }: StatProps) {
   return (
-    <div className="flex flex-col">
-      <span className="text-[9.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{label}</span>
-      <span
-        className="font-mono text-[13px] font-medium tabular-nums"
-        style={color ? { color } : undefined}
-      >
-        {value}
-      </span>
-    </div>
+    <span className="flex items-baseline gap-1.5 whitespace-nowrap">
+      <span className="text-[11.5px] text-muted-foreground">{label}</span>
+      <span className="font-mono text-[12.5px] font-medium tabular-nums text-foreground" style={color ? { color } : undefined}>{value}</span>
+    </span>
   )
 }

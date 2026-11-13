@@ -40,12 +40,14 @@ export interface MapLighting {
   ambient: number
   /** The environment's reflections. */
   reflections: number
+  /** How much the map's background is blurred (px; 0: sharp), so the item stands out. */
+  blur: number
 }
 
-export const DEFAULT_MAP_LIGHTING: MapLighting = { sun: 1, item: 1, scene: 1, ambient: 1, reflections: 1 }
+export const DEFAULT_MAP_LIGHTING: MapLighting = { sun: 1, item: 1, scene: 1, ambient: 1, reflections: 1, blur: 0 }
 
 /** The light sources lighting the current view: on a map, which of the map lights apply; else the studio's. */
-export type LightSource = keyof MapLighting | 'studio'
+export type LightSource = Exclude<keyof MapLighting, 'blur'> | 'studio'
 
 export const DEFAULT_RENDER_QUALITY: RenderQuality = { resolution: 'auto', antialias: true, post: true, adaptive: true }
 
@@ -106,5 +108,5 @@ export interface Viewmodel {
 }
 
 export const DEFAULT_VIEWMODEL: Viewmodel = {
-  fov: 68, offsetX: 2.5, offsetY: 0, offsetZ: -1.5, leftHanded: false, sway: true, gloveFloat: 0.15, gloveSeed: null,
+  fov: 68, offsetX: 2.5, offsetY: 0, offsetZ: -1.5, leftHanded: false, sway: false, gloveFloat: 0.15, gloveSeed: null,
 }

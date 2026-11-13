@@ -4,18 +4,13 @@ import { cn } from '@/lib/utils'
 
 interface ItemImageProps {
   src?: string
-  /** The glow under the image (usually the rarity color). */
   color: string
-  /** Shown while there is no image or it fails to load. */
   fallback?: LucideIcon
-  /** Sizes the image box. */
   className?: string
-  /** Extra classes for the image itself (for example a hover zoom). */
   imageClassName?: string
   lazy?: boolean
 }
 
-/** A market image over a glow of `color`, with an icon standing in when there is none or it fails to load. */
 export function ItemImage({ src, color, fallback: Fallback = Box, className, imageClassName, lazy }: ItemImageProps) {
   const [failed, setFailed] = useState(false)
   return (

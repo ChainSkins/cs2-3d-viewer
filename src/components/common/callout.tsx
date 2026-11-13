@@ -12,13 +12,11 @@ const TONES: Record<Tone, { icon: LucideIcon; className: string }> = {
 
 interface CalloutProps {
   tone: Tone
-  /** A compact one-line pill instead of a block. */
   pill?: boolean
   className?: string
   children: ReactNode
 }
 
-/** A message box with an icon: an error, a warning or a success. */
 export function Callout({ tone, pill, className, children }: CalloutProps) {
   const { icon: Icon, className: toneClass } = TONES[tone]
   return (
@@ -26,7 +24,7 @@ export function Callout({ tone, pill, className, children }: CalloutProps) {
       role={tone === 'error' ? 'alert' : undefined}
       className={cn(
         'flex items-start gap-2 border text-[12px]',
-        pill ? 'items-center rounded-full px-3.5 py-1.5 shadow-lg' : 'rounded-2xl px-3.5 py-2.5',
+        pill ? 'items-center rounded-full px-3.5 py-1.5 shadow-lg' : 'rounded-lg px-3.5 py-2.5',
         toneClass,
         className,
       )}

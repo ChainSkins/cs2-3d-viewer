@@ -10,14 +10,13 @@ interface ApiSectionProps {
 
 export function ApiSection({ id, title, intro, children }: ApiSectionProps) {
   return (
-    <section id={id} className="scroll-mt-24">
-      <a href={`#${id}`} className="group flex items-center gap-2">
-        <span className="h-5 w-1 rounded-full bg-linear-to-b from-violet-400 to-fuchsia-500" />
-        <h2 className="text-[20px] font-semibold tracking-tight">{title}</h2>
-        <span className="text-muted-foreground opacity-0 transition group-hover:opacity-100">#</span>
-      </a>
-      {intro && <p className="mt-2 max-w-3xl text-[13.5px] leading-relaxed text-muted-foreground">{intro}</p>}
-      <div className="mt-4">{children}</div>
+    <section id={id} className="scroll-mt-36 pt-7 lg:scroll-mt-28">
+      <h2 className="group text-[22.5px] font-semibold leading-tight tracking-normal">
+        {title}
+        <a href={`#${id}`} aria-label={`Link to ${title}`} className="ml-2 text-muted-foreground no-underline opacity-0 transition group-hover:opacity-100">#</a>
+      </h2>
+      {intro && <p className="mt-3.75">{intro}</p>}
+      <div className="mt-3.75">{children}</div>
     </section>
   )
 }

@@ -3,8 +3,8 @@ import { useMemo, useState } from 'react'
 import { Callout } from '@/components/common/callout'
 import { HistoryRow } from '@/components/picker/history-row'
 import { Button } from '@/components/ui/button'
-import { useDbImages } from '@/context/db-context'
-import type { InspectHistoryEntry } from '@/hooks/use-inspect-history'
+import { useDb } from '@/context/db-context'
+import type { InspectHistoryEntry } from '@/hooks/picker/use-inspect-history'
 import type { AgentIndex } from '@/lib/data/agents'
 import type { AttachmentIndex } from '@/lib/data/attachments'
 import type { CatalogIndex } from '@/lib/data/catalog'
@@ -17,21 +17,19 @@ interface HistoryListProps {
   catalog: CatalogIndex | null
   attachments: AttachmentIndex | null
   agents: AgentIndex | null
-  /** Loads a link; an error message when the viewer can't show it. */
   onLoad: (item: InspectItem) => string | null
   onRemove: (link: string) => void
   onClear: () => void
 }
 
-/** The inspect links loaded before, newest first, one per line: a click loads one again. */
 export function HistoryList({ entries, query, catalog, attachments, agents, onLoad, onRemove, onClear }: HistoryListProps) {
-  const images = useDbImages()
+  const db = useDb()
   const [error, setError] = useState('')
   const rows = useMemo(() => entries.flatMap((entry) => {
     let item: InspectItem
     try { item = decodeInspectLink(entry.link) } catch { return [] }
-    return [{ entry, item, preview: inspectPreview(item, catalog, attachments, images, agents) }]
-  }), [entries, catalog, attachments, images, agents])
+    return [{ entry, item, preview: inspectPreview(item, catalog, attachments, db, agents) }]
+  }), [entries, catalog, attachments, db, agents])
   const needle = query.trim().toLowerCase()
   const shown = needle ? rows.filter((r) => r.preview.title.toLowerCase().includes(needle)) : rows
 
@@ -48,7 +46,7 @@ export function HistoryList({ entries, query, catalog, attachments, agents, onLo
   return (
     <div className="flex flex-col gap-3 pt-4">
       <div className="flex items-center gap-2">
-        <span className="text-[13px] font-semibold">Recent inspect links</span>
+        <span className="text-[13px] font-medium">Recent inspect links</span>
         <span className="text-[11px] tabular-nums text-muted-foreground">{shown.length}</span>
         <Button variant="ghost" size="xs" className="ml-auto text-muted-foreground" onClick={onClear}><Trash2 /> Clear history</Button>
       </div>

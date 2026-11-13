@@ -11,6 +11,63 @@ export interface CharmPart {
   attach?: (mesh: THREE.Mesh) => void
   /** Materials with F_STICKERS (the sticker slab): the sticker shown, or none. */
   setSticker?: (s: { def: StickerDef; textures: StickerTextures } | null) => void
+  /** The sticker slab's label (the texts the game prints over its color texture), or none. */
+  setLabel?: (label: SlabLabel | null) => Promise<void>
+}
+
+/** What the sticker slab's label says: the sealed sticker's name and its id (the sticker kit's number, as the game prints it). */
+export interface SlabLabel { name: string; itemId: string }
+
+/** csgo_english.txt: StickerDisplayCaseTitle, StickerDisplayCaseGrade. */
+const SLAB_TITLE = 'COUNTER-STRIKE 2', SLAB_GRADE = 'MINT GRADED STICKER'
+const SLAB_FONT = "'Inter Variable', sans-serif"
+/** The game's font is narrow: the page's is drawn this much narrower, so the two texts of the first row don't meet. */
+const SLAB_CONDENSE = 0.82
+
+/**
+ * The slab's color texture with its label printed on, as the game composes it (compmatdata/kc_sticker_display_case.vcompmat:
+ * the panel panorama/layout/composite/cs2_sticker_display_text.vxml rendered at 1024 and blended over g_tColor at 0.85).
+ * The panel is a column from the top left: a row with a text on the left and one on the right (20px, #575757, 465 wide
+ * from x 25, top 23), the sticker's name (30px, black, 470 wide, 35 high) and the sticker's id on the right (20px,
+ * #999999, 2 below). Each text shrinks to fit its width; letters are 1px apart. The game's font is Stratum2: this
+ * draws with the page's.
+ */
+async function slabLabelTexture(base: THREE.Texture, label: SlabLabel): Promise<THREE.CanvasTexture> {
+  const image = base.image as HTMLImageElement
+  const canvas = document.createElement('canvas')
+  canvas.width = image.width
+  canvas.height = image.height
+  const ctx = canvas.getContext('2d')!
+  ctx.drawImage(image, 0, 0)
+  await Promise.all([document.fonts.load(`500 30px ${SLAB_FONT}`), document.fonts.load(`600 20px ${SLAB_FONT}`)]).catch(() => [])
+  const k = canvas.width / 1024
+  ctx.scale(k, k)
+  ctx.globalAlpha = 0.85
+  ctx.textBaseline = 'middle'
+  ;(ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = '1px'
+  const line = (text: string, size: number, weight: number, color: string, x: number, top: number, width: number, height: number, align: 'left' | 'right') => {
+    if (!text) return
+    let px = size
+    do { ctx.font = `${weight} ${px}px ${SLAB_FONT}` } while (ctx.measureText(text).width * SLAB_CONDENSE > width && --px > 8)
+    ctx.fillStyle = color
+    ctx.textAlign = align
+    ctx.save()
+    ctx.translate(align === 'left' ? x : x + width, top + height / 2 + 1)
+    ctx.scale(SLAB_CONDENSE, 1)
+    ctx.fillText(text, 0, 0)
+    ctx.restore()
+  }
+  line(SLAB_TITLE, 20, 600, '#575757', 25, 23, 465, 25, 'left')
+  line(SLAB_GRADE, 20, 600, '#575757', 25, 23, 465, 25, 'right')
+  line(label.name, 30, 500, '#000000', 25, 48, 470, 35, 'left')
+  line(label.itemId, 20, 600, '#999999', 25, 85, 465, 25, 'right')
+  const t = new THREE.CanvasTexture(canvas)
+  t.flipY = base.flipY
+  t.colorSpace = base.colorSpace
+  t.wrapS = base.wrapS
+  t.wrapT = base.wrapT
+  t.anisotropy = base.anisotropy
+  return t
 }
 
 const num = (v: string | undefined, d: number) => (v === undefined || v === '' || isNaN(Number(v)) ? d : Number(v))
@@ -329,5 +386,14 @@ export async function charmMaterial(def: CharmMaterial, t: TextureSource, liquid
     u.uStCount.value = s ? 1 : 0
     if (s) setStickerUniforms(u, 0, s.def, s.textures, 0)
   } : undefined
-  return { material, setSeed, attach, setSticker }
+  let printed: THREE.CanvasTexture | null = null, labelToken = 0
+  const setLabel = flag('F_STICKERS') && map ? async (label: SlabLabel | null) => {
+    const token = ++labelToken
+    const next = label ? await slabLabelTexture(map, label) : null
+    if (token !== labelToken) { next?.dispose(); return }
+    printed?.dispose()
+    printed = next
+    material.map = next ?? map
+  } : undefined
+  return { material, setSeed, attach, setSticker, setLabel }
 }

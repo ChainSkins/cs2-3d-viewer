@@ -1,16 +1,29 @@
 import type { LucideIcon } from 'lucide-react'
 import { Camera, Eye, Map as MapIcon, Sticker } from 'lucide-react'
 
-/** The skins the home page features (catalog keys: item|kit). */
-export const FEATURED_SKINS = [
-  'weapon_ak47|cu_fireserpent_ak47_bravo',
-  'weapon_awp|cu_medieval_dragon_awp',
-  'weapon_m4a1|cu_m4a1_howling',
-  'weapon_knife_karambit|aa_fade',
-  'weapon_knife_butterfly|am_sapphire_marbleized_b',
-  'sporty_gloves|sporty_blue_pink',
-  'weapon_awp|awp_printstream',
-  'weapon_ak47|cu_ak_neon_rider',
+const IBP_HOLO = 'kat2014_ibuypower_holo'
+
+/** What the home page features: skins (catalog keys: item|kit), one dressed with stickers and a charm, a sticker, a charm, a pin and an agent. */
+export type FeaturedItem =
+  | { kind: 'skin'; key: string; stickers?: string[]; charm?: string }
+  | { kind: 'sticker'; id: string }
+  | { kind: 'charm'; id: string }
+  | { kind: 'pin'; id: string }
+  | { kind: 'agent'; id: string }
+
+export const FEATURED_ITEMS: FeaturedItem[] = [
+  { kind: 'skin', key: 'weapon_ak47|cu_fireserpent_ak47_bravo' },
+  { kind: 'skin', key: 'weapon_awp|cu_medieval_dragon_awp', stickers: [IBP_HOLO, IBP_HOLO, IBP_HOLO, IBP_HOLO], charm: 'kc_missinglink_babyserpent' },
+  { kind: 'skin', key: 'weapon_m4a1|cu_m4a1_howling' },
+  { kind: 'skin', key: 'weapon_knife_karambit|aa_fade' },
+  { kind: 'skin', key: 'weapon_knife_butterfly|am_sapphire_marbleized_b' },
+  { kind: 'skin', key: 'sporty_gloves|sporty_blue_pink' },
+  { kind: 'skin', key: 'weapon_awp|awp_printstream' },
+  { kind: 'skin', key: 'weapon_ak47|cu_ak_neon_rider' },
+  { kind: 'sticker', id: 'std_crown_foil' },
+  { kind: 'charm', id: 'kc_missinglink_howl' },
+  { kind: 'pin', id: '6132' },
+  { kind: 'agent', id: 'customplayer_tm_professional_varf' },
 ]
 
 /** The clip in the home page's hero (AK-47 | Fire Serpent turning on Mirage), recorded from the embed so the home page draws no 3D. */

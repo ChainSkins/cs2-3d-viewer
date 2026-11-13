@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils'
 
 interface ShareImageOptionsProps {
   style: CardStyle
-  /** The item's rarity color (the Rarity background's swatch). */
   rarityColor: string
   onChange: (changes: Partial<CardStyle>) => void
 }
@@ -15,12 +14,11 @@ interface ShareImageOptionsProps {
 const swatch = (id: string, style: CardStyle, rarityColor: string) => {
   if (id === 'transparent') return 'repeating-conic-gradient(#3f3f46 0 25%, #18181b 0 50%) 50% / 12px 12px'
   if (id === 'custom') return `linear-gradient(${style.angle + 90}deg, ${style.from}, ${style.to})`
-  if (id === 'rarity') return `linear-gradient(135deg, #0b0b12, ${rarityColor})`
+  if (id === 'rarity') return `linear-gradient(135deg, #111110, ${rarityColor})`
   const b = CARD_BACKGROUNDS.find((x) => x.id === id)!
   return `linear-gradient(135deg, ${b.from}, ${b.to})`
 }
 
-/** The share image's options: background (presets, custom gradient, none), shape, resolution, file type, what shows. */
 export function ShareImageOptions({ style, rarityColor, onChange }: ShareImageOptionsProps) {
   const show = (key: keyof CardStyle['show'], on: boolean) => onChange({ show: { ...style.show, [key]: on } })
   return (
@@ -34,9 +32,9 @@ export function ShareImageOptions({ style, rarityColor, onChange }: ShareImageOp
               title={b.label}
               aria-pressed={style.background === b.id}
               onClick={() => onChange({ background: b.id, ...(b.id === 'transparent' && style.format === 'jpeg' ? { format: 'png' as const } : {}) })}
-              className={cn('flex flex-col items-center gap-1 rounded-xl p-1 text-[10px] font-medium', style.background === b.id ? 'bevel-primary text-white' : 'bevel text-foreground/75')}
+              className={cn('flex flex-col items-center gap-1 rounded-lg border p-1 text-[10.5px] font-medium transition-colors', style.background === b.id ? 'border-foreground/50 bg-ink/10 text-foreground' : 'border-border text-muted-foreground hover:bg-ink/5 hover:text-foreground')}
             >
-              <span className="h-7 w-full rounded-lg ring-1 ring-black/40" style={{ background: swatch(b.id, style, rarityColor) }} />
+              <span className="h-7 w-full rounded-lg ring-1 ring-shade/40" style={{ background: swatch(b.id, style, rarityColor) }} />
               {b.label}
             </button>
           ))}
@@ -46,7 +44,7 @@ export function ShareImageOptions({ style, rarityColor, onChange }: ShareImageOp
             <div className="flex gap-3">
               {(['from', 'to'] as const).map((key) => (
                 <label key={key} className="flex items-center gap-1.5 text-[11px] text-foreground/80">
-                  <input type="color" value={style[key]} onChange={(e) => onChange({ [key]: e.target.value })} className="size-7 cursor-pointer rounded-md border border-white/15 bg-transparent p-0" />
+                  <input type="color" value={style[key]} onChange={(e) => onChange({ [key]: e.target.value })} className="size-7 cursor-pointer rounded-md border border-ink/15 bg-transparent p-0" />
                   {key === 'from' ? 'From' : 'To'}
                 </label>
               ))}

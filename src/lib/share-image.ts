@@ -14,7 +14,7 @@ export const CARD_FORMATS: { value: CardFormat; label: string }[] = [{ value: 'p
 /** A background: a preset's two colors, the item's rarity, custom colors, or none (PNG / WebP only). */
 export interface CardBackground { id: string; label: string; from: string; to: string }
 export const CARD_BACKGROUNDS: CardBackground[] = [
-  { id: 'rarity', label: 'Rarity', from: '#0b0b12', to: '' },
+  { id: 'rarity', label: 'Rarity', from: '#111110', to: '' },
   { id: 'midnight', label: 'Midnight', from: '#0f0c29', to: '#302b63' },
   { id: 'aurora', label: 'Aurora', from: '#0f2027', to: '#2c7a7b' },
   { id: 'ember', label: 'Ember', from: '#1a0a0a', to: '#9a2c1f' },
@@ -38,7 +38,7 @@ export interface CardStyle {
 }
 
 export const DEFAULT_CARD_STYLE: CardStyle = {
-  background: 'rarity', from: '#101827', to: '#7c3aed', angle: 135, aspect: '16:9', quality: 1080, format: 'png',
+  background: 'rarity', from: '#111110', to: '#494844', angle: 135, aspect: '16:9', quality: 1080, format: 'png',
   show: { details: true, attachments: true, qr: true },
 }
 
@@ -60,7 +60,7 @@ export const itemRenderSize = (aspect: CardAspect, quality: CardQuality) => Math
 function backgroundColors(style: CardStyle, rarityColor: string): [string, string] | null {
   if (style.background === 'transparent') return null
   if (style.background === 'custom') return [style.from, style.to]
-  if (style.background === 'rarity') return ['#0b0b12', mix(rarityColor, '#0b0b12', 0.55)]
+  if (style.background === 'rarity') return ['#111110', mix(rarityColor, '#111110', 0.55)]
   const preset = CARD_BACKGROUNDS.find((b) => b.id === style.background) ?? CARD_BACKGROUNDS[1]
   return [preset.from, preset.to]
 }
@@ -128,7 +128,7 @@ function drawQr(ctx: CanvasRenderingContext2D, text: string, x: number, y: numbe
   ctx.fillStyle = '#ffffff'
   roundRect(ctx, x, y, size, size, size * 0.08)
   ctx.fill()
-  ctx.fillStyle = '#0b0b12'
+  ctx.fillStyle = '#111110'
   for (let r = 0; r < count; r++) {
     for (let c = 0; c < count; c++) {
       if (qr.isDark(r, c)) ctx.fillRect(x + (c + quiet) * cell, y + (r + quiet) * cell, Math.ceil(cell), Math.ceil(cell))
@@ -347,7 +347,7 @@ export function cardBlob(canvas: HTMLCanvasElement, format: CardFormat): Promise
     source.width = canvas.width
     source.height = canvas.height
     const ctx = source.getContext('2d')!
-    ctx.fillStyle = '#0b0b12'
+    ctx.fillStyle = '#111110'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
     ctx.drawImage(canvas, 0, 0)
   }

@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Spinner } from '@/components/common/spinner'
 import { Button } from '@/components/ui/button'
-import { useCatalog } from '@/hooks/use-catalog'
-import { useInspectLink } from '@/hooks/use-inspect-link'
+import { useCatalog } from '@/hooks/data/use-catalog'
+import { useInspectLink } from '@/hooks/picker/use-inspect-link'
 import { DEFAULT_SKIN } from '@/lib/config'
 import { decodeInspectLink } from '@/lib/data/inspect'
 import { selectionPath } from '@/lib/selection'
@@ -35,7 +35,7 @@ export function InspectPage() {
       {failure ? (
         <div className="glass-strong flex max-w-sm flex-col items-center gap-3 rounded-3xl p-6 text-center">
           <Link2Off className="size-8 text-muted-foreground" />
-          <div className="text-[15px] font-semibold">Can’t open this inspect link</div>
+          <div className="text-[15px] font-medium">Can’t open this inspect link</div>
           <div className="text-[12.5px] text-muted-foreground">{failure}</div>
           <Button render={<Link to={selectionPath({ kind: 'skin', ...DEFAULT_SKIN })} />}>Open the viewer</Button>
         </div>
