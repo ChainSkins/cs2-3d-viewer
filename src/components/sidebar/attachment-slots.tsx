@@ -1,5 +1,5 @@
 import { Plus } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { cn } from '@/lib/utils'
 
 interface SlotProps {
@@ -14,8 +14,9 @@ interface SlotProps {
 
 export function Slot({ name, icon, badge, active, disabled, emptyLabel, onClick }: SlotProps) {
   const filled = name !== undefined
-  const [failed, setFailed] = useState(false)
-  useEffect(() => { setFailed(false) }, [icon])
+  // (a new icon gets its own try)
+  const [failedIcon, setFailedIcon] = useState<string>()
+  const failed = !!icon && failedIcon === icon
   return (
     <button
       type="button"
@@ -32,7 +33,7 @@ export function Slot({ name, icon, badge, active, disabled, emptyLabel, onClick 
     >
       {!filled && <Plus className="size-4" />}
       {filled && (icon && !failed
-        ? <img src={icon} alt="" draggable={false} onError={() => setFailed(true)} className="size-full object-contain p-1" />
+        ? <img src={icon} alt="" draggable={false} onError={() => setFailedIcon(icon)} className="size-full object-contain p-1" />
         : <span className="px-1 text-[10px] leading-tight text-muted-foreground">{name.slice(0, 8)}</span>)}
       {badge && <span className="absolute bottom-0.5 right-1 font-mono text-[9px] leading-none text-muted-foreground">{badge}</span>}
     </button>

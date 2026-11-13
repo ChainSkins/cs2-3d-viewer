@@ -44,6 +44,8 @@ export function useViewerSync(viewer: SkinViewer | null, selection: Selection, i
   const stickersKey = JSON.stringify(state.stickers)
   useEffect(() => {
     if (viewer) void viewer.setStickers(state.stickers)
+    // By content: the stickers array is a new object on every URL read.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewer, stickersKey])
 
   const charm = state.charmOptions

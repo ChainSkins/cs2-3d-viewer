@@ -235,7 +235,7 @@ function buildItem(item: ItemData, kit: KitData, seed = 1, only?: DrawCall): Ite
       ...common, style: 'glove', vmat, textureRoot: GAME_ROOT,
       patternRotation: rot?.min && rot.max && rot.min[0] === rot.max[0] ? rot.min[0] : undefined,
       leftAttrSides: (['left', 'right'] as const).filter((side) =>
-        Object.values(item.meshes).some((calls) => calls.some((c) => c.leftAttr && new RegExp(`_${side}\.vmat$`).test(c.material)))),
+        Object.values(item.meshes).some((calls) => calls.some((c) => c.leftAttr && new RegExp(`_${side}\\.vmat$`).test(c.material)))),
       drawCalls: item.meshes,
     }
   }

@@ -89,7 +89,7 @@ export function Stage({ viewportRef, heading, loading, ready, error, loadError, 
         {!hideUi && <StageToolbar {...toolbar} />}
       </div>
 
-      {loading && <LoadingCard title={heading.title} />}
+      {loading && <LoadingCard key={heading.title} title={heading.title} />}
       {loadError && <LoadErrorCard title={heading.title} message={loadError} onRetry={onRetry} />}
     </main>
   )

@@ -7,11 +7,11 @@ const SLOW_AFTER = 10_000
 
 export function LoadingCard({ title }: { title: string }) {
   const [slow, setSlow] = useState(false)
+  // (the stage keys this card by what loads, so a new load starts it over)
   useEffect(() => {
-    setSlow(false)
     const timer = setTimeout(() => setSlow(true), SLOW_AFTER)
     return () => clearTimeout(timer)
-  }, [title])
+  }, [])
 
   return (
     <div className="pointer-events-none absolute inset-0 grid place-items-center">

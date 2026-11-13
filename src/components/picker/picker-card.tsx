@@ -64,7 +64,7 @@ export function PickerCard({ card, current, onPick, favorite, onFavorite }: Pick
           onClick={onFavorite}
           className={cn(
             'absolute left-1.5 top-1.5 grid size-7 place-items-center rounded-lg transition',
-            favorite ? 'text-amber-400 opacity-100' : 'text-muted-foreground opacity-0 hover:bg-ink/8 hover:text-foreground group-hover/card:opacity-100 group-focus-within/card:opacity-100',
+            favorite ? 'text-amber-400 opacity-100' : 'text-muted-foreground opacity-0 hover:bg-ink/8 hover:text-foreground group-hover/card:opacity-100 group-focus-within/card:opacity-100 pointer-coarse:opacity-70',
           )}
         >
           <Star className="size-4" fill={favorite ? 'currentColor' : 'none'} />

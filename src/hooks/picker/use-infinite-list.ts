@@ -7,8 +7,11 @@ import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 export function useInfiniteList(total: number, resetKey: unknown, root: RefObject<HTMLElement | null>, pageSize = 60, margin = '800px') {
   const [count, setCount] = useState(pageSize)
   const observer = useRef<IntersectionObserver | null>(null)
-
-  useEffect(() => { setCount(pageSize) }, [resetKey, pageSize])
+  const [lastKey, setLastKey] = useState(resetKey)
+  if (resetKey !== lastKey) {
+    setLastKey(resetKey)
+    setCount(pageSize)
+  }
 
   const sentinel = useCallback((node: HTMLElement | null) => {
     observer.current?.disconnect()

@@ -97,17 +97,30 @@ export function SkinPicker({ open, catalog, attachments, agents = null, pins = n
     }
   }
 
-  useEffect(() => {
-    if (open) {
-      setCategory(initial)
+  // Opening the picker (or opening it for something else) starts from its first category, with no search.
+  const openedFor = open ? initial : null
+  const [lastOpenedFor, setLastOpenedFor] = useState(openedFor)
+  if (openedFor !== lastOpenedFor) {
+    setLastOpenedFor(openedFor)
+    if (openedFor !== null) {
+      setCategory(openedFor)
       setQuery('')
       setShowHistory(false)
     }
-  }, [open, initial])
+  }
   useEffect(() => { body.current?.scrollTo({ top: 0 }) }, [category, query, historyOn, sort, rarities])
-  useEffect(() => { setLoadError('') }, [query])
+  const [lastQuery, setLastQuery] = useState(query)
+  if (query !== lastQuery) {
+    setLastQuery(query)
+    setLoadError('')
+  }
   // (rarity scales differ between skins, stickers and agents)
-  useEffect(() => { setRarities([]) }, [category, only])
+  const rarityScope = `${category}|${only}`
+  const [lastRarityScope, setLastRarityScope] = useState(rarityScope)
+  if (rarityScope !== lastRarityScope) {
+    setLastRarityScope(rarityScope)
+    setRarities([])
+  }
 
   const baseCounts = useMemo(() => categoryCounts(catalog, attachments, portedOnly, agents, pins, patches, pets), [catalog, attachments, portedOnly, agents, pins, patches, pets])
   const counts = { ...baseCounts, Recent: inScope(shelf.recent).length, Favorites: inScope(shelf.favorites).length }
@@ -227,7 +240,7 @@ export function SkinPicker({ open, catalog, attachments, agents = null, pins = n
                         <button type="button" onClick={shelf.clearRecent} className="ml-auto text-[12px] text-muted-foreground transition-colors hover:text-foreground">Clear</button>
                       )}
                     </div>
-                    <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-2.5">
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-[repeat(auto-fill,minmax(160px,1fr))] sm:gap-2.5">
                       {group.cards.map((card) => (
                         <PickerCard
                           key={card.key}
