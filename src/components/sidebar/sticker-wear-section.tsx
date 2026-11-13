@@ -1,7 +1,7 @@
 import { LabeledSlider } from '@/components/common/labeled-slider'
 import { Section } from '@/components/common/section'
 import { SwitchField } from '@/components/common/switch-field'
-import { Segments } from '@/components/common/segments'
+import { SegmentedControl } from '@/components/common/segmented-control'
 
 interface StickerWearSectionProps {
   wear: number
@@ -14,7 +14,7 @@ export function StickerWearSection({ wear, onChange }: StickerWearSectionProps) 
   return (
     <Section title="Sticker wear" collapsible={{ id: 'sticker-wear' }} aside={<span className="section-value font-mono">{(wear * 100).toFixed(0)}%</span>}>
       <LabeledSlider label="Wear" value={wear} min={0} max={1} step={0.01} format={(v) => v.toFixed(2)} onChange={onChange} />
-      <Segments
+      <SegmentedControl
         label="Wear preset"
         className="mt-3"
         options={PRESETS.map((w) => ({ value: String(w), label: w === 0 ? 'Pristine' : w * 100 + '%' }))}

@@ -91,7 +91,7 @@ function EditHint({ editing, onToggle }: { editing: boolean; onToggle: () => voi
   return (
     <div className={cn('flex items-center gap-2.5 rounded-lg border px-3 py-2 text-[12px] transition-colors', editing ? 'border-foreground/40 bg-ink/6 text-foreground' : 'border-border text-muted-foreground')}>
       <Move className="size-3.5 shrink-0" />
-      <span className="min-w-0 flex-1 leading-snug">{editing ? 'Drag the stickers and the charm on the weapon' : 'Move them on the weapon with the mouse'}</span>
+      <span className="min-w-0 flex-1 leading-snug">{editing ? 'Drag the stickers and the charm on the weapon' : 'Drag them into place on the weapon'}</span>
       <button
         type="button"
         aria-pressed={editing}

@@ -1,26 +1,44 @@
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { cn } from '@/lib/utils'
 
 interface SegmentedControlProps<T extends string | number> {
   options: { value: T; label: string }[]
-  value: T
+  value: T | null
   onChange: (value: T) => void
+  label?: string
+  size?: 'default' | 'pill'
   className?: string
 }
 
-export function SegmentedControl<T extends string | number>({ options, value, onChange, className }: SegmentedControlProps<T>) {
+export function SegmentedControl<T extends string | number>({ options, value, onChange, label, size = 'default', className }: SegmentedControlProps<T>) {
+  const pill = size === 'pill'
+  const index = options.findIndex((o) => o.value === value)
+  const choose = (next: readonly string[]) => {
+    const picked = options.find((o) => String(o.value) === next[0])
+    if (picked) onChange(picked.value)
+    else if (pill && options.length) onChange(options[(index + 1) % options.length].value)
+  }
+
   return (
-    <div className={cn('flex gap-0.5 rounded-lg bg-shade/25 p-0.5', className)}>
+    <ToggleGroup
+      aria-label={label}
+      spacing={0.5}
+      value={value === null ? [] : [String(value)]}
+      onValueChange={choose}
+      className={cn('w-full p-0.5', pill ? 'pointer-events-auto h-9 w-auto shrink-0 bg-shade/30' : 'bg-shade/25', className)}
+    >
       {options.map((o) => (
-        <button
+        <ToggleGroupItem
           key={o.value}
-          type="button"
-          aria-pressed={o.value === value}
-          onClick={() => onChange(o.value)}
-          className={cn('h-7 flex-1 rounded-md px-2.5 text-[12px] font-medium transition-colors', o.value === value ? 'bg-ink/12 text-foreground' : 'text-muted-foreground hover:text-foreground')}
+          value={String(o.value)}
+          className={cn(
+            'rounded-md font-medium text-muted-foreground hover:bg-transparent hover:text-foreground aria-pressed:bg-ink/12 aria-pressed:text-foreground',
+            pill ? 'h-full px-3 text-[12.5px]' : 'h-7 min-w-0 flex-1 px-2.5 text-[12px]',
+          )}
         >
           {o.label}
-        </button>
+        </ToggleGroupItem>
       ))}
-    </div>
+    </ToggleGroup>
   )
 }

@@ -87,7 +87,7 @@ export function FeaturedSkins({ catalog, attachments, pins, agents }: FeaturedSk
   )
 
   return (
-    <div className="grid grid-cols-[repeat(auto-fill,minmax(168px,1fr))] gap-3">
+    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-[repeat(auto-fill,minmax(168px,1fr))] sm:gap-3">
       {!catalog && FEATURED_ITEMS.map((_, i) => <Skeleton key={i} className="h-47.5 rounded-2xl" />)}
       {cards.map(({ key, path, card }) => (
         <PickerCard key={key} card={card} current={false} onPick={() => navigate(path)} />

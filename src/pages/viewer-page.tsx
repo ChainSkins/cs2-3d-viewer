@@ -52,7 +52,12 @@ export function ViewerPage({ selection }: ViewerPageProps) {
   const [hideUi, setHideUi] = useState(false)
   const [sheetOpen, setSheetOpen] = useState(false)
   const selectionKey = selectionPath(selection)
-  useEffect(() => { setSheetOpen(false) }, [selectionKey])
+  // (a new item closes the phone's panel sheet)
+  const [lastSelectionKey, setLastSelectionKey] = useState(selectionKey)
+  if (selectionKey !== lastSelectionKey) {
+    setLastSelectionKey(selectionKey)
+    setSheetOpen(false)
+  }
   const togglePanel = () => setPanelCollapsed((prev) => !prev)
   const [gloveGameLight, setGloveGameLight] = useLocalStorage('glove-game-light', true)
   useEffect(() => { viewer?.setGloveGameLight(gloveGameLight) }, [viewer, gloveGameLight])
@@ -90,11 +95,12 @@ export function ViewerPage({ selection }: ViewerPageProps) {
   useEffect(() => { if (editing && canEdit) setView((prev) => (prev.spin ? { ...prev, spin: false } : prev)) }, [editing, canEdit, view.spin])
   const noDialog = picker.picker === null
   const isWeapon = selection.kind === 'skin' && !!item && item.style !== 'glove'
-  useKeyShortcut('e', noDialog && canEdit, useCallback(() => setEditing((on) => !on), []))
+  useKeyShortcut('e', noDialog && canEdit, useCallback(() => setEditing((on) => !on), [setEditing]))
   const { firstPerson, setFirstPerson } = state
   useKeyShortcut('h', noDialog, useCallback(() => setHideUi((on) => !on), []))
   useKeyShortcut('v', noDialog && isWeapon, useCallback(() => setFirstPerson(!firstPerson), [firstPerson, setFirstPerson]))
-  const openSelectionPicker = useCallback(() => picker.open({ kind: 'selection' }), [picker.open])
+  const { open: openPicker } = picker
+  const openSelectionPicker = useCallback(() => openPicker({ kind: 'selection' }), [openPicker])
   useOpenPickerShortcut(picker.picker === null, openSelectionPicker)
   const loadInspect = useInspectLink(catalog, attachments, agents, state.search, useCallback(() => setActiveSticker(0), []))
   const actions = useInspectActions(viewer, selection, item, status, state.firstPerson, state.agent)

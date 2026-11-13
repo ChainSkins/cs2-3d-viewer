@@ -48,7 +48,7 @@ export function EmbedPage() {
     initialTarget: initial.target, initialStickers: initial.stickers, pendingOptions, catalog, attachments, agents, state, applyOptions,
   })
 
-  const shown = selection ?? { kind: 'sticker' as const, id: '' }
+  const shown = useMemo(() => selection ?? { kind: 'sticker' as const, id: '' }, [selection])
   const activeViewer = selection ? viewer : null
   const { item, weapon: heldWeapon, status, error: loadError } = useSkinLoader(activeViewer, shown, state)
   useViewerSync(activeViewer, shown, item, status, state, view)

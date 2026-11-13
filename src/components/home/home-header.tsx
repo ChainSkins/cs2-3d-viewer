@@ -38,7 +38,7 @@ export function HomeHeader({ onSearch }: { onSearch: () => void }) {
             <Search /> <span className="hidden sm:inline">Search</span> <Kbd className="hidden sm:inline-flex">{MOD_KEY} K</Kbd>
           </Button>
           <Button size="lg" className="text-[13px]" render={<Link to={selectionPath({ kind: 'skin', ...DEFAULT_SKIN })} />}>
-            Open the viewer <ArrowRight className="hidden sm:block" />
+            <span className="sm:hidden">Viewer</span><span className="hidden sm:inline">Open the viewer</span> <ArrowRight className="hidden sm:block" />
           </Button>
         </div>
       </div>

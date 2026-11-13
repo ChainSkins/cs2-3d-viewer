@@ -66,7 +66,7 @@ export function ApiPage() {
       await navigator.clipboard.writeText(QUICK_START)
       setCopied(true)
       setTimeout(() => setCopied(false), 1500)
-    } catch { }
+    } catch { /* clipboard blocked: nothing to show */ }
   }
 
   return (

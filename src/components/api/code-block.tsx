@@ -16,7 +16,7 @@ export function CodeBlock({ code, label, className }: CodeBlockProps) {
       await navigator.clipboard.writeText(code)
       setCopied(true)
       setTimeout(() => setCopied(false), 1500)
-    } catch { }
+    } catch { /* clipboard blocked: nothing to show */ }
   }
   return (
     <div className={cn('inset-well overflow-hidden rounded-2xl', className)}>

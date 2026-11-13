@@ -1,7 +1,7 @@
 import { Camera, Crosshair, Eye, Hand, HandMetal, RotateCw, ScanSearch } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { AttackMenu } from '@/components/stage/attack-menu'
-import { PillSwitch } from '@/components/stage/pill-switch'
+import { SegmentedControl } from '@/components/common/segmented-control'
 import { ToolButton } from '@/components/stage/tool-button'
 import type { AttackInfo } from '@/lib/data/attacks'
 import type { KnifePose } from '@/lib/viewer/skin-viewer'
@@ -46,14 +46,16 @@ export function StageToolbar({ spin, isWeapon, isGlove, firstPerson, palmUp, can
       <div className="glass-panel pointer-events-auto flex max-w-full flex-wrap items-center justify-center gap-1 justify-self-center rounded-xl p-1">
         {turnable && (
           <>
-            <PillSwitch
+            <SegmentedControl
+              size="pill"
               label="Front / Back"
               options={[{ value: 'front', label: 'Front' }, { value: 'back', label: 'Back' }]}
               value={showingBack ? 'back' : 'front'}
               onChange={(v) => onSide(v === 'back')}
             />
             {knifePose && (
-              <PillSwitch
+              <SegmentedControl
+                size="pill"
                 label="Knife pose"
                 options={[{ value: 'vertical', label: 'Vertical' }, { value: 'horizontal', label: 'Flat' }, { value: 'tilted', label: 'Tilted' }]}
                 value={knifePose}

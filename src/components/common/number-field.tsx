@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { cn } from '@/lib/utils'
 
 interface NumberFieldProps {
@@ -12,9 +12,14 @@ interface NumberFieldProps {
 }
 
 export function NumberField({ value, min, max, decimals = 0, label, className, onChange }: NumberFieldProps) {
-  const [draft, setDraft] = useState(value.toFixed(decimals))
-
-  useEffect(() => { setDraft(value.toFixed(decimals)) }, [value, decimals])
+  const shown = value.toFixed(decimals)
+  const [draft, setDraft] = useState(shown)
+  // A new value from outside replaces what was being typed.
+  const [lastShown, setLastShown] = useState(shown)
+  if (shown !== lastShown) {
+    setLastShown(shown)
+    setDraft(shown)
+  }
 
   const commit = () => {
     const parsed = Number(draft)
