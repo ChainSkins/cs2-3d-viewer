@@ -1,6 +1,5 @@
-import { Check, ChevronDown, type LucideIcon } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
-import { cn } from '@/lib/utils'
+import type { LucideIcon } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
 
 interface SelectMenuProps<T extends string> {
   label: string
@@ -12,62 +11,28 @@ interface SelectMenuProps<T extends string> {
 }
 
 export function SelectMenu<T extends string>({ label, icon: Icon, options, value, onChange, align = 'right' }: SelectMenuProps<T>) {
-  const [open, setOpen] = useState(false)
-  const [hover, setHover] = useState(0)
-  const root = useRef<HTMLDivElement>(null)
   const current = options.find((o) => o.value === value) ?? options[0]
-
-  useEffect(() => {
-    if (!open) return
-    const outside = (e: PointerEvent) => { if (!root.current?.contains(e.target as Node)) setOpen(false) }
-    window.addEventListener('pointerdown', outside, true)
-    return () => window.removeEventListener('pointerdown', outside, true)
-  }, [open])
-
-  const choose = (v: T) => { onChange(v); setOpen(false) }
-  const onKey = (e: React.KeyboardEvent) => {
-    if (!open) {
-      if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setHover(Math.max(0, options.indexOf(current))); setOpen(true) }
-      return
-    }
-    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); setOpen(false) }
-    else if (e.key === 'ArrowDown') { e.preventDefault(); setHover((h) => (h + 1) % options.length) }
-    else if (e.key === 'ArrowUp') { e.preventDefault(); setHover((h) => (h - 1 + options.length) % options.length) }
-    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(options[hover].value) }
-  }
-
   return (
-    <div ref={root} className="relative" onKeyDown={onKey}>
-      <button
-        type="button"
-        aria-haspopup="listbox"
-        aria-expanded={open}
+    <Select<T> value={value} onValueChange={(next) => { if (next !== null) onChange(next) }}>
+      <SelectTrigger
         aria-label={`${label}: ${current.label}`}
-        onClick={() => { setHover(Math.max(0, options.indexOf(current))); setOpen((o) => !o) }}
-        className={cn('flex h-7 items-center gap-1.5 rounded-lg px-2.5 text-[11.5px] text-foreground/90 transition', open ? 'bg-ink/10' : 'hover:bg-ink/[0.06]')}
+        className="h-7 gap-1.5 border-0 bg-transparent px-2.5 text-[11.5px] text-foreground/90 hover:bg-ink/6 data-popup-open:bg-ink/10 dark:bg-transparent dark:hover:bg-ink/6 [&_svg]:size-3.5"
       >
-        {Icon && <Icon className="size-3.5 text-muted-foreground" />}
+        {Icon && <Icon className="text-muted-foreground" />}
         <span className="text-muted-foreground">{label}:</span> {current.label}
-        <ChevronDown className={cn('size-3.5 text-muted-foreground transition-transform duration-150', open && 'rotate-180')} />
-      </button>
-      {open && (
-        <div role="listbox" className={cn('glass-strong absolute top-full z-30 mt-1.5 max-h-72 min-w-48 overflow-y-auto rounded-xl p-1', align === 'right' ? 'right-0' : 'left-0', ' shadow-[0_18px_40px_-12px_oklch(0_0_0/80%)] animate-in fade-in zoom-in-95 duration-100')}>
-          {options.map((o, i) => (
-            <button
-              key={o.value}
-              type="button"
-              role="option"
-              aria-selected={o.value === value}
-              onPointerEnter={() => setHover(i)}
-              onClick={() => choose(o.value)}
-              className={cn('flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[12px]', i === hover ? 'bg-ink/10 text-foreground' : 'text-foreground/80')}
-            >
-              <Check className={cn('size-3.5', o.value === value ? 'text-foreground' : 'opacity-0')} />
-              {o.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
+      </SelectTrigger>
+      <SelectContent
+        alignItemWithTrigger={false}
+        align={align === 'right' ? 'end' : 'start'}
+        sideOffset={6}
+        className="glass-strong w-auto min-w-48 max-h-72 rounded-xl p-1 shadow-[0_18px_40px_-12px_oklch(0_0_0/80%)] ring-0"
+      >
+        {options.map((o) => (
+          <SelectItem key={o.value} value={o.value} className="rounded-lg py-1.5 pl-2.5 text-[12px] text-foreground/80 focus:bg-ink/10 focus:text-foreground">
+            {o.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   )
 }

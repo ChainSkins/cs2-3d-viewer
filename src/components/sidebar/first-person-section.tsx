@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { FieldRow } from '@/components/common/field-row'
 import { LabeledSlider } from '@/components/common/labeled-slider'
 import { Section } from '@/components/common/section'
-import { Segments } from '@/components/common/segments'
+import { SegmentedControl } from '@/components/common/segmented-control'
 import { SwitchField } from '@/components/common/switch-field'
 import { GloveSettings } from '@/components/sidebar/glove-settings'
 import { WornRow } from '@/components/sidebar/worn-row'
@@ -78,13 +78,13 @@ export function FirstPersonSection({ agentName, agentImage, glovesName, glovesIm
           </div>
           {tuning && (
             <div className="mt-2.5 flex flex-col gap-2.5">
-              <Segments label="Viewmodel preset" options={PRESETS} value={preset?.value ?? null} onChange={(v) => onViewmodel(PRESETS.find((p) => p.value === v)!.placement)} />
+              <SegmentedControl label="Viewmodel preset" options={PRESETS} value={preset?.value ?? null} onChange={(v) => onViewmodel(PRESETS.find((p) => p.value === v)!.placement)} />
               <LabeledSlider label="FOV" value={viewmodel.fov} min={54} max={68} step={1} format={(v) => v.toFixed(0)} onChange={(fov) => onViewmodel({ fov })} />
               <LabeledSlider label="Side ↔" value={viewmodel.offsetX} min={-2} max={2.5} step={0.1} format={(v) => v.toFixed(1)} onChange={(offsetX) => onViewmodel({ offsetX })} />
               <LabeledSlider label="Depth" value={viewmodel.offsetY} min={-2} max={2} step={0.1} format={(v) => v.toFixed(1)} onChange={(offsetY) => onViewmodel({ offsetY })} />
               <LabeledSlider label="Height ↕" value={viewmodel.offsetZ} min={-2} max={2} step={0.1} format={(v) => v.toFixed(1)} onChange={(offsetZ) => onViewmodel({ offsetZ })} />
               <FieldRow label="Hand">
-                <Segments label="Hand" className="flex-1" options={[{ value: 'right', label: 'Right' }, { value: 'left', label: 'Left' }]} value={viewmodel.leftHanded ? 'left' : 'right'} onChange={(v) => onViewmodel({ leftHanded: v === 'left' })} />
+                <SegmentedControl label="Hand" className="flex-1" options={[{ value: 'right', label: 'Right' }, { value: 'left', label: 'Left' }]} value={viewmodel.leftHanded ? 'left' : 'right'} onChange={(v) => onViewmodel({ leftHanded: v === 'left' })} />
               </FieldRow>
               <SwitchField checked={viewmodel.sway} label="Weapon sway" onChange={(sway) => onViewmodel({ sway })} />
             </div>

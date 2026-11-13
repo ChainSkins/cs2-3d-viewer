@@ -9,6 +9,7 @@ const scrollKey = (location: RouterLocation) => (location.key === 'default' ? lo
 function Root() {
   return (
     <>
+
       <ScrollRestoration getKey={scrollKey} />
       <Outlet />
     </>

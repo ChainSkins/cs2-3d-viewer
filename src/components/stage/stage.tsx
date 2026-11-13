@@ -4,7 +4,7 @@ import { Callout } from '@/components/common/callout'
 import { ControlsHint } from '@/components/stage/controls-hint'
 import { LoadErrorCard, LoadingCard } from '@/components/stage/load-overlay'
 import { EditButton } from '@/components/stage/edit-button'
-import { PillSwitch } from '@/components/stage/pill-switch'
+import { SegmentedControl } from '@/components/common/segmented-control'
 import { MapPicker } from '@/components/stage/map-picker'
 import { SettingsButton, type RenderStatus } from '@/components/stage/settings-button'
 import { ShareButton } from '@/components/stage/share-button'
@@ -66,7 +66,8 @@ export function Stage({ viewportRef, heading, loading, ready, error, loadError, 
         </div>
         {!hideUi && gloveGameLight !== null && (
           <div className="glass-panel pointer-events-auto rounded-xl p-1" title="The light the gloves have on a map: the studio's or the game's inspect rig">
-            <PillSwitch
+            <SegmentedControl
+              size="pill"
               label="Light on the gloves"
               options={[{ value: 'studio', label: 'Studio light' }, { value: 'game', label: 'Game light' }]}
               value={gloveGameLight ? 'game' : 'studio'}
