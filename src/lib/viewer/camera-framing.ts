@@ -72,11 +72,13 @@ export function updateFixedInspect(v: SkinViewer): void {
   scene3d?.setLightScales(v.mapLighting)
   if (v.firstPerson) {
     v.fixed.lightFirstPerson(scene3d)
+    v.applyLook()
     return
   }
   if (v.fixed.gameLit && !v.fixed.active) {
     v.fixed.lightFirstPerson(null)
     scene3d?.useLights(scene3d.data.lights, scene3d.data.sceneLights ?? [])
+    v.applyLook()
   }
   if (!v.wantsFixedInspect || !scene3d) {
     if (v.fixed.exit(scene3d)) {
@@ -90,12 +92,15 @@ export function updateFixedInspect(v: SkinViewer): void {
   const glove = v.item?.style === 'glove'
   const studio = v.fit ? { distance: v.homePosition(35).length(), fov: 35 } : undefined
   if ((v.standalone || v.agentShown || v.framedShown || glove) && v.fit) {
-    v.fixed.enter(scene3d, 'weapon_glock', { radius: v.agentShown ? v.fit.size.y * 0.4 : (v.fit.size.length() / 2) * (v.petRig ? petView(v.petRig.model.glb).room : v.framedShown ? PIN_VIEW.room : 1), sunOnly: !!v.standalone, face: !v.standalone?.parts, turn: v.petRig ? petView(v.petRig.model.glb).turn : v.framedShown ? PIN_VIEW.turn : 0, studio: glove && !v.agentShown && !v.standalone ? studio : undefined })
+    v.fixed.enter(scene3d, 'weapon_glock', { radius: v.agentShown ? v.fit.size.y * 0.4 : (v.fit.size.length() / 2) * (v.petRig ? petView(v.petRig.model.glb).room : v.framedShown ? PIN_VIEW.room : 1), sunOnly: !!v.standalone, face: !v.standalone?.parts, turn: v.petRig ? petView(v.petRig.model.glb).turn : v.framedShown ? PIN_VIEW.turn : 0, studio: glove && !v.agentShown && !v.standalone ? studio : undefined },
+      /** The game's rig by its inspect scene: a sticker or charm (1), an agent (none), a pet (9), a display item (3), gloves (7). */
+      v.standalone ? 'small' : v.agentShown ? 'character' : v.petRig ? 'pet' : v.framedShown ? 'display' : 'gloves')
   } else if (/knife|bayonet/.test(v.item!.id.split('|')[0]) && v.fit) {
-    v.fixed.enter(scene3d, 'weapon_glock', { radius: v.fit.size.length() / 2, studio })
+    v.fixed.enter(scene3d, 'weapon_glock', { radius: v.fit.size.length() / 2, studio }, 'knife')
   } else {
     v.fixed.enter(scene3d, v.item!.id.split('|')[0])
   }
+  v.applyLook()
   v.map.place()
 }
 

@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import type { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js'
 import type { ScenePost } from '@/lib/viewer/post'
+import { MAX_BARN_LIGHTS, addRigLight, type RigLight } from '@/lib/viewer/barn-light'
 
 /** A light the game aims at the inspected item (build_scenes.py; glTF space). */
 export interface SceneLight {
@@ -19,6 +20,26 @@ export interface SceneSun {
   color: number[]
   brightness: number
 }
+
+/**
+ * The game's inspect lighting for one kind of item (build_inspect_lights.py): the lights its inspect script leaves on
+ * (inspect.vts: `light_item<n>` for the item's spot `item<n>`, and whatever else of the map reaches it), the sun as the
+ * script sets it, and the probes' ambient cube there. Lights and sun are in the frame of the weapon spot (the viewer
+ * shows every item there), colours linear.
+ */
+export interface InspectRig {
+  /** The spot's entity and its yaw (degrees): what turns the ambient cube into the item's frame. */
+  spot: string
+  yaw: number
+  lights: RigLight[]
+  /** `visibility`: how much of the sun the probes' baked shadows let through at the spot (null: not baked). */
+  sun: { direction: number[]; color: number[]; brightness: number; visibility: number | null } | null
+  /** +X, −X, +Y, −Y, +Z, −Z (glTF axes; linear RGB). */
+  ambientCube?: number[][]
+}
+
+/** The kinds of item the game lights differently: its inspect scenes' `active_item_idx` (an agent has no item light). */
+export type RigName = 'weapon' | 'small' | 'display' | 'gloves' | 'knife' | 'pet' | 'character'
 
 /** An inspect map's 3D scene (build_scenes.py: scenes.json), all in glTF space (metres, Y up). */
 export interface InspectSceneData {
@@ -46,6 +67,8 @@ export interface InspectSceneData {
     /** The light probes' ambient cube at the item (+X, −X, +Y, −Y, +Z, −Z, glTF axes; linear RGB). */
     ambientCube?: number[][]
     sun?: SceneSun | null
+    /** The game's own lighting per kind of item; without it (older data) the lights above are used, matched by eye. */
+    rigs?: Partial<Record<RigName, InspectRig>>
   } | null
   /** The map's tone curve, bloom and colour grade (build_post.py). */
   post?: ScenePost
@@ -292,12 +315,7 @@ export class InspectScene {
 
   /** Sets the item lights and the map's dynamic lights (those of the scene's item spot, or the weapon spot's). */
   useLights(lights: SceneLight[], sceneLights: SceneLight[], sun: SceneSun | null = null): void {
-    for (const group of [this.lights, this.sceneLights]) {
-      for (const child of [...group.children]) {
-        group.remove(child)
-        if (child instanceof THREE.Light) child.dispose()
-      }
-    }
+    this.clearLights()
     for (const l of lights) addLight(this.lights, l, 1, 'item')
     for (const l of sceneLights) addLight(this.sceneLights, l, SCENE_LIGHT_SCALE, 'scene')
     /** The sun lights the item directly as well (on in the game's weapon rig): brightness · N·L, three's Lambert ÷ π. */
@@ -310,6 +328,48 @@ export class InspectScene {
       this.sceneLights.add(light, light.target)
     }
     this.applyLightScales()
+  }
+
+  /**
+   * Sets the lights of a game inspect rig, as the engine lights with them: no scale of our own. The strongest barn
+   * lights at the item are drawn per pixel (their edges projected, their depth fades in the item's shader); the others
+   * are evaluated where the item is (`anchor`, raised a foot: its middle).
+   */
+  useRig(rig: InspectRig, anchor: number[]): void {
+    this.clearLights()
+    const item = new THREE.Vector3(anchor[0], anchor[1] + 0.3048, anchor[2])
+    const barns = rig.lights.filter((l) => l.type === 'barn').sort((a, b) => (b.atItem ?? 0) - (a.atItem ?? 0)).slice(0, MAX_BARN_LIGHTS)
+    for (const l of rig.lights) addRigLight(l.kind === 'item' ? this.lights : this.sceneLights, l, item, barns.indexOf(l))
+    const sun = rig.sun
+    if (sun && sun.brightness > 0) {
+      const light = new THREE.DirectionalLight(new THREE.Color().setRGB(sun.color[0], sun.color[1], sun.color[2]), sun.brightness * (sun.visibility ?? 1) * Math.PI)
+      light.position.set(-sun.direction[0], -sun.direction[1], -sun.direction[2])
+      light.target.position.set(0, 0, 0)
+      light.userData.lightKind = 'sun'
+      light.userData.baseIntensity = light.intensity
+      this.sceneLights.add(light, light.target)
+    }
+    this.aimBarnLights()
+    this.applyLightScales()
+  }
+
+  private clearLights(): void {
+    for (const group of [this.lights, this.sceneLights]) {
+      for (const child of [...group.children]) {
+        group.remove(child)
+        if (child instanceof THREE.Light) child.dispose()
+      }
+    }
+  }
+
+  /** Turns each projected barn light's texture with the light's own up axis (three would use the world's). */
+  private aimBarnLights(): void {
+    for (const group of [this.lights, this.sceneLights]) {
+      for (const child of group.children) {
+        const up = child.userData.barnUp as THREE.Vector3 | undefined
+        if (up && child instanceof THREE.SpotLight) child.shadow.camera.up.copy(up).transformDirection(this.root.matrix)
+      }
+    }
   }
 
   /** The strength multipliers of the sun, the item's lights and the scene lights (kept for the lights set later). */
@@ -400,6 +460,7 @@ uniform float fogLod;`)
     this.lights.matrixWorldNeedsUpdate = true
     this.sceneLights.matrix.copy(this.root.matrix)
     this.sceneLights.matrixWorldNeedsUpdate = true
+    this.aimBarnLights()
     this.fogUniforms.fogInverse.value.setFromMatrix4(this.root.matrix).invert()
     return new THREE.Quaternion().setFromRotationMatrix(this.root.matrix)
   }

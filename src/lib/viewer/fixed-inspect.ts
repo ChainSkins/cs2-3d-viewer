@@ -1,5 +1,6 @@
 import * as THREE from 'three'
-import type { InspectScene } from '@/lib/viewer/inspect-scene'
+import type { InspectScene, RigName } from '@/lib/viewer/inspect-scene'
+import { barnDepth, barnLightsChunk } from '@/lib/viewer/barn-light'
 
 /** The game's inspect camera per weapon (panorama/scripts/inspect.vts: m_CameraSettingsPerWeapon; else by category). */
 const INSPECT_CAMERA: Record<string, string> = {
@@ -17,13 +18,13 @@ export function inspectCamera(name: string): string {
 }
 
 /**
- * The spherical harmonics (three's LightProbe convention) whose irradiance matches the game's ambient cube: the
- * cube holds radiance, Σ n_i² · cube[sign of n_i] for a normal n, so the irradiance is π² times it with three's
- * Lambert (which divides by π) — matched against skinshotter's inspect (Anubis, Ancient, Italy) — fitted by least
- * squares over directions. `yaw` turns the cube from the scene into the viewer's frame (the item stands unturned at
- * the origin).
+ * The spherical harmonics (three's LightProbe convention) whose irradiance matches the game's ambient cube, fitted by
+ * least squares over directions. The game's shaders light a normal n with Σ n_i² · cube[sign of n_i] × albedo
+ * (SampleProbeAmbientCube), in the same units as its lights (no 1 / π in its Lambert), so with three's Lambert the
+ * irradiance is π times it: `scale` 1. The older data (no game rig) was matched by eye against skinshotter with π
+ * more. `yaw` turns the cube from the scene into the viewer's frame (the item stands unturned at the origin).
  */
-export function ambientCubeSH(cube: number[][], yaw: number): THREE.SphericalHarmonics3 {
+export function ambientCubeSH(cube: number[][], yaw: number, scale = Math.PI): THREE.SphericalHarmonics3 {
   const turn = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), THREE.MathUtils.degToRad(yaw))
   const dirs: THREE.Vector3[] = []
   for (let i = 0; i < 400; i++) {
@@ -33,7 +34,7 @@ export function ambientCubeSH(cube: number[][], yaw: number): THREE.SphericalHar
   const target = (n: THREE.Vector3) => {
     const d = n.clone().applyQuaternion(turn)
     const c = [0, 1, 2].map((k) => d.x * d.x * cube[d.x >= 0 ? 0 : 1][k] + d.y * d.y * cube[d.y >= 0 ? 2 : 3][k] + d.z * d.z * cube[d.z >= 0 ? 4 : 5][k])
-    return c.map((v) => v * Math.PI * Math.PI)
+    return c.map((v) => v * Math.PI * scale)
   }
   /** Each coefficient's irradiance at every direction (getIrradianceAt is linear in the coefficients). */
   const basis = Array.from({ length: 9 }, (_, j) => {
@@ -63,7 +64,8 @@ export function ambientCubeSH(cube: number[][], yaw: number): THREE.SphericalHar
 
 /**
  * Lets the model's materials drop the environment map's diffuse light (scaled by `uniform`), keeping its
- * reflections: once per material, chained to the material's own shader changes.
+ * reflections, and light with the game's barn lights (their own falloff): once per material, chained to the
+ * material's own shader changes.
  */
 export function patchEnvDiffuse(root: THREE.Object3D, uniform: { value: number }): void {
   root.traverse((o) => {
@@ -76,12 +78,14 @@ export function patchEnvDiffuse(root: THREE.Object3D, uniform: { value: number }
       m.onBeforeCompile = (shader, renderer) => {
         previous.call(m, shader, renderer)
         shader.uniforms.uEnvDiffuse = uniform
+        shader.uniforms.uBarnDepth = barnDepth
         shader.fragmentShader = shader.fragmentShader
           .replace('#include <common>', '#include <common>\nuniform float uEnvDiffuse;')
+          .replace('#include <lights_pars_begin>', barnLightsChunk())
           .replace('#include <lights_fragment_maps>', THREE.ShaderChunk.lights_fragment_maps
             .replace('iblIrradiance += getIBLIrradiance( geometryNormal );', 'iblIrradiance += getIBLIrradiance( geometryNormal ) * uEnvDiffuse;'))
       }
-      m.customProgramCacheKey = () => key + 'envDiffuse'
+      m.customProgramCacheKey = () => key + 'gameLight'
       m.needsUpdate = true
     }
   })
@@ -189,9 +193,10 @@ export class FixedInspect {
    * anchor, turned by its yaw; here: the item at the origin), with its vertical FOV and the item's lights.
    * @param fit an item framed by its size instead (a charm, sticker or agent; its bounding radius): the camera moved along
    * its line until the item fills the view, and with `face` the item turned so its front (+Z) faces it (`turn` degrees more); `sunOnly`: lit by the sun only, as the game's keychain and sticker inspect
-   * (skincraft's rig: every light_item spot off)
+   * (skincraft's rig: every light_item spot off; only without the game's rigs)
+   * @param rigName which of the game's inspect rigs lights the item (the kind of item it is)
    */
-  enter(scene3d: InspectScene, weapon: string, fit?: { radius: number; sunOnly?: boolean; face?: boolean; turn?: number; studio?: { distance: number; fov: number } }): void {
+  enter(scene3d: InspectScene, weapon: string, fit?: { radius: number; sunOnly?: boolean; face?: boolean; turn?: number; studio?: { distance: number; fov: number } }, rigName: RigName = 'weapon'): void {
     if (!this.drag) {
       this.drag = { yaw: 0, pitch: 0, dragging: false, last: [0, 0] }
       this.dolly = 1
@@ -199,14 +204,17 @@ export class FixedInspect {
     const view = scene3d.data.weapon!
     const cam = view.cameras[inspectCamera(weapon)] ?? view.cameras['3'] ?? Object.values(view.cameras)[0]
     scene3d.setGameCamera(cam.position, cam.forward)
-    /** The item's lights as the game's rig has them on for a weapon: the sun and light_item(_new) (skincraft's rig dump). */
-    this.sunOnly = !!fit?.sunOnly
-    if (fit?.sunOnly) scene3d.useLights([], [], view.sun ?? null)
+    /** The game's own rig for this kind of item; without it (older data), the weapon's lights as skincraft's rig dump had them on. */
+    const rig = view.rigs?.[rigName] ?? view.rigs?.weapon ?? null
+    this.sunOnly = !rig && !!fit?.sunOnly
+    if (rig) scene3d.useRig(rig, view.anchor.position)
+    else if (fit?.sunOnly) scene3d.useLights([], [], view.sun ?? null)
     else scene3d.useLights(view.lights ?? [], view.sceneLights ?? [], view.sun ?? null)
-    if (view.ambientCube) {
-      this.probe.sh.copy(ambientCubeSH(view.ambientCube, view.anchor.yaw))
+    patchEnvDiffuse(this.holder, this.envDiffuse)
+    const cube = rig ? rig.ambientCube : view.ambientCube
+    if (cube) {
+      this.probe.sh.copy(rig ? ambientCubeSH(cube, rig.yaw, 1) : ambientCubeSH(cube, view.anchor.yaw))
       this.setProbe(true)
-      patchEnvDiffuse(this.holder, this.envDiffuse)
       this.envDiffuse.value = 0
     } else {
       this.setProbe(false)
@@ -251,19 +259,24 @@ export class FixedInspect {
       this.envDiffuse.value = 1
       return
     }
-    scene3d.useLights([], [], view.sun ?? null)
-    if (view.ambientCube) {
+    /** Not an inspect scene: the map's sun at its own brightness (the agent's rig keeps it) and the ambient, no item light. */
+    const rig = view.rigs?.character ?? null
+    if (rig) scene3d.useRig({ ...rig, lights: [] }, view.anchor.position)
+    else scene3d.useLights([], [], view.sun ?? null)
+    patchEnvDiffuse(this.holder, this.envDiffuse)
+    const cube = rig ? rig.ambientCube : view.ambientCube
+    if (cube) {
       const [fx, , fz] = scene3d.data.camera.forward
-      this.probe.sh.copy(ambientCubeSH(view.ambientCube, THREE.MathUtils.radToDeg(Math.atan2(fx, fz))))
+      const yaw = THREE.MathUtils.radToDeg(Math.atan2(fx, fz))
+      this.probe.sh.copy(rig ? ambientCubeSH(cube, yaw, 1) : ambientCubeSH(cube, yaw))
       this.setProbe(true)
-      patchEnvDiffuse(this.holder, this.envDiffuse)
       this.envDiffuse.value = 0
     }
   }
 
-  /** Patches meshes added to the item after `enter` (a charm hung on the weapon) to drop the environment's diffuse light too. */
+  /** Patches meshes added to the item after `enter` (a charm hung on the weapon) to take the game's light too. */
   patchAdded(): void {
-    if (this.gameLit && this.envDiffuse.value === 0) patchEnvDiffuse(this.holder, this.envDiffuse)
+    if (this.gameLit) patchEnvDiffuse(this.holder, this.envDiffuse)
   }
 
   /** Leaves the fixed inspect (the scene back to its own camera and lights); false when it wasn't on. */

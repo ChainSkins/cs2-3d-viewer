@@ -13,7 +13,7 @@ interface MapLightingOptionsProps {
 
 const LIGHTS: { key: Exclude<LightSource, 'studio'>; label: string; icon: LucideIcon; hint: string }[] = [
   { key: 'sun', label: 'Sun', icon: Sun, hint: 'The map’s sun' },
-  { key: 'item', label: 'Item light', icon: Lamp, hint: 'The spot lights the game aims at a weapon, gloves or agent' },
+  { key: 'item', label: 'Item light', icon: Lamp, hint: 'The light the game puts behind the inspected item (its rim light)' },
   { key: 'scene', label: 'Map lights', icon: SunDim, hint: 'The map’s own lights around the inspect spot' },
   { key: 'ambient', label: 'Ambient', icon: Sparkles, hint: 'The light probes’ light from around' },
   { key: 'reflections', label: 'Reflections', icon: Waves, hint: 'The environment in metals and gloss' },

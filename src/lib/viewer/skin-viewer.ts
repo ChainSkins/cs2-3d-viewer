@@ -297,17 +297,30 @@ export class SkinViewer {
   setLighting(changes: Partial<Lighting>): void {
     this.lighting = { ...this.lighting, ...changes }
     const l = this.lighting
-    this.renderer.toneMappingExposure = l.exposure
-    this.map.setExposure(l.exposure)
     this.keyLight.intensity = l.key
     this.keyLight.color.set(l.keyColor)
     this.rimLight.intensity = l.rim
     this.rimLight.color.set(l.rimColor)
     const map = IS_MOBILE_DEVICE ? null : l.map ?? null
-    this.scene.environmentIntensity = map ? (l.ambient / DEFAULT_LIGHTING.ambient) * this.mapLighting.reflections : l.ambient
+    this.applyLook()
     if (!l.orbit) this.lightSpin = 0
     this.placeLights()
     if (map !== this.map.id) void this.map.load(map)
+  }
+
+  /**
+   * The brightness and the environment's strength. Lit by the game's own rig (the fixed inspect, first person over a
+   * map) they are the game's: the map's exposure alone and its reflections as they are (× the map lighting's
+   * multiplier), whatever the studio lighting is set to. Elsewhere the studio's exposure and ambient apply.
+   */
+  applyLook(): void {
+    const l = this.lighting
+    const game = !!this.fixed?.gameLit
+    const exposure = game ? 1 : l.exposure
+    this.renderer.toneMappingExposure = exposure
+    this.map.setExposure(exposure)
+    const onMap = !IS_MOBILE_DEVICE && !!l.map
+    this.scene.environmentIntensity = onMap ? (game ? 1 : l.ambient / DEFAULT_LIGHTING.ambient) * this.mapLighting.reflections : l.ambient
   }
 
   /**
