@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import type { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js'
 import type { ScenePost } from '@/lib/viewer/post'
-import { MAX_BARN_LIGHTS, addRigLight, type RigLight } from '@/lib/viewer/barn-light'
+import { MAX_BARN_EDGES, MAX_BARN_LIGHTS, addRigLight, type RigLight } from '@/lib/viewer/barn-light'
 
 /** A light the game aims at the inspected item (build_scenes.py; glTF space). */
 export interface SceneLight {
@@ -36,10 +36,12 @@ export interface InspectRig {
   sun: { direction: number[]; color: number[]; brightness: number; visibility: number | null } | null
   /** +X, −X, +Y, −Y, +Z, −Z (glTF axes; linear RGB). */
   ambientCube?: number[][]
+  /** The camera the game frames this kind of item with (moved with the spot onto the weapon's), when it has its own. */
+  camera?: { name: string; position: number[]; forward: number[]; fov: number }
 }
 
 /** The kinds of item the game lights differently: its inspect scenes' `active_item_idx` (an agent has no item light). */
-export type RigName = 'weapon' | 'small' | 'display' | 'gloves' | 'knife' | 'pet' | 'character'
+export type RigName = 'weapon' | 'small' | 'charm' | 'display' | 'gloves' | 'knife' | 'pet' | 'character'
 
 /** An inspect map's 3D scene (build_scenes.py: scenes.json), all in glTF space (metres, Y up). */
 export interface InspectSceneData {
@@ -331,20 +333,39 @@ export class InspectScene {
   }
 
   /**
-   * Sets the lights of a game inspect rig, as the engine lights with them: no scale of our own. The strongest barn
-   * lights at the item are drawn per pixel (their edges projected, their depth fades in the item's shader); the others
-   * are evaluated where the item is (`anchor`, raised a foot: its middle).
+   * Sets the lights of a game inspect rig, as the engine lights with them: no scale of our own. Barn lights are drawn
+   * per pixel with their depth fades (the strongest at the item with their soft edge projected, the rest with the
+   * cone's penumbra); omni lights per pixel with their range and cone taken where the item is (`anchor`, raised a foot:
+   * its middle), ortho barns there too.
+   * @param shadowRadius the item's bounding radius: the sun casts its shadow on the item itself (the game's sun shadow
+   * cascades on the inspected item), framed around the anchor; 0 for none
    */
-  useRig(rig: InspectRig, anchor: number[]): void {
+  useRig(rig: InspectRig, anchor: number[], shadowRadius = 0): void {
     this.clearLights()
     const item = new THREE.Vector3(anchor[0], anchor[1] + 0.3048, anchor[2])
     const barns = rig.lights.filter((l) => l.type === 'barn').sort((a, b) => (b.atItem ?? 0) - (a.atItem ?? 0)).slice(0, MAX_BARN_LIGHTS)
-    for (const l of rig.lights) addRigLight(l.kind === 'item' ? this.lights : this.sceneLights, l, item, barns.indexOf(l))
+    for (const l of rig.lights) addRigLight(l.kind === 'item' ? this.lights : this.sceneLights, l, item, barns.indexOf(l), barns.indexOf(l) < MAX_BARN_EDGES)
     const sun = rig.sun
     if (sun && sun.brightness > 0) {
       const light = new THREE.DirectionalLight(new THREE.Color().setRGB(sun.color[0], sun.color[1], sun.color[2]), sun.brightness * (sun.visibility ?? 1) * Math.PI)
       light.position.set(-sun.direction[0], -sun.direction[1], -sun.direction[2])
       light.target.position.set(0, 0, 0)
+      if (shadowRadius > 0) {
+        const center = new THREE.Vector3(anchor[0], anchor[1], anchor[2])
+        const r = shadowRadius * 1.15
+        light.target.position.copy(center)
+        light.position.copy(center).addScaledVector(new THREE.Vector3(sun.direction[0], sun.direction[1], sun.direction[2]), -r * 3)
+        light.castShadow = true
+        const camera = light.shadow.camera
+        camera.left = camera.bottom = -r
+        camera.right = camera.top = r
+        camera.near = r
+        camera.far = r * 5
+        light.shadow.mapSize.set(2048, 2048)
+        light.shadow.bias = -0.0002
+        light.shadow.normalBias = shadowRadius * 0.004
+        light.shadow.radius = 2
+      }
       light.userData.lightKind = 'sun'
       light.userData.baseIntensity = light.intensity
       this.sceneLights.add(light, light.target)

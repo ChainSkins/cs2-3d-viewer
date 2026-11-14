@@ -138,6 +138,9 @@ export class SkinViewer {
 
   constructor(private readonly container: HTMLElement, readonly opts: SkinViewerOptions) {
     this.renderer = new THREE.WebGLRenderer({ antialias: opts.antialias ?? true, alpha: true })
+    /** Only the map's sun casts a shadow, on the item itself, in the game's inspect. */
+    this.renderer.shadowMap.enabled = true
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
     this.renderer.setPixelRatio(this.pixelRatio)
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping
     this.renderer.outputColorSpace = THREE.SRGBColorSpace

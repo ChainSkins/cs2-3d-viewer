@@ -25,7 +25,10 @@ export interface RigLight {
   atItem?: number
 }
 
-export const MAX_BARN_LIGHTS = 4
+export const MAX_BARN_LIGHTS = 8
+
+/** How many of them also get their soft edge as a projected texture (texture units are few; the rest: the cone's penumbra). */
+export const MAX_BARN_EDGES = 4
 
 
 export const barnDepth = { value: Array.from({ length: MAX_BARN_LIGHTS }, () => new THREE.Vector4(0, 1, 0, 0)) }
@@ -114,7 +117,7 @@ const vec = (v: number[]) => new THREE.Vector3(v[0], v[1], v[2])
  * @param item where the item is (the scene's frame): what a light without a per-pixel slot is evaluated at
  * @param slot the per-pixel barn slot (edges projected, depth fades in the shader), or -1 to evaluate it at the item
  */
-export function addRigLight(group: THREE.Group, l: RigLight, item: THREE.Vector3, slot: number): void {
+export function addRigLight(group: THREE.Group, l: RigLight, item: THREE.Vector3, slot: number, edge = true): void {
   const color = new THREE.Color().setRGB(l.color[0], l.color[1], l.color[2])
   const position = vec(l.position), forward = vec(l.forward)
   const rel = item.clone().sub(position)
@@ -127,7 +130,12 @@ export function addRigLight(group: THREE.Group, l: RigLight, item: THREE.Vector3
     const spot = new THREE.SpotLight(color, l.intensity! * Math.PI, 0, angle, 0.02, 2)
     if (slot >= 0) {
       spot.decay = -(slot + 1)
-      spot.map = edgeTexture(l, reach)
+      if (edge) spot.map = edgeTexture(l, reach)
+      else {
+        /** No texture left for its edge: the cone stops at the frustum's side and fades over its softness. */
+        spot.angle = Math.atan(Math.max(tan[0], tan[1]))
+        spot.penumbra = Math.min(Math.max(((l.soft ?? [0, 0])[0] + (l.soft ?? [0, 0])[1]) / 2, 0.02), 1)
+      }
       spot.shadow.camera.near = 0.01
       spot.shadow.camera.far = near + l.range
       spot.userData.barnUp = vec(l.up!)

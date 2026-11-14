@@ -63,6 +63,62 @@ export function ambientCubeSH(cube: number[][], yaw: number, scale = Math.PI): T
 }
 
 /**
+ * The environment map's own light as the game keeps it to normalize reflections (SceneEnvMap.CalculateNormalizationSH):
+ * the luminance of its radiance reduced to the constant and linear harmonics, folded so `dot((n, 1), sh)` is the
+ * cosine-weighted radiance seen around a normal n (three's equirect directions, before `envMapRotation`). w 0: none.
+ */
+export const envNormSH = { value: new THREE.Vector4(0, 0, 0, 0) }
+
+/** `envNormSH` for an equirectangular HDR (three's layout: row 0 at the top, u from atan(z, x), v from asin(y)). */
+export function envNormalizationSH(texture: THREE.Texture): THREE.Vector4 {
+  const { data, width, height } = texture.image as { data: ArrayLike<number>; width: number; height: number }
+  const half = data instanceof Uint16Array
+  const value = (i: number) => (half ? THREE.DataUtils.fromHalfFloat(data[i]) : data[i])
+  const channels = data.length / (width * height)
+  const step = Math.max(1, Math.floor(width / 512))
+  let c0 = 0
+  const c1 = new THREE.Vector3()
+  const dir = new THREE.Vector3()
+  for (let j = 0; j < height; j += step) {
+    const lat = (0.5 - (j + 0.5) / height) * Math.PI
+    const weight = Math.cos(lat) * (Math.PI / height) * ((2 * Math.PI) / width) * step * step
+    for (let i = 0; i < width; i += step) {
+      const phi = ((i + 0.5) / width - 0.5) * 2 * Math.PI
+      const k = (j * width + i) * channels
+      const luma = (value(k) * 0.2125 + value(k + 1) * 0.7154 + value(k + 2) * 0.0721) * weight
+      dir.set(Math.cos(lat) * Math.cos(phi), Math.sin(lat), Math.cos(lat) * Math.sin(phi))
+      c0 += luma * 0.282095
+      c1.addScaledVector(dir, luma * 0.488603)
+    }
+  }
+  /** Y00 for the constant band, Y1 × 2/3 (the cosine lobe) for the linear one, kept short enough for the dot to stay positive. */
+  const constant = c0 * 0.282095
+  if (constant <= 0) return new THREE.Vector4(0, 0, 0, 0)
+  const linear = c1.multiplyScalar(0.325735)
+  const length = Math.hypot(linear.x, linear.y, linear.z, constant)
+  linear.multiplyScalar(Math.min((constant * 0.99) / length, 1))
+  return new THREE.Vector4(linear.x, linear.y, linear.z, constant)
+}
+
+/**
+ * The game's specular occlusion of the environment map (GetEnvMapNormalization): the reflection scaled by the ambient
+ * light reaching the surface (the probes' cube along the normal) over the light the environment map was captured with
+ * there. CS2 ships with the brightening off (lighting_profile.slang: ceiling 1), so it only darkens.
+ */
+const ENV_NORMALIZATION_GLSL = /* glsl */ `
+#ifdef USE_ENVMAP
+uniform vec4 uEnvNormSH;
+float envNormalization( vec3 normal ) {
+  if ( uEnvDiffuse > 0.5 || uEnvNormSH.w <= 0.0 ) return 1.0;
+  float baked = dot( vec4( envMapRotation * inverseTransformDirection( normal, viewMatrix ), 1.0 ), uEnvNormSH );
+  if ( baked <= 0.0 ) return 1.0;
+  float ambient = dot( getLightProbeIrradiance( lightProbe, normal ) / PI, vec3( 0.2125, 0.7154, 0.0721 ) );
+  return min( ambient / baked, 1.0 );
+}
+#endif
+`
+
+/**
  * Lets the model's materials drop the environment map's diffuse light (scaled by `uniform`), keeping its
  * reflections, and light with the game's barn lights (their own falloff): once per material, chained to the
  * material's own shader changes.
@@ -70,6 +126,8 @@ export function ambientCubeSH(cube: number[][], yaw: number, scale = Math.PI): T
 export function patchEnvDiffuse(root: THREE.Object3D, uniform: { value: number }): void {
   root.traverse((o) => {
     if (!(o instanceof THREE.Mesh)) return
+    /** The item shades itself from the sun (the scope on the barrel…). */
+    o.castShadow = o.receiveShadow = true
     for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
       if (!(m instanceof THREE.MeshStandardMaterial) || m.userData.envDiffusePatched) continue
       m.userData.envDiffusePatched = true
@@ -79,13 +137,16 @@ export function patchEnvDiffuse(root: THREE.Object3D, uniform: { value: number }
         previous.call(m, shader, renderer)
         shader.uniforms.uEnvDiffuse = uniform
         shader.uniforms.uBarnDepth = barnDepth
+        shader.uniforms.uEnvNormSH = envNormSH
         shader.fragmentShader = shader.fragmentShader
           .replace('#include <common>', '#include <common>\nuniform float uEnvDiffuse;')
-          .replace('#include <lights_pars_begin>', barnLightsChunk())
+          .replace('#include <lights_pars_begin>', barnLightsChunk() + ENV_NORMALIZATION_GLSL)
           .replace('#include <lights_fragment_maps>', THREE.ShaderChunk.lights_fragment_maps
-            .replace('iblIrradiance += getIBLIrradiance( geometryNormal );', 'iblIrradiance += getIBLIrradiance( geometryNormal ) * uEnvDiffuse;'))
+            .replace('iblIrradiance += getIBLIrradiance( geometryNormal );', 'iblIrradiance += getIBLIrradiance( geometryNormal ) * uEnvDiffuse;')
+            .replace('radiance += getIBLRadiance( geometryViewDir, geometryNormal, material.roughness );',
+              'radiance += getIBLRadiance( geometryViewDir, geometryNormal, material.roughness ) * envNormalization( geometryNormal );'))
       }
-      m.customProgramCacheKey = () => key + 'gameLight'
+      m.customProgramCacheKey = () => key + 'gameLight2'
       m.needsUpdate = true
     }
   })
@@ -202,12 +263,13 @@ export class FixedInspect {
       this.dolly = 1
     }
     const view = scene3d.data.weapon!
-    const cam = view.cameras[inspectCamera(weapon)] ?? view.cameras['3'] ?? Object.values(view.cameras)[0]
-    scene3d.setGameCamera(cam.position, cam.forward)
     /** The game's own rig for this kind of item; without it (older data), the weapon's lights as skincraft's rig dump had them on. */
     const rig = view.rigs?.[rigName] ?? view.rigs?.weapon ?? null
+    /** The camera the game ends on for this kind of item (cam_melee, cam_gloves…); a weapon's per weapon (cam_<n>). */
+    const cam = rig?.camera ?? view.cameras[inspectCamera(weapon)] ?? view.cameras['3'] ?? Object.values(view.cameras)[0]
+    scene3d.setGameCamera(cam.position, cam.forward)
     this.sunOnly = !rig && !!fit?.sunOnly
-    if (rig) scene3d.useRig(rig, view.anchor.position)
+    if (rig) scene3d.useRig(rig, view.anchor.position, new THREE.Box3().setFromObject(this.holder).getBoundingSphere(new THREE.Sphere()).radius)
     else if (fit?.sunOnly) scene3d.useLights([], [], view.sun ?? null)
     else scene3d.useLights(view.lights ?? [], view.sceneLights ?? [], view.sun ?? null)
     patchEnvDiffuse(this.holder, this.envDiffuse)
