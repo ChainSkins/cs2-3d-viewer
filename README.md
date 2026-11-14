@@ -112,12 +112,13 @@ src/
 | `model-loader.ts` | Loads weapons, gloves and agents' arms with their materials and finishes |
 | `weapon-attachments.ts` | The weapon's stickers and charm (sticker mask, keychain anchors) |
 | `map-stage.ts` | The studio or an inspect map: HDR panorama (reflections), the pre-rendered background video, the map's lights, post. A map without its video doesn't load (the previous one stays); the map's geometry and lightmaps are never downloaded |
-| `fixed-inspect.ts` | The game's fixed inspect camera over the video, and the ambient light from the light probes |
+| `fixed-inspect.ts` | The game's fixed inspect over the video: each kind of item's own camera and light rig (from `inspect.vts` and the map's entities), the light probes' ambient, the sun's shadow on the item, and the game's normalization of reflections |
+| `barn-light.ts` | The game's barn lights as the engine lights with them: frustum, soft edges, near / far skirts and falloff, per pixel |
 | `agent-view.ts` | An agent in third person, in its main-menu idle |
 | `agent-eyes.ts` | The agents' eyes: the game's `S_EYEBALLS` (a virtual sphere at each eyeball bone, ray-traced in the head material, with the shared iris texture) |
 | `agent-patches.ts` | The patches on an agent's body material: the game's `csgo_character` F_PATCHES placement (decompiled pixel shader) injected into the material |
 | `firstperson.ts` | Skeletons, CPU skinning, animation clips, forearm twist constraints |
-| `inspect-scene.ts`, `post.ts`, `map-veil.ts` | The map's lights and camera (the viewer loads it `lightsOnly`; the full geometry loader is still there but unused), the map's post (tone curve, bloom, LUT), the transition between maps |
+| `inspect-scene.ts`, `post.ts`, `map-veil.ts` | The map's lights and camera (the viewer loads it `lightsOnly`; the full geometry loader is still there but unused), the map's post (CS2's bloom chain, tone curve, LUT), the transition between maps |
 | `textures.ts`, `geometry.ts` | Texture loading (WebP), geometry helpers |
 | `viewer-options.ts` | Types and defaults (lighting, viewmodel, stickers, charm) |
 
@@ -352,7 +353,8 @@ frame.contentWindow.postMessage({ type: 'cs3d:set', options: { float: 0.25, seed
 
 | Area | What | Notes |
 | --- | --- | --- |
-| Lighting | Light on the weapon: the map's own light and the sun don't reach the weapon as they do in the game | |
+| Lighting | The inspect's automatic sway (`auto_rotate` 35° / 10°, 15 s / 25 s in `inspect.vts`) is not replicated: the motion is in the engine's C++, not in the game files | |
+| Lighting | The item's material is three.js with the ported composite, not the game's full `csgo_weapon` shader | |
 | Wear | Float-driven wear of some items (mostly gloves) doesn't match the game | |
 
 ## Known issues
@@ -360,4 +362,6 @@ frame.contentWindow.postMessage({ type: 'cs3d:set', options: { float: 0.25, seed
 | Area | Issue | Example |
 | --- | --- | --- |
 | First person | Sleeves weighted to torso bones the viewmodel lacks (spine, clavicle, scapula, pouch jiggles) are pinned to the upper arm instead of the game's own solve; the shoulder end may differ slightly | Elite Trapper Solman (Jungle Raider) |
+| Maps | With an agent's or gloves' own game camera the light comes from the game's side, but the background video is the one shot from the weapon's camera (in the game you would see another part of the map) | Agent on any map |
+| Maps | The pet has no camera of its own: the game's `cam_gloves` doesn't look at the pet's spot (`item9`), so it keeps the viewer's framing | Any pet on a map |
 | Wear / Pattern | Wear appearance does not vary correctly with the pattern/paint seed; some gloves show the same wear distribution across different patterns even though the wear should affect different areas depending on the pattern | Pandora's Box |

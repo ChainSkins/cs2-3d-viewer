@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import type { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js'
-import { loadBackgroundVideo } from '@/lib/viewer/fixed-inspect'
+import { envNormSH, envNormalizationSH, loadBackgroundVideo } from '@/lib/viewer/fixed-inspect'
 import { InspectScene, loadScenes } from '@/lib/viewer/inspect-scene'
 import { MapVeil } from '@/lib/viewer/map-veil'
 import { PostPipeline } from '@/lib/viewer/post'
@@ -92,6 +92,7 @@ export class MapStage {
       this.disposeMap()
       scene.background = this.studioBackground
       scene.environment = this.studioEnvironment
+      envNormSH.value.set(0, 0, 0, 0)
       scene.backgroundIntensity = 1
       this.host.onChange()
       this.veil.reveal()
@@ -112,6 +113,8 @@ export class MapStage {
       if (token === this.token) this.veil.reveal()
       return
     }
+    /** The light the panorama (the map's env cubemap) holds, for the game's normalization of reflections. */
+    envNormSH.value.copy(envNormalizationSH(texture))
     texture.mapping = THREE.EquirectangularReflectionMapping
     texture.generateMipmaps = true
     texture.minFilter = THREE.LinearMipmapLinearFilter

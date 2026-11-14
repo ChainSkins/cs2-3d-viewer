@@ -32,7 +32,7 @@ export interface RenderQuality {
 export interface MapLighting {
   /** The map's sun (light_environment). */
   sun: number
-  /** The item's own spot lights (light_item_new…). */
+  /** The item's own light (light_item<n>: the rim light behind it). */
   item: number
   /** The map's scene lights around the inspect spot. */
   scene: number
