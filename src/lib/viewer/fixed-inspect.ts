@@ -286,6 +286,7 @@ export class FixedInspect {
     const unturn = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -THREE.MathUtils.degToRad(view.anchor.yaw))
     const position = new THREE.Vector3(...cam.position).sub(new THREE.Vector3(...view.anchor.position)).applyQuaternion(unturn)
     const forward = new THREE.Vector3(...cam.forward).applyQuaternion(unturn)
+    if (fit) position.copy(forward).negate().multiplyScalar(position.length())
     this.faceYaw = fit?.face ? THREE.MathUtils.radToDeg(Math.atan2(position.x, position.z)) + (fit.turn ?? 0) : 0
     if (fit?.studio) {
       /** The studio's framing kept: its distance scaled so the item fills the game camera's (fitted) FOV as it did the studio's. */
