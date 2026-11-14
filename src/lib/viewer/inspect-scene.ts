@@ -74,6 +74,7 @@ export interface InspectSceneData {
   } | null
   /** The map's tone curve, bloom and colour grade (build_post.py). */
   post?: ScenePost
+  rain?: { strength: number }
   fog?: { cubemap?: { start: number; end: number; falloff: number; opacity: number; lodBias: number } }
 }
 

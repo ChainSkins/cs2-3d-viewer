@@ -5,9 +5,9 @@ import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import type { GloveItem, Item } from '@/lib/data/items'
 import { TextureSource } from '@/lib/viewer/textures'
-import type { WeaponItem } from '@/lib/materials/weapon'
+import { RAIN, type WeaponItem } from '@/lib/materials/weapon'
 
-import { VIEWER_DATA } from '@/lib/data/catalog'
+import { GAME_ROOT, VIEWER_DATA } from '@/lib/data/catalog'
 import { PatchLayer, type AgentPatch } from '@/lib/viewer/agent-patches'
 import { attackLabel, secondaryAttack, type AttackInfo } from '@/lib/data/attacks'
 
@@ -234,7 +234,20 @@ export class SkinViewer {
     for (const finish of this.loaded.finishes) if (isGlove(finish)) finish.update(this.renderer)
     if (!this.firstPerson && !this.fixed.active) this.controls.update()
     this.attachments.step(dt)
+    this.stepRain(time)
     this.map.render()
+  }
+
+  private dropletsRequested = false
+
+  private stepRain(time: number): void {
+    const strength = this.map.scene3d?.data.rain?.strength ?? 0
+    if (strength > 0 && !this.dropletsRequested) {
+      this.dropletsRequested = true
+      void this.loader.textures.load(GAME_ROOT + 'materials/dev/water_droplets.png', false).then((t) => { RAIN.uDroplets.value = t }).catch(() => {})
+    }
+    RAIN.uRainWet.value = RAIN.uDroplets.value ? strength : 0
+    RAIN.uRainTime.value = time / 1000
   }
 
   /** Stops drawing frames (offscreen) or starts again. */
