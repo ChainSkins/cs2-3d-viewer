@@ -60,8 +60,6 @@ export function ViewerPage({ selection }: ViewerPageProps) {
     setSheetOpen(false)
   }
   const togglePanel = () => setPanelCollapsed((prev) => !prev)
-  const [gloveGameLight, setGloveGameLight] = useLocalStorage('glove-game-light', true)
-  useEffect(() => { viewer?.setGloveGameLight(gloveGameLight) }, [viewer, gloveGameLight])
 
   useViewerSync(viewer, selection, item, status, state, view)
 
@@ -180,8 +178,6 @@ export function ViewerPage({ selection }: ViewerPageProps) {
           mapLighting={mapLighting}
           onMapLighting={setMapLighting}
           readRenderStatus={readRenderStatus}
-          gloveGameLight={selection.kind === 'skin' && item?.style === 'glove' && !!lighting.map && !IS_MOBILE_DEVICE ? gloveGameLight : null}
-          onGloveGameLight={setGloveGameLight}
           spin={view.spin}
           isWeapon={isWeapon}
           posed={!!item && hasItemPose(item.id.split('|')[0])}

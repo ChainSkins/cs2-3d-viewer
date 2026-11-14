@@ -4,7 +4,6 @@ import { Callout } from '@/components/common/callout'
 import { ControlsHint } from '@/components/stage/controls-hint'
 import { LoadErrorCard, LoadingCard } from '@/components/stage/load-overlay'
 import { EditButton } from '@/components/stage/edit-button'
-import { SegmentedControl } from '@/components/common/segmented-control'
 import { MapPicker } from '@/components/stage/map-picker'
 import { SettingsButton, type RenderStatus } from '@/components/stage/settings-button'
 import { ShareButton } from '@/components/stage/share-button'
@@ -39,13 +38,11 @@ interface StageProps extends StageToolbarProps {
   mapLighting: MapLighting
   onMapLighting: (changes: Partial<MapLighting>) => void
   readRenderStatus: () => RenderStatus | null
-  gloveGameLight: boolean | null
-  onGloveGameLight: (on: boolean) => void
   hideUi: boolean
   onToggleUi: () => void
 }
 
-export function Stage({ viewportRef, heading, loading, ready, error, loadError, onRetry, map, onMap, getShare, canEdit, editing, onToggleEditing, quality, onQuality, lighting, lightingPreset, onLighting, mapLighting, onMapLighting, readRenderStatus, gloveGameLight, onGloveGameLight, hideUi, onToggleUi, ...toolbar }: StageProps) {
+export function Stage({ viewportRef, heading, loading, ready, error, loadError, onRetry, map, onMap, getShare, canEdit, editing, onToggleEditing, quality, onQuality, lighting, lightingPreset, onLighting, mapLighting, onMapLighting, readRenderStatus, hideUi, onToggleUi, ...toolbar }: StageProps) {
   return (
     <main className="relative order-1 min-h-[62dvh] flex-1 overflow-hidden border-ink/10 lg:order-2 lg:min-h-0">
       <StudioBackdrop />
@@ -64,17 +61,6 @@ export function Stage({ viewportRef, heading, loading, ready, error, loadError, 
           )}
           <ToolButton icon={hideUi ? Minimize2 : Maximize2} label={hideUi ? 'Show UI (H)' : 'Hide UI (H)'} pressed={hideUi} onClick={onToggleUi} />
         </div>
-        {!hideUi && gloveGameLight !== null && (
-          <div className="glass-panel pointer-events-auto rounded-xl p-1" title="The light the gloves have on a map: the studio's or the game's inspect rig">
-            <SegmentedControl
-              size="pill"
-              label="Light on the gloves"
-              options={[{ value: 'studio', label: 'Studio light' }, { value: 'game', label: 'Game light' }]}
-              value={gloveGameLight ? 'game' : 'studio'}
-              onChange={(v) => onGloveGameLight(v === 'game')}
-            />
-          </div>
-        )}
       </div>
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col items-center gap-2 p-4 lg:p-5">

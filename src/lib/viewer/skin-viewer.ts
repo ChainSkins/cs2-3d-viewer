@@ -53,6 +53,31 @@ export type { KnifePose }
  * pet-view, standalone-views (sticker, pin, patch, charm), first-person-view, agent-stage, camera-framing, render-quality.
  * That is why most of its state is not private.
  */
+function handAxis(hand: THREE.Object3D): THREE.Vector3 | null {
+  hand.updateMatrixWorld(true)
+  const toParent = hand.parent ? hand.parent.matrixWorld.clone().invert() : new THREE.Matrix4()
+  const points: THREE.Vector3[] = []
+  hand.traverse((o) => {
+    if (!(o instanceof THREE.Mesh)) return
+    const position = o.geometry.getAttribute('position')
+    if (!position) return
+    const m = toParent.clone().multiply(o.matrixWorld)
+    const step = Math.max(1, Math.floor(position.count / 4000))
+    for (let i = 0; i < position.count; i += step) points.push(new THREE.Vector3().fromBufferAttribute(position, i).applyMatrix4(m))
+  })
+  if (points.length < 20) return null
+  let up = new THREE.Vector3(0, 1, 0)
+  for (let pass = 0; pass < 3; pass++) {
+    const sorted = [...points].sort((a, b) => a.dot(up) - b.dot(up))
+    const n = Math.max(1, Math.floor(sorted.length * 0.1))
+    const centroid = (list: THREE.Vector3[]) => list.reduce((a, p) => a.add(p), new THREE.Vector3()).divideScalar(list.length)
+    const axis = centroid(sorted.slice(-n)).sub(centroid(sorted.slice(0, n)))
+    if (axis.lengthSq() === 0) return null
+    up = axis.normalize()
+  }
+  return up
+}
+
 export class SkinViewer {
   readonly renderer: THREE.WebGLRenderer
   readonly scene = new THREE.Scene()
@@ -103,7 +128,6 @@ export class SkinViewer {
   /** The agent shown holding a weapon. */
   agentRig: AgentRig | null = null
   /** Gloves on a map lit by the game's inspect rig (true) or the studio lights (false, the default). */
-  private gloveGameLight = false
   /** An agent is shown (posed or not). */
   agentShown = false
   /** A pet or a pin is on the stage: it takes the map's light like an item on its own does (the fixed game inspect). */
@@ -406,8 +430,10 @@ export class SkinViewer {
 
   private placeHands(): void {
     for (const { side, mesh } of this.loaded.hands) {
-      const turn = side === 'right' && !this.palmUp ? Math.PI / 2 : -Math.PI / 2
+      const turn = side === 'right' && !this.palmUp ? -Math.PI / 2 : Math.PI / 2
       mesh.rotation.set(0, turn, Math.PI)
+      const axis = handAxis(mesh)
+      if (axis) mesh.quaternion.premultiply(new THREE.Quaternion().setFromUnitVectors(axis, new THREE.Vector3(0, 1, 0)))
     }
   }
 
@@ -415,18 +441,11 @@ export class SkinViewer {
   get wantsFixedInspect(): boolean {
     const name = this.item?.id.split('|')[0] ?? ''
     if (!this.map.video || !this.map.scene3d?.data.weapon || this.firstPerson) return false
-    return !!this.standalone || this.agentShown || this.framedShown || (this.item?.style === 'glove' ? this.gloveGameLight : !!this.item && !!name)
+    return !!this.standalone || this.agentShown || this.framedShown || (!!this.item && !!name)
   }
 
   /** Enters the fixed inspect when it applies, or gives the view back to the orbit. */
   updateFixedInspect(): void { updateFixedInspect(this) }
-
-  /** Gloves on a map: the game's inspect light (true) or the studio's (false). */
-  setGloveGameLight(on: boolean): void {
-    if (this.gloveGameLight === on) return
-    this.gloveGameLight = on
-    this.updateFixedInspect()
-  }
 
   /** Center the model and put the camera at its side, far enough for it to fit. */
   frame(root: THREE.Object3D, tiltUpright: boolean, lookX?: boolean): void { frame(this, root, tiltUpright, lookX) }
