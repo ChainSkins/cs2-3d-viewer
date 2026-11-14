@@ -29,6 +29,7 @@ import { useViewerSync } from '@/hooks/viewer/use-viewer-sync'
 import type { ViewOptions } from '@/lib/viewer-state'
 import { headingFor, petThumb } from '@/lib/heading'
 import { skinDisplayName } from '@/lib/picker'
+import { hasItemPose } from '@/lib/viewer/camera-framing'
 import { selectionPath, skinKey, type Selection } from '@/lib/selection'
 
 interface ViewerPageProps {
@@ -183,6 +184,7 @@ export function ViewerPage({ selection }: ViewerPageProps) {
           onGloveGameLight={setGloveGameLight}
           spin={view.spin}
           isWeapon={isWeapon}
+          posed={!!item && hasItemPose(item.id.split('|')[0])}
           isGlove={selection.kind === 'skin' && item?.style === 'glove'}
           firstPerson={state.firstPerson}
           palmUp={view.palmUp}

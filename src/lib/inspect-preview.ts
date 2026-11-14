@@ -1,7 +1,7 @@
 import type { Db } from '@/lib/db'
 import type { AttachmentIndex } from '@/lib/data/attachments'
 import type { AgentIndex } from '@/lib/data/agents'
-import type { CatalogIndex } from '@/lib/data/catalog'
+import { isVanilla, vanillaImage, type CatalogIndex } from '@/lib/data/catalog'
 import { inspectKind, type InspectItem, type InspectKind, type InspectSticker } from '@/lib/data/inspect'
 import { variantName } from '@/lib/picker'
 import { getColorByRarity, rarityName, rarityOf } from '@/lib/rarity'
@@ -23,6 +23,7 @@ export interface InspectPreview {
   title: string
   weapon: string
   finish: string
+  vanilla?: boolean
   image?: string
   /** In-game rarity (1 Consumer … 7 Contraband), when known, and its name for this kind of item. */
   rarity: number | null
@@ -97,10 +98,11 @@ export function inspectPreview(link: InspectItem, catalog: CatalogIndex | null, 
   const rarity = rarityOf(link.rarity || db.skin(link.defindex, link.paintindex).rarity, skin?.rarity) ?? null
   return {
     kind,
-    title: `${weapon} | ${finish}`,
+    title: skin && isVanilla(skin) ? weapon : `${weapon} | ${finish}`,
     weapon,
     finish,
-    image: db.skin(link.defindex, link.paintindex).image,
+    vanilla: !!skin && isVanilla(skin),
+    image: db.skin(link.defindex, link.paintindex).image ?? (skin && isVanilla(skin) ? vanillaImage(skin.item) : undefined),
     rarity,
     rarityLabel: rarity ? rarityName(rarity, 'skin') : null,
     color: getColorByRarity(rarity) ?? GREY,

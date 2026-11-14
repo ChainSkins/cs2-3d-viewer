@@ -122,10 +122,12 @@ export function Sidebar({ viewmodel, onViewmodel, collapsed, onToggleCollapsed, 
 
         {isSkin && item && (
           <>
-            <div className={cn(only('finish'), tab === 'finish' && 'max-lg:flex max-lg:flex-col')}>
-              <FloatSection item={item} float={clampFloat(item, state.float ?? DEFAULT_FLOAT)} onChange={state.setFloat} />
-              <PatternSection seed={state.seed} onChange={state.setSeed} fade={fadeForItem(item, state.seed)} />
-            </div>
+            {!(item.style === 'bare' && item.styleName === 'Vanilla') && (
+              <div className={cn(only('finish'), tab === 'finish' && 'max-lg:flex max-lg:flex-col')}>
+                <FloatSection item={item} float={clampFloat(item, state.float ?? DEFAULT_FLOAT)} onChange={state.setFloat} />
+                <PatternSection seed={state.seed} onChange={state.setSeed} fade={fadeForItem(item, state.seed)} />
+              </div>
+            )}
             <div className={only('stickers')}>
             <AttachmentsSection
               markup={markupFor(item)}
