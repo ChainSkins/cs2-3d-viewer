@@ -11,14 +11,16 @@ import type { InspectPreview } from '@/lib/inspect-preview'
 export function SkinDetails({ preview }: { preview: InspectPreview }) {
   return (
     <>
-      <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-        <Section title="Float" icon={Gauge}>
-          <FloatBar float={preview.float} wear={preview.wear} min={preview.floatMin} max={preview.floatMax} />
-        </Section>
-        <Section title="Pattern" icon={KeyRound}>
-          <PatternWell value={preview.seed} />
-        </Section>
-      </div>
+      {!preview.vanilla && (
+        <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+          <Section title="Float" icon={Gauge}>
+            <FloatBar float={preview.float} wear={preview.wear} min={preview.floatMin} max={preview.floatMax} />
+          </Section>
+          <Section title="Pattern" icon={KeyRound}>
+            <PatternWell value={preview.seed} />
+          </Section>
+        </div>
+      )}
 
       {preview.stickers.length > 0 && (
         <Section title="Stickers" icon={Sticker} aside={<span className="text-[11px] tabular-nums text-muted-foreground">{preview.stickers.length}</span>}>

@@ -5,7 +5,7 @@ import type { PetIndex } from '@/lib/data/pets'
 import type { PinIndex } from '@/lib/data/pins'
 import type { AttachmentIndex } from '@/lib/data/attachments'
 import { ASSET_BASE } from '@/lib/config'
-import { isPorted, styleName, VIEWER_DATA, type CatalogIndex, type CatalogSkin } from '@/lib/data/catalog'
+import { isPorted, isVanilla, styleName, vanillaImage, VIEWER_DATA, type CatalogIndex, type CatalogSkin } from '@/lib/data/catalog'
 import { rarityColor, rarityOf } from '@/lib/rarity'
 import { skinKey, type Selection } from '@/lib/selection'
 
@@ -39,6 +39,7 @@ export const CATEGORIES: PickerCategory[] = [
   { label: 'Pins', icon: 'pin', image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXQ9Q1LO5kNoBhSQl-fROuh28rQR1R2KQFoprOrFA9vxP-GcjxH7YS1kdLSwa6na77Vk2oDsJEk2r6Vo97w3gXg-kQ_NmCmd9OSIBh-Pw8cFMO2NA' },
   { label: 'Pets', icon: 'pet', image: 'pet' },
   { label: 'Agents', icon: 'agent', image: 'https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXA6Q1NL4kmrAlOA0_FVPCi2t_fUkRxNztUoreaLQVp7OXJYzRD4si02tHSlKatNe-GxzoB68cgiezCrYnwjFbs-hE6amjwIYKSdlM2YV6E_1WggbC4kdowLd4/256fx192f' },
+  { label: 'Others', types: ['C4'], icon: 'cube', image: 'weapon_49' },
 ]
 
 export const categoryImageUrl = (image: string) => (/^https?:\/\//.test(image) ? image : `${import.meta.env.BASE_URL}icons/categories/${image}.png`)
@@ -282,7 +283,8 @@ const skinGroups = (catalog: CatalogIndex | null, filters: GroupFilters, score: 
       cards: list.sort((a, b) => b.score - a.score || variantName(a.skin).localeCompare(variantName(b.skin))).map(({ skin }) => ({
         key: 'skin:' + skinKey(skin), selection: { kind: 'skin', item: skin.item, kit: skin.kit }, title: variantName(skin),
         subtitle: styleName(skin) + (isPorted(skin) ? '' : ' · not ported'), color: rarityColor(db.skin(catalog!.items[skin.item].defindex, skin.paintIndex).rarity, skin.rarity, '#71717a'),
-        ported: isPorted(skin), meta: `${skin.floatMin}–${skin.floatMax}`, icon: db.skin(catalog!.items[skin.item].defindex, skin.paintIndex).image,
+        ported: isPorted(skin), meta: isVanilla(skin) ? catalog!.items[skin.item].type : `${skin.floatMin}–${skin.floatMax}`,
+        icon: db.skin(catalog!.items[skin.item].defindex, skin.paintIndex).image ?? (isVanilla(skin) ? vanillaImage(skin.item) : undefined),
         rarity: rarityOf(db.skin(catalog!.items[skin.item].defindex, skin.paintIndex).rarity, skin.rarity) ?? null,
       })),
     },

@@ -11,11 +11,26 @@ export type KnifePose = 'vertical' | 'horizontal' | 'tilted'
 /** How far a knife (modelled upright) leans over for each pose. */
 const KNIFE_TILT: Record<KnifePose, number> = { vertical: 0, tilted: 0.95, horizontal: Math.PI / 2 }
 
+const ITEM_POSES: Record<string, THREE.Quaternion> = {
+  weapon_c4: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 1).normalize(), Math.PI),
+}
+
+export const hasItemPose = (name: string): boolean => name in ITEM_POSES
+
+const CHARM_FACING = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI / 2)
+
 /** Center the model and put the camera at its side, far enough for it to fit. */
 export function frame(v: SkinViewer, root: THREE.Object3D, tiltUpright: boolean, lookX?: boolean): void {
   root.userData.framedFrom ??= { position: root.position.clone(), rotation: root.rotation.clone() }
+  const pose = ITEM_POSES[v.item?.id.split('|')[0] ?? '']
+  if (pose) {
+    root.quaternion.copy(pose)
+    root.updateMatrixWorld(true)
+    lookX ??= false
+  }
+  root.userData.charmTurn = pose ? pose.clone().invert().multiply(CHARM_FACING) : null
   let size = new THREE.Box3().setFromObject(root).getSize(new THREE.Vector3())
-  if (tiltUpright && size.y > Math.max(size.x, size.z)) {
+  if (!pose && tiltUpright && size.y > Math.max(size.x, size.z)) {
     const angle = v.isKnife() ? KNIFE_TILT[v.knifePose] : 0.95
     if (size.x <= size.z) root.rotation.x = -angle
     else root.rotation.z = angle
@@ -95,6 +110,8 @@ export function updateFixedInspect(v: SkinViewer): void {
     v.fixed.enter(scene3d, 'weapon_glock', { radius: v.agentShown ? v.fit.size.y * 0.4 : (v.fit.size.length() / 2) * (v.petRig ? petView(v.petRig.model.glb).room : v.framedShown ? PIN_VIEW.room : 1), sunOnly: !!v.standalone, face: !v.standalone?.parts, turn: v.petRig ? petView(v.petRig.model.glb).turn : v.framedShown ? PIN_VIEW.turn : 0, studio: glove && !v.agentShown && !v.standalone ? studio : undefined },
       /** The game's rig by its inspect scene: a charm or sticker (1), an agent (none), a pet (9), a display item (3), gloves (7). */
       v.standalone ? (v.standalone.parts ? 'charm' : 'small') : v.agentShown ? 'character' : v.petRig ? 'pet' : v.framedShown ? 'display' : 'gloves')
+  } else if (ITEM_POSES[v.item!.id.split('|')[0]] && v.fit) {
+    v.fixed.enter(scene3d, v.item!.id.split('|')[0], { radius: v.fit.size.length() / 2, face: true, studio })
   } else if (/knife|bayonet/.test(v.item!.id.split('|')[0]) && v.fit) {
     v.fixed.enter(scene3d, 'weapon_glock', { radius: v.fit.size.length() / 2, studio }, 'knife')
   } else {

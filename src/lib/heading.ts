@@ -8,7 +8,7 @@ import type { Item } from '@/lib/data/items'
 import type { CatalogIndex } from '@/lib/data/catalog'
 import type { Db } from '@/lib/db'
 import { ASSET_BASE } from '@/lib/config'
-import { VIEWER_DATA } from '@/lib/data/catalog'
+import { VIEWER_DATA, isVanilla, vanillaImage } from '@/lib/data/catalog'
 import { STICKER_KIND, stickerKindOf, variantName } from '@/lib/picker'
 import { rarityColor } from '@/lib/rarity'
 import type { Selection } from '@/lib/selection'
@@ -67,14 +67,14 @@ export function headingFor(selection: Selection, item: Item | null, skin: Catalo
     return { over: faction ?? 'Agent', title, chips: [agent?.team === 't' ? 'Terrorist' : 'Counter-Terrorist', 'Agent'], color, icon: agent ? db.agent(agent.index).image : undefined }
   }
   const color = rarityColor(skin ? db.skin(catalog?.items[skin.item]?.defindex, skin.paintIndex).rarity : undefined, skin?.rarity, '#71717a')
-  const icon = skin ? db.skin(catalog?.items[skin.item]?.defindex, skin.paintIndex).image : undefined
+  const icon = skin ? db.skin(catalog?.items[skin.item]?.defindex, skin.paintIndex).image ?? (isVanilla(skin) ? vanillaImage(skin.item) : undefined) : undefined
   if (!item) return { over: skin ? '' : selection.item, title: skin ? variantName(skin) : selection.kit, chips: [], color, icon }
   const [weapon, baseFinish = ''] = item.title.split(' | ')
   const subtitle = item.subtitle.split(' · ')
   return {
     over: weapon,
     title: skin ? variantName(skin) : baseFinish,
-    chips: [subtitle[0], item.style === 'bare' ? item.styleName + ' · not ported yet' : subtitle[1] ?? STYLE_LABEL[item.style]],
+    chips: [subtitle[0], item.style === 'bare' ? (item.styleName === 'Vanilla' ? 'Vanilla' : item.styleName + ' · not ported yet') : subtitle[1] ?? STYLE_LABEL[item.style]],
     color,
     icon,
   }

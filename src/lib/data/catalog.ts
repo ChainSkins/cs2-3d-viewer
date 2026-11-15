@@ -1,3 +1,4 @@
+import { ASSET_BASE } from '@/lib/config'
 import type { Item, PaintParams, Rgb, Vec4 } from '@/lib/data/items'
 import type { Vmat } from '@/lib/materials/glove'
 
@@ -17,7 +18,7 @@ export interface CatalogSkin {
   rarity: string | null
   floatMin: number
   floatMax: number
-  render: string
+  render: string | null
 }
 
 export interface CatalogIndex {
@@ -133,11 +134,15 @@ export const STYLE_NAMES: Record<number, string> = {
 /** Styles the viewer renders (the rest show the bare weapon for now). */
 export const PORTED_STYLES = new Set([0, 1, 2, 3, 4, 5, 6, 7, 8])
 
+export const isVanilla = (s: { shader: string | null }) => s.shader === 'vanilla'
+
+export const vanillaImage = (item: string) => `${ASSET_BASE}${VIEWER_DATA}others/${item}.png`
+
 export const styleName = (s: { style: number | null; shader: string | null }) =>
-  s.shader === 'csgo_customglove.vfx' ? 'Gloves' : s.style !== null ? STYLE_NAMES[s.style] ?? `Style ${s.style}` : 'Unknown'
+  s.shader === 'csgo_customglove.vfx' ? 'Gloves' : isVanilla(s) ? 'Vanilla' : s.style !== null ? STYLE_NAMES[s.style] ?? `Style ${s.style}` : 'Unknown'
 
 export const isPorted = (s: { style: number | null; shader: string | null }) =>
-  s.shader === 'csgo_customglove.vfx' || (s.style !== null && PORTED_STYLES.has(s.style))
+  s.shader === 'csgo_customglove.vfx' || isVanilla(s) || (s.style !== null && PORTED_STYLES.has(s.style))
 
 const cache = new Map<string, Promise<unknown>>()
 function json<T>(base: string, path: string): Promise<T> {
@@ -208,8 +213,8 @@ function buildItem(item: ItemData, kit: KitData, seed = 1, only?: DrawCall): Ite
   const t = kit.textures
   const common = {
     id: `${item.name}|${kit.name}`,
-    title: `${item.displayName} | ${kit.displayName}`,
-    subtitle: `Paint kit ${kit.index} · ${styleName(kit)} · float ${kit.floatMin} – ${kit.floatMax}`,
+    title: isVanilla(kit) ? item.displayName : `${item.displayName} | ${kit.displayName}`,
+    subtitle: isVanilla(kit) ? `${item.type} · Vanilla` : `Paint kit ${kit.index} · ${styleName(kit)} · float ${kit.floatMin} – ${kit.floatMax}`,
     floatMin: kit.floatMin, floatMax: kit.floatMax, seed,
     model: GAME_ROOT + item.glb,
   }

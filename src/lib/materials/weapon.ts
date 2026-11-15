@@ -65,7 +65,64 @@ export function texXform(s: number, rotDeg: number, offset: [number, number]): [
  * every current paint sets g_bIgnoreWeaponSizeScale). */
 const placementXform = (p: Placement, uvScale: number, ignore: boolean) => patternXform(p.scale, p.rot, p.offset, uvScale, ignore)
 
+export const RAIN = { uRainWet: { value: 0 }, uRainTime: { value: 0 }, uDroplets: { value: null as THREE.Texture | null } }
+
+const RAIN_START_GLSL = `
+          if (uRainWet > 0.0) {
+            vec2 rdu = dFdx(vMapUv), rdv = dFdy(vMapUv);
+            vec3 rpx = dFdx(vViewPosition), rpy = dFdy(vViewPosition);
+            float rDensity = abs(rdu.x * rdv.y - rdu.y * rdv.x) / max(length(cross(rpx, rpy)) * 1550.0, 1e-20);
+            vec2 ruv = vMapUv * 2.5 * (rDensity < 0.002 ? 3.0 : 1.0);
+            vec4 rD = texture2D(uDroplets, ruv);
+            gRainN = rD.xy * 2.0 - 1.0;
+            gRainN.y = -gRainN.y;
+            gRainMask = rD.w;
+            gRainPhase = rD.z + vRainObjX * 0.01;
+            vec3 rUp = normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz);
+            gRainAct = clamp((uRainWet * 0.25 - fract(gRainPhase + uRainTime * 0.1)) * 5.0 / (uRainWet + 0.001), 0.0, 1.0)
+              * clamp((dot(normalize(vNormal), rUp) + 0.75) * 4.0, 0.0, 1.0);
+            gRainOff = gRainN * -0.02 * gRainAct * gRainMask;
+          }
+          vec2 gRainMapUv = vMapUv + gRainOff;
+          #define vMapUv gRainMapUv
+          vec2 gRainPaintUv = vPaintUv + gRainOff;
+          #define vPaintUv gRainPaintUv
+          #ifdef USE_NORMALMAP
+            vec2 gRainNormalUv = vNormalMapUv + gRainOff;
+            #define vNormalMapUv gRainNormalUv
+          #endif
+          #ifdef USE_ROUGHNESSMAP
+            vec2 gRainRoughUv = vRoughnessMapUv + gRainOff;
+            #define vRoughnessMapUv gRainRoughUv
+          #endif
+          #ifdef USE_METALNESSMAP
+            vec2 gRainMetalUv = vMetalnessMapUv + gRainOff;
+            #define vMetalnessMapUv gRainMetalUv
+          #endif
+          #ifdef USE_AOMAP
+            vec2 gRainAoUv = vAoMapUv + gRainOff;
+            #define vAoMapUv gRainAoUv
+          #endif`
+
+const RAIN_SURFACE_GLSL = `
+          if (uRainWet > 0.0) {
+            float rT1 = clamp(uRainWet, 0.0, 1.0);
+            float rMetal = clamp((metalnessFactor - 0.75) * 4.0, 0.0, 1.0);
+            float rDarken = clamp(gRainAct * gRainMask + rT1 * 0.5, 0.0, 1.0) * (rMetal * 0.75 + 0.25) * rT1;
+            float rDrop = gRainAct * (1.0 - rMetal);
+            float rD2 = rDrop * gRainMask;
+            diffuseColor.rgb = mix(diffuseColor.rgb, pow(diffuseColor.rgb, vec3(1.6)) * 0.6, rDarken);
+            float rGloss = clamp(rD2 * 4.0 + (cos((gRainPhase + uRainTime * 0.2) * 6.28318) * 0.5 + 0.5) * rT1 * 0.2 + uRainWet * 0.4, 0.0, 1.0);
+            roughnessFactor = mix(roughnessFactor, 0.1, aoIn.r * rGloss);
+            vec3 rDropN = nonPerturbedNormal;
+            #ifdef USE_NORMALMAP_TANGENTSPACE
+              rDropN = normalize(tbn * vec3(gRainN, sqrt(1.0 - clamp(dot(gRainN, gRainN), 0.0, 1.0))));
+            #endif
+            normal = normalize(mix(normalize(mix(nonPerturbedNormal, normal, 1.0 + rDarken * 1.5)), rDropN, rDrop));
+          }`
+
 /** vmat colors are sRGB; the shader's g_vColorN = SrgbGammaToLinear(color) (its parameter expression). */
+
 const linearColor = (c: Rgb) => new THREE.Color().setRGB(...c, THREE.SRGBColorSpace)
 
 export class WeaponFinish {
@@ -132,7 +189,7 @@ export class WeaponFinish {
     this.material = new THREE.MeshPhysicalMaterial({
       specularIntensity: 0.5,
       map: tex.base, normalMap: tex.normal, aoMap: srcRough ? null : tex.orm,
-      roughnessMap: srcRough ? tex.rough : tex.orm, metalnessMap: srcRough ? tex.rough : tex.orm,
+      roughnessMap: srcRough ? tex.rough : tex.orm,
       roughness: 1, metalness: 1,
     })
 
@@ -141,20 +198,23 @@ export class WeaponFinish {
     const debugExpr = DEBUG_EXPR[debug] ?? (style === 'airbrush' ? AIRBRUSH_DEBUG_EXPR[debug] : undefined) ?? '0.0'
 
     this.material.onBeforeCompile = (shader) => {
-      Object.assign(shader.uniforms, this.u)
+      Object.assign(shader.uniforms, this.u, RAIN)
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', `#include <common>
           attribute vec2 uvPaint;
           attribute vec2 uvSticker;
           varying vec2 vPaintUv;
           varying vec2 vStickerUv;
-          varying vec3 vObjN;`)
+          varying vec3 vObjN;
+          varying float vRainObjX;`)
         .replace('#include <beginnormal_vertex>', `#include <beginnormal_vertex>
-          vObjN = normal; // the mesh's own (bind pose) axes, before skinning`)
+          vObjN = normal; // the mesh's own (bind pose) axes, before skinning
+          vRainObjX = position.z / 0.0254;`)
         .replace('#include <uv_vertex>', `#include <uv_vertex>
           vPaintUv = uvPaint;
           vStickerUv = uvSticker;`)
       shader.fragmentShader = shader.fragmentShader
+        .replace('void main() {', 'void main() {' + RAIN_START_GLSL)
         .replace('#include <common>', `#include <common>
           uniform sampler2D uPaint; uniform sampler2D uWear; uniform sampler2D uGrunge; uniform sampler2D uAo;
           uniform sampler2D uMasks; uniform sampler2D uPos;
@@ -166,6 +226,9 @@ export class WeaponFinish {
           uniform float uPearl; uniform float uIrid; uniform float uIridScale; uniform float uIridStrength; uniform float uIridHue;
           uniform float uGlitter; uniform float uGlitterScale; uniform float uGlitterSpread; uniform float uGlitterBalance;
           uniform sampler2D uGlitterNormal;
+          uniform float uRainWet; uniform float uRainTime; uniform sampler2D uDroplets;
+          varying float vRainObjX;
+          vec2 gRainN = vec2(0.0); vec2 gRainOff = vec2(0.0); float gRainMask = 0.0; float gRainPhase = 0.0; float gRainAct = 0.0;
           vec3 gGlitter = vec3(0.0);
           float gPearlMask = 0.0;
           ${COMPOSITE_ROUGH_GLSL}
@@ -191,7 +254,7 @@ export class WeaponFinish {
         .replace('#include <map_fragment>', `
           vec4 baseCol = texture2D(map, vMapUv);             // the bare weapon
           // Its metalness: Source "rough" texture G, or the glTF ORM's B.
-          float baseMetal = texture2D(metalnessMap, vMetalnessMapUv).${srcRough ? 'g' : 'b'};
+          float baseMetal = texture2D(roughnessMap, vRoughnessMapUv).${srcRough ? 'g' : 'b'};
           float baseRough = texture2D(roughnessMap, vRoughnessMapUv).${srcRough ? 'r' : 'g'};
           float wearTex = xfTex(uWear, vPaintUv, uWearX0, uWearX1).r;
           vec4 grunge = xfTex(uGrunge, vPaintUv, uGrungeX0, uGrungeX1);
@@ -275,7 +338,8 @@ export class WeaponFinish {
             diffuseColor.rgb *= mix(1.0 + k * 2.5, 1.0, smoothstep(0.0, 0.8, dot(diffuseColor.rgb, Lw)));
             roughnessFactor *= 1.0 - k * 0.25;
             metalnessFactor = max(metalnessFactor, k * 0.5 * gAmt);
-          }`)
+          }
+          ${RAIN_SURFACE_GLSL}`)
         .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
           // (the game scales the sparkles by the diffuse lighting there; roughly the scene's here)
           totalEmissiveRadiance += gGlitter * 0.8 + gStickerEmissive * 2.5;`)
@@ -298,10 +362,12 @@ export class WeaponFinish {
           roughnessFactor = gRoughOv >= 0.0 ? gRoughOv : mix(roughnessFactor, gPaintRough, gPaint);
           roughnessFactor = mix(roughnessFactor, gStickerRough, gSticker);`)
         .replace('#include <metalnessmap_fragment>', `#include <metalnessmap_fragment>
-          ${srcRough ? 'metalnessFactor = texture2D(metalnessMap, vMetalnessMapUv).g;' : ''}
+          #ifdef USE_ROUGHNESSMAP
+            metalnessFactor = texture2D(roughnessMap, vRoughnessMapUv).${srcRough ? 'g' : 'b'};
+          #endif
           metalnessFactor = gMetalOv >= 0.0 ? gMetalOv : mix(metalnessFactor, gMetalPaint, gPaint);
           metalnessFactor = mix(metalnessFactor, gStickerMetal, gSticker);
-          ${debug === 19 || debug === 20 ? `gDbgRgb = vec3(texture2D(${debug === 19 ? 'roughnessMap, vRoughnessMapUv).r' : 'metalnessMap, vMetalnessMapUv).g'});` : ''}
+          ${debug === 19 || debug === 20 ? `gDbgRgb = vec3(texture2D(${debug === 19 ? 'roughnessMap, vRoughnessMapUv).r' : 'roughnessMap, vRoughnessMapUv).g'});` : ''}
           ${debug === 24 ? 'gDbgRgb = vec3(metalnessFactor);' : debug === 25 ? 'gDbgRgb = vec3(roughnessFactor);' : ''}
           ${debug ? 'metalnessFactor = 0.0; roughnessFactor = 1.0;' : ''}`)
     }

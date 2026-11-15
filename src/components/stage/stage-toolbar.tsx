@@ -11,6 +11,7 @@ export interface StageToolbarProps {
   spin: boolean
   isWeapon: boolean
   isGlove: boolean
+  posed?: boolean
   firstPerson: boolean
   palmUp: boolean
   canInspect: boolean
@@ -32,10 +33,10 @@ export interface StageToolbarProps {
 
 const DIVIDER = <span aria-hidden className="mx-0.5 hidden h-5 w-px shrink-0 bg-ink/10 sm:block" />
 
-export function StageToolbar({ spin, isWeapon, isGlove, firstPerson, palmUp, canInspect, canInspectGloves, attacks, stats, showingBack, onSide, knifePose, onKnifePose, onToggleSpin, onToggleFirstPerson, onTogglePalmUp, onInspect, onInspectGloves, onAttack, onScreenshot }: StageToolbarProps) {
+export function StageToolbar({ spin, isWeapon, isGlove, posed = false, firstPerson, palmUp, canInspect, canInspectGloves, attacks, stats, showingBack, onSide, knifePose, onKnifePose, onToggleSpin, onToggleFirstPerson, onTogglePalmUp, onInspect, onInspectGloves, onAttack, onScreenshot }: StageToolbarProps) {
   const inFirstPerson = firstPerson && isWeapon
   // Only a weapon, knife or gloves has a side and a pose worth turning to, and not from first person.
-  const turnable = (isWeapon || isGlove) && !inFirstPerson
+  const turnable = (isWeapon || isGlove) && !inFirstPerson && !posed
   const hint = inFirstPerson
     ? [canInspect && 'F to inspect', attacks.length && 'click or Space to fire'].filter(Boolean).join(' · ')
     : 'Drag to rotate · scroll to zoom'
@@ -66,7 +67,7 @@ export function StageToolbar({ spin, isWeapon, isGlove, firstPerson, palmUp, can
           </>
         )}
         <ToolButton icon={RotateCw} label="Auto-rotate" pressed={spin} disabled={inFirstPerson} iconClassName={cn(spin && !inFirstPerson && 'animate-spin [animation-duration:3s]')} onClick={onToggleSpin} />
-        {isWeapon && <ToolButton icon={Eye} label="First person (V)" pressed={firstPerson} onClick={onToggleFirstPerson} />}
+        {isWeapon && !posed && <ToolButton icon={Eye} label="First person (V)" pressed={firstPerson} onClick={onToggleFirstPerson} />}
         {inFirstPerson && canInspect && <ToolButton icon={ScanSearch} label="Inspect (F)" onClick={onInspect} />}
         {inFirstPerson && attacks.length > 0 && <ToolButton icon={Crosshair} label="Fire (click · Space)" onClick={() => onAttack()} />}
         {inFirstPerson && attacks.length > 1 && <AttackMenu attacks={attacks} onAttack={onAttack} />}

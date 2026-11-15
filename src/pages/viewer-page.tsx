@@ -29,6 +29,7 @@ import { useViewerSync } from '@/hooks/viewer/use-viewer-sync'
 import type { ViewOptions } from '@/lib/viewer-state'
 import { headingFor, petThumb } from '@/lib/heading'
 import { skinDisplayName } from '@/lib/picker'
+import { hasItemPose } from '@/lib/viewer/camera-framing'
 import { selectionPath, skinKey, type Selection } from '@/lib/selection'
 
 interface ViewerPageProps {
@@ -59,8 +60,6 @@ export function ViewerPage({ selection }: ViewerPageProps) {
     setSheetOpen(false)
   }
   const togglePanel = () => setPanelCollapsed((prev) => !prev)
-  const [gloveGameLight, setGloveGameLight] = useLocalStorage('glove-game-light', true)
-  useEffect(() => { viewer?.setGloveGameLight(gloveGameLight) }, [viewer, gloveGameLight])
 
   useViewerSync(viewer, selection, item, status, state, view)
 
@@ -179,10 +178,9 @@ export function ViewerPage({ selection }: ViewerPageProps) {
           mapLighting={mapLighting}
           onMapLighting={setMapLighting}
           readRenderStatus={readRenderStatus}
-          gloveGameLight={selection.kind === 'skin' && item?.style === 'glove' && !!lighting.map && !IS_MOBILE_DEVICE ? gloveGameLight : null}
-          onGloveGameLight={setGloveGameLight}
           spin={view.spin}
           isWeapon={isWeapon}
+          posed={!!item && hasItemPose(item.id.split('|')[0])}
           isGlove={selection.kind === 'skin' && item?.style === 'glove'}
           firstPerson={state.firstPerson}
           palmUp={view.palmUp}

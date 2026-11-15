@@ -350,15 +350,19 @@ export class WeaponAttachments {
       const start = position ? new THREE.Vector3(...position) : home
       const target = start.clone().add(new THREE.Vector3(offset[0], 0, offset[1]))
       const hit = snapToAnchors(quads, target, center)
-      const facesAway = hit.normal.y < 0
+      const turn = root.userData.charmTurn as THREE.Quaternion | null | undefined
+      const facesAway = !turn && hit.normal.y < 0
       const anchor = hit.point.clone().addScaledVector(hit.normal, halfRing)
       const toDrawn = modelToMesh ?? (mesh instanceof THREE.SkinnedMesh ? fitSkinning(mesh, anchor) : new THREE.Matrix4())
-      base.copy(toDrawn)
+      hangAt.copy(anchor).applyMatrix4(modelToMesh ?? new THREE.Matrix4())
+      base.copy(turn
+        ? new THREE.Matrix4().makeTranslation(hangAt).multiply(new THREE.Matrix4().makeRotationFromQuaternion(turn)).multiply(new THREE.Matrix4().makeTranslation(hangAt.clone().negate()))
+        : new THREE.Matrix4())
+        .multiply(toDrawn)
         .multiply(new THREE.Matrix4().makeTranslation(anchor))
         .multiply(new THREE.Matrix4().makeRotationZ(facesAway ? Math.PI : 0))
         .multiply(new THREE.Matrix4().makeTranslation(top.clone().negate()))
         .multiply(toWeapon)
-      hangAt.copy(anchor).applyMatrix4(modelToMesh ?? new THREE.Matrix4())
       settle()
     }
     const placeAgain: typeof place = (offset, position) => { place(offset, position); swing?.reset() }
